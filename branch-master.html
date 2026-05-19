@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branch Master</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f4f8;--surface:#ffffff;--surface2:#e8edf2;--border:#d0d7e0;
+  --accent:#2563eb;--success:#16a34a;--danger:#dc2626;
+  --text:#1a202c;--text2:#4a5568;--text3:#8896a8;
+  --r:10px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── Login Screen ── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:linear-gradient(135deg,#e0e7ff 0%,#f0f4f8 50%,#dbeafe 100%);
+}
+.login-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:40px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(37,99,235,.1);
+}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-icon{
+  width:52px;height:52px;background:linear-gradient(135deg,#2563eb,#7c3aed);
+  border-radius:14px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:12px;
+}
+.login-title{font-size:22px;font-weight:600;letter-spacing:-.4px;color:var(--text);}
+.login-sub{font-size:12px;color:var(--text3);margin-top:4px;font-family:var(--mono);}
+.login-section{margin-bottom:16px;}
+.login-section label{display:block;font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;letter-spacing:.5px;}
+.login-section input{
+  width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:var(--sans);font-size:14px;padding:10px 12px;border-radius:8px;outline:none;
+  transition:border .15s;
+}
+.login-section input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.login-section.cfg label{color:var(--text3);font-size:10px;}
+.login-section.cfg input{font-family:var(--mono);font-size:12px;}
+.login-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.login-btn{
+  width:100%;padding:11px;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .15s;margin-top:4px;
+}
+.login-btn:hover{filter:brightness(1.1);}
+.login-btn:disabled{opacity:.6;cursor:not-allowed;}
+.login-error{
+  background:#fee2e2;border:1px solid #fca5a5;color:#b91c1c;
+  border-radius:7px;padding:9px 12px;font-size:13px;margin-top:12px;display:none;
+}
+.login-error.show{display:block;}
+.login-user-info{
+  background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;
+  padding:9px 12px;font-size:12px;color:#1d4ed8;margin-top:12px;
+  display:none;font-family:var(--mono);
+}
+.login-user-info.show{display:block;}
+
+/* ── Main App ── */
+#app{display:none;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-.3px;}
+.logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(37,99,235,.07);}
+.nav-item.logout{margin-top:auto;color:var(--danger);border-left-color:transparent;}
+.nav-item.logout:hover{background:#fee2e2;}
+.user-chip{margin:0 12px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.user-chip-name{font-size:13px;font-weight:500;color:var(--text);}
+.user-chip-id{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+
+.config-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.config-bar label{font-size:11px;color:var(--text3);font-family:var(--mono);white-space:nowrap;}
+.cfg-input{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:6px;outline:none;}
+.cfg-input:focus{border-color:var(--accent);}
+#inp-url{width:270px;}
+#inp-key{width:210px;}
+.btn{padding:7px 16px;border-radius:6px;border:none;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{filter:brightness(1.1);}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0;}
+.dot.on{background:var(--success);box-shadow:0 0 6px var(--success);}
+.debug-bar{background:#f8fafc;border-bottom:1px solid var(--border);padding:7px 24px;font-family:var(--mono);font-size:11px;color:var(--text3);display:none;}
+.debug-bar.show{display:block;}
+.debug-bar.err{color:#dc2626;}
+.debug-bar.ok{color:var(--success);}
+.content{flex:1;padding:24px;overflow-y:auto;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+.page-title{font-size:20px;font-weight:600;letter-spacing:-.4px;}
+.page-meta{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px;}
+.header-actions{display:flex;gap:8px;}
+.search-row{display:flex;gap:10px;margin-bottom:18px;align-items:center;}
+.search-wrap{position:relative;flex:1;max-width:360px;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);width:14px;height:14px;}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px 8px 32px;border-radius:var(--r);outline:none;}
+.search-input:focus{border-color:var(--accent);}
+.badge{font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--text3);padding:3px 8px;border-radius:20px;border:1px solid var(--border);}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;white-space:nowrap;}
+td{padding:11px 14px;border-bottom:1px solid rgba(208,215,224,.7);color:var(--text2);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr{transition:background .1s;cursor:pointer;}
+tbody tr:hover td{background:var(--surface2);color:var(--text);}
+.cp{color:var(--text)!important;font-weight:500;}
+.cm{font-family:var(--mono);font-size:12px;color:#1d4ed8!important;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-family:var(--mono);}
+.p-on{background:#dcfce7;color:#15803d;border:1px solid #86efac;}
+.p-off{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;}
+.p-y{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;}
+.p-n{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;}
+.action-cell{display:flex;gap:6px;}
+.ibtn{background:none;border:1px solid var(--border);color:var(--text3);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;transition:all .15s;}
+.ibtn:hover{border-color:var(--accent);color:var(--accent);}
+.ibtn.del:hover{border-color:var(--danger);color:var(--danger);}
+.empty-state{padding:48px;text-align:center;color:var(--text3);font-size:13px;}
+.overlay{position:fixed;inset:0;background:rgba(100,116,139,.4);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:800px;box-shadow:0 8px 32px rgba(0,0,0,.12);}
+.mh{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mt{font-size:16px;font-weight:600;}
+.ms{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.mc{background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;}
+.mc:hover{color:var(--text);}
+.mb{padding:24px;max-height:70vh;overflow-y:auto;}
+.mf{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.sec{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.fg.c3{grid-template-columns:1fr 1fr 1fr;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld.full{grid-column:1/-1;}
+.fl{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.fld input,.fld select,.fld textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px;border-radius:7px;outline:none;transition:border .15s;}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--accent);}
+.fld select option{background:var(--surface);}
+.fld textarea{resize:vertical;min-height:60px;}
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.vf{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 12px;}
+.vl{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.5px;margin-bottom:4px;}
+.vv{font-size:13px;color:var(--text);}
+.vv.nil{color:var(--text3);font-style:italic;}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px;animation:tIn .2s ease;min-width:240px;box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.toast.success{border-color:#86efac;}
+.toast.error{border-color:#fca5a5;}
+@keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle;}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">⬡</div>
+      <div class="login-title">Branch Master</div>
+      <div class="login-sub">sign in to continue</div>
+    </div>
+
+    <!-- Supabase config (hidden - credentials hardcoded) -->
+    <div style="display:none;">
+      <input id="cfg-url" type="text" value="https://fplmoyrqmhoaanvfsoni.supabase.co">
+      <input id="cfg-key" type="password" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js">
+    </div>
+
+    <hr class="login-divider" style="margin:0 0 16px;">
+
+    <div class="login-section">
+      <label>USER ID</label>
+      <input id="login-userid" type="text" placeholder="Enter your user ID" autocomplete="username">
+    </div>
+    <div class="login-section">
+      <label>PASSWORD</label>
+      <input id="login-pwd" type="password" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+
+    <div class="login-error" id="login-error"></div>
+    <div class="login-user-info" id="login-info"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="app">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-text">⬡ Branch Master</div>
+      <div class="logo-sub">supabase · postgres</div>
+    </div>
+    <!-- Logged-in user chip -->
+    <div class="user-chip" id="user-chip">
+      <div class="user-chip-name" id="user-fullname">—</div>
+      <div class="user-chip-id" id="user-id-display">—</div>
+    </div>
+    <div class="nav-item active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
+      All Branches
+    </div>
+    <div class="nav-item" onclick="openModal()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Branch
+    </div>
+    <div class="nav-item logout" onclick="doLogout()" style="margin-top:auto;">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/></svg>
+      Sign Out
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="config-bar">
+      <div class="dot on" id="dot"></div>
+      <span id="conn-msg" style="font-size:11px;font-family:var(--mono);color:var(--text3);"></span>
+    </div>
+
+    <div class="debug-bar" id="debug-bar"></div>
+
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Branch Master</div>
+          <div class="page-meta" id="page-meta">loading…</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost" onclick="loadBranches()">↻ Refresh</button>
+          <button class="btn btn-success" onclick="openModal()">+ New Branch</button>
+        </div>
+      </div>
+
+      <div class="search-row">
+        <div class="search-wrap">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+          <input class="search-input" id="search-box" placeholder="Search name, code, zone, state…" oninput="filterBranches()">
+        </div>
+        <span class="badge" id="count-badge">–</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>NAME</th><th>CODE</th><th>ZONE</th>
+              <th>STATE</th><th>PHONE</th><th>STATUS</th><th>BILLING</th><th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="9" class="empty-state"><span class="spin"></span> Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Form Modal -->
+<div class="overlay" id="form-modal">
+  <div class="modal">
+    <div class="mh">
+      <div><div class="mt" id="form-title">New Branch</div><div class="ms" id="form-sub"></div></div>
+      <button class="mc" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mb">
+      <input type="hidden" id="f-id">
+      <div class="sec">Identity</div>
+      <div class="fg c3">
+        <div class="fld"><label class="fl">Name *</label><input id="f-name" placeholder="Branch name"></div>
+        <div class="fld"><label class="fl">Login Code</label><input id="f-branch_code_for_login" placeholder="MUM01"></div>
+        <div class="fld"><label class="fl">Short Code</label><input id="f-short_code" placeholder="MUM"></div>
+        <div class="fld"><label class="fl">BR_NAME</label><input id="f-br_name"></div>
+        <div class="fld"><label class="fl">Zone Code</label><input id="f-zone_code"></div>
+        <div class="fld"><label class="fl">BS_AREA</label><input id="f-bs_area" type="number"></div>
+      </div>
+      <div class="sec">Location</div>
+      <div class="fg">
+        <div class="fld full"><label class="fl">Address</label><textarea id="f-address" rows="2"></textarea></div>
+        <div class="fld full"><label class="fl">Depot Address</label><textarea id="f-depot_address" rows="2"></textarea></div>
+        <div class="fld full"><label class="fl">Factory Address</label><textarea id="f-factory_address" rows="2"></textarea></div>
+        <div class="fld"><label class="fl">State</label><input id="f-state"></div>
+        <div class="fld"><label class="fl">Zone</label><input id="f-zone" maxlength="2"></div>
+      </div>
+      <div class="sec">Contact</div>
+      <div class="fg c3">
+        <div class="fld"><label class="fl">Phone</label><input id="f-phone"></div>
+        <div class="fld"><label class="fl">Email</label><input id="f-email" type="email"></div>
+        <div class="fld"><label class="fl">Accounts Email</label><input id="f-accounts_email" type="email"></div>
+        <div class="fld"><label class="fl">Factory Email</label><input id="f-factory_email" type="email"></div>
+        <div class="fld"><label class="fl">TIN</label><input id="f-tin"></div>
+        <div class="fld"><label class="fl">Holiday State ID</label><input id="f-holiday_state_id" type="number"></div>
+      </div>
+      <div class="sec">Email Groups</div>
+      <div class="fg">
+        <div class="fld full"><label class="fl">Veneer Enquiry Emails</label><input id="f-veneer_enq_email"></div>
+        <div class="fld full"><label class="fl">Warrior GC Emails</label><input id="f-warrior_gc_email"></div>
+        <div class="fld full"><label class="fl">Dashboard Emails</label><input id="f-branch_dashboard_email"></div>
+        <div class="fld full"><label class="fl">BM Certificate Emails</label><input id="f-bm_emailids_for_certificates"></div>
+        <div class="fld full"><label class="fl">Additional Emails</label><input id="f-addl_emails"></div>
+      </div>
+      <div class="sec">Flags &amp; Settings</div>
+      <div class="fg c3">
+        <div class="fld"><label class="fl">Status</label>
+          <select id="f-status"><option value="">--</option><option value="1">Active</option><option value="0">Inactive</option></select></div>
+        <div class="fld"><label class="fl">Active</label>
+          <select id="f-active"><option value="">--</option><option value="Y">Y</option><option value="N">N</option></select></div>
+        <div class="fld"><label class="fl">Sales Tag</label>
+          <select id="f-sales_tag"><option value="">--</option><option value="Y">Y</option><option value="N">N</option></select></div>
+        <div class="fld"><label class="fl">Review Upload</label>
+          <select id="f-review_upload"><option value="">--</option><option value="Allowed">Allowed</option><option value="Not Allowed">Not Allowed</option></select></div>
+        <div class="fld"><label class="fl">Is Billing Branch</label>
+          <select id="f-is_billing_branch"><option value="">--</option><option value="Y">Y</option><option value="N">N</option></select></div>
+        <div class="fld"><label class="fl">Billing BS Area</label><input id="f-billing_branch_bs_area" type="number"></div>
+        <div class="fld"><label class="fl">Branch Group</label><input id="f-branch_group" maxlength="1"></div>
+        <div class="fld"><label class="fl">BR Area</label><input id="f-br_area" type="number"></div>
+        <div class="fld"><label class="fl">BM User IDs</label><input id="f-bm_user_ids"></div>
+        <div class="fld"><label class="fl">Godown User IDs</label><input id="f-godown_user_ids"></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-success" id="save-btn" onclick="saveBranch()">Save Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div class="overlay" id="view-modal">
+  <div class="modal">
+    <div class="mh">
+      <div><div class="mt" id="view-title">Branch Details</div><div class="ms" id="view-sub"></div></div>
+      <button class="mc" onclick="closeView()">✕</button>
+    </div>
+    <div class="mb" id="view-body"></div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeView()">Close</button>
+      <button class="btn btn-primary" id="view-edit-btn">✎ Edit</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+let sb = null;
+let allRows = [];
+let editingId = null;
+let currentUser = null;
+
+// ─────────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────────
+async function doLogin() {
+  const url  = 'https://fplmoyrqmhoaanvfsoni.supabase.co';
+  const key  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js';
+  const uid  = document.getElementById('login-userid').value.trim();
+  const pwd  = document.getElementById('login-pwd').value;
+
+  const errEl  = document.getElementById('login-error');
+  const infoEl = document.getElementById('login-info');
+  const btn    = document.getElementById('login-btn');
+
+  errEl.className  = 'login-error';
+  infoEl.className = 'login-user-info';
+
+  if (!uid)         { showLoginErr('Please enter your User ID.'); return; }
+  if (!pwd)         { showLoginErr('Please enter your password.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Signing in…';
+
+  try {
+    // Create client
+    sb = supabase.createClient(url, key, { auth: { persistSession: false } });
+
+    // Query users table
+    const { data, error } = await sb
+      .from('users')
+      .select('id, userid, fname, lname, email, status, pwd_old')
+      .eq('userid', uid)
+      .limit(1);
+
+    if (error) {
+      showLoginErr('Database error: ' + error.message);
+      sb = null;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      showLoginErr('User ID not found. Please check and try again.');
+      return;
+    }
+
+    const user = data[0];
+
+    // Check password
+    if (user.pwd_old !== pwd) {
+      showLoginErr('Incorrect password. Please try again.');
+      return;
+    }
+
+    // Check status — must be 1 (Active)
+    if (user.status != 1) {
+      showLoginErr('Your account is inactive. Please contact your administrator.');
+      return;
+    }
+
+    // ✓ Login success
+    currentUser = user;
+    const fullName = [user.fname, user.lname].filter(Boolean).join(' ') || user.userid;
+    infoEl.textContent = '✓ Signed in as ' + fullName;
+    infoEl.className = 'login-user-info show';
+
+    // Update sidebar user chip
+    document.getElementById('user-fullname').textContent = fullName;
+    document.getElementById('user-id-display').textContent = user.userid;
+
+    // Short delay then switch screens
+    setTimeout(function() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadBranches();
+    }, 600);
+
+  } catch(e) {
+    showLoginErr('Connection failed: ' + e.message);
+    sb = null;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.className = 'login-error show';
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = 'Sign In';
+}
+
+function doLogout() {
+  if (!confirm('Sign out?')) return;
+  sb = null;
+  currentUser = null;
+  allRows = [];
+  // Clear sensitive fields
+  document.getElementById('login-pwd').value = '';
+  document.getElementById('login-userid').value = '';
+  document.getElementById('login-error').className = 'login-error';
+  document.getElementById('login-info').className = 'login-user-info';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// Allow Enter key on login fields
+['login-userid','login-pwd'].forEach(function(id) {
+  document.getElementById(id).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+// ─────────────────────────────────────────────
+// BRANCHES
+// ─────────────────────────────────────────────
+async function loadBranches() {
+  if (!sb) return;
+  setMsg('Loading…', '');
+  showDebug('Querying: SELECT * FROM branch ORDER BY id ASC', '');
+  document.getElementById('tbody').innerHTML =
+    '<tr><td colspan="9" class="empty-state"><span class="spin"></span> Loading…</td></tr>';
+
+  const { data, error, status } = await sb
+    .from('branch')
+    .select('*')
+    .order('id', { ascending: true });
+
+  if (error) {
+    const msg = 'HTTP ' + status + ' — ' + error.message + ' (code: ' + error.code + ')';
+    setMsg('Error — see debug bar', 'err');
+    showDebug(msg, 'err');
+    toast(error.message, 'error');
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="9" class="empty-state" style="color:var(--danger)">' + msg + '</td></tr>';
+    return;
+  }
+
+  allRows = data || [];
+  document.getElementById('dot').classList.add('on');
+  setMsg('branch · ' + allRows.length + ' rows', 'ok');
+
+  if (allRows.length === 0) {
+    showDebug('0 rows returned. Check RLS: CREATE POLICY "allow_all" ON branch FOR ALL USING (true) WITH CHECK (true);', 'err');
+  } else {
+    showDebug('OK — ' + allRows.length + ' rows loaded', 'ok');
+  }
+  renderTable(allRows);
+}
+
+function renderTable(rows) {
+  document.getElementById('count-badge').textContent = rows.length + ' records';
+  const tb = document.getElementById('tbody');
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="9" class="empty-state">No records found</td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(function(r) {
+    return '<tr onclick="viewRow(' + r.id + ')">' +
+      '<td class="cm">#' + r.id + '</td>' +
+      '<td class="cp">' + xe(r.name) + '</td>' +
+      '<td class="cm">' + xe(r.branch_code_for_login || r.short_code || '—') + '</td>' +
+      '<td>' + xe(r.zone_code || r.zone || '—') + '</td>' +
+      '<td>' + xe(r.state || '—') + '</td>' +
+      '<td>' + xe(r.phone || '—') + '</td>' +
+      '<td>' + (r.status == 1 ? '<span class="pill p-on">Active</span>' : '<span class="pill p-off">Inactive</span>') + '</td>' +
+      '<td>' + (r.is_billing_branch === 'Y' ? '<span class="pill p-y">Y</span>' : '<span class="pill p-n">N</span>') + '</td>' +
+      '<td onclick="event.stopPropagation()">' +
+        '<div class="action-cell">' +
+          '<button class="ibtn" onclick="editRow(' + r.id + ')">✎ Edit</button>' +
+          '<button class="ibtn del" onclick="deleteRow(' + r.id + ',\'' + xe(r.name || '') + '\')">✕</button>' +
+        '</div></td></tr>';
+  }).join('');
+}
+
+function filterBranches() {
+  var q = document.getElementById('search-box').value.toLowerCase();
+  renderTable(allRows.filter(function(r) {
+    return [r.name, r.branch_code_for_login, r.zone_code, r.state, r.short_code]
+      .some(function(v) { return (v || '').toLowerCase().includes(q); });
+  }));
+}
+
+function viewRow(id) {
+  var r = allRows.find(function(b) { return b.id === id; });
+  if (!r) return;
+  document.getElementById('view-title').textContent = r.name || 'Branch #' + id;
+  document.getElementById('view-sub').textContent = '#' + id + (r.branch_code_for_login ? ' · ' + r.branch_code_for_login : '');
+  document.getElementById('view-edit-btn').onclick = function() { closeView(); editRow(id); };
+  var pairs = [
+    ['ID',r.id],['Name',r.name],['Login Code',r.branch_code_for_login],
+    ['Short Code',r.short_code],['Zone Code',r.zone_code],['BS Area',r.bs_area],
+    ['BR Name',r.br_name],['State',r.state],['Zone',r.zone],
+    ['Phone',r.phone],['Email',r.email],['Accounts Email',r.accounts_email],
+    ['Factory Email',r.factory_email],['TIN',r.tin],['Address',r.address],
+    ['Depot Address',r.depot_address],['Factory Address',r.factory_address],
+    ['Status',r.status==1?'Active':'Inactive'],['Active',r.active],
+    ['Sales Tag',r.sales_tag],['Review Upload',r.review_upload],
+    ['Is Billing Branch',r.is_billing_branch],['Billing BS Area',r.billing_branch_bs_area],
+    ['Branch Group',r.branch_group],['BR Area',r.br_area],
+    ['Holiday State ID',r.holiday_state_id],['BM User IDs',r.bm_user_ids],
+    ['Godown User IDs',r.godown_user_ids]
+  ];
+  document.getElementById('view-body').innerHTML = '<div class="vg">' + pairs.map(function(p) {
+    var v = p[1];
+    var empty = (!v && v !== 0);
+    return '<div class="vf"><div class="vl">' + p[0] + '</div>' +
+      '<div class="vv' + (empty ? ' nil' : '') + '">' +
+      (v !== null && v !== undefined && v !== '' ? xe(String(v)) : '—') +
+      '</div></div>';
+  }).join('') + '</div>';
+  document.getElementById('view-modal').classList.add('open');
+}
+function closeView() { document.getElementById('view-modal').classList.remove('open'); }
+
+function openModal() {
+  editingId = null;
+  document.querySelectorAll('#form-modal input, #form-modal select, #form-modal textarea')
+    .forEach(function(el) { if (el.type !== 'hidden') el.value = ''; });
+  document.getElementById('form-title').textContent = 'New Branch';
+  document.getElementById('form-sub').textContent = '';
+  document.getElementById('save-btn').textContent = 'Save Branch';
+  document.getElementById('form-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('form-modal').classList.remove('open'); }
+
+function editRow(id) {
+  var r = allRows.find(function(b) { return b.id === id; });
+  if (!r) return;
+  editingId = id;
+  ['name','branch_code_for_login','short_code','br_name','zone_code','bs_area',
+   'address','depot_address','factory_address','state','zone','phone','email',
+   'accounts_email','factory_email','tin','holiday_state_id','veneer_enq_email',
+   'warrior_gc_email','branch_dashboard_email','bm_emailids_for_certificates',
+   'addl_emails','status','active','sales_tag','review_upload','is_billing_branch',
+   'billing_branch_bs_area','branch_group','br_area','bm_user_ids','godown_user_ids'
+  ].forEach(function(c) {
+    var el = document.getElementById('f-' + c);
+    if (el) el.value = (r[c] !== null && r[c] !== undefined) ? r[c] : '';
+  });
+  document.getElementById('form-title').textContent = 'Edit Branch';
+  document.getElementById('form-sub').textContent = '#' + id + ' — ' + (r.name || '');
+  document.getElementById('save-btn').textContent = 'Update Branch';
+  document.getElementById('form-modal').classList.add('open');
+}
+
+async function saveBranch() {
+  if (!sb) { toast('Not connected', 'error'); return; }
+  var name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Branch name is required', 'error'); return; }
+
+  var intCols = ['bs_area','holiday_state_id','status','billing_branch_bs_area','br_area'];
+  var allCols = ['name','branch_code_for_login','short_code','br_name','zone_code',
+    'address','depot_address','factory_address','state','zone','phone','email',
+    'accounts_email','factory_email','tin','veneer_enq_email','warrior_gc_email',
+    'branch_dashboard_email','bm_emailids_for_certificates','addl_emails',
+    'active','sales_tag','review_upload','is_billing_branch','branch_group',
+    'bm_user_ids','godown_user_ids'].concat(intCols);
+
+  var payload = {};
+  allCols.forEach(function(c) {
+    var el = document.getElementById('f-' + c);
+    if (!el) return;
+    var v = el.value.trim();
+    payload[c] = v === '' ? null : intCols.includes(c) ? parseInt(v) : v;
+  });
+
+  var btn = document.getElementById('save-btn');
+  btn.innerHTML = '<span class="spin"></span> Saving…';
+  btn.disabled = true;
+
+  var result;
+  if (editingId) {
+    result = await sb.from('branch').update(payload).eq('id', editingId);
+  } else {
+    result = await sb.from('branch').insert(payload);
+  }
+
+  btn.disabled = false;
+  btn.textContent = editingId ? 'Update Branch' : 'Save Branch';
+
+  if (result.error) {
+    toast('Save failed: ' + result.error.message, 'error');
+    showDebug('Save error: ' + result.error.message, 'err');
+    return;
+  }
+  toast(editingId ? 'Branch updated' : 'Branch created', 'success');
+  closeModal();
+  await loadBranches();
+}
+
+async function deleteRow(id, name) {
+  if (!confirm('Delete "' + name + '" (#' + id + ')?\nThis cannot be undone.')) return;
+  var result = await sb.from('branch').delete().eq('id', id);
+  if (result.error) { toast('Delete failed: ' + result.error.message, 'error'); return; }
+  toast('Branch deleted', 'success');
+  await loadBranches();
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function toast(msg, type) {
+  type = type || 'info';
+  var w = document.getElementById('toasts');
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  var col = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#2563eb';
+  var ico = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+  el.innerHTML = '<span style="color:' + col + ';font-weight:700">' + ico + '</span> ' + msg;
+  w.appendChild(el);
+  setTimeout(function() { el.remove(); }, 4000);
+}
+
+function setMsg(msg, cls) {
+  var el = document.getElementById('conn-msg');
+  el.textContent = msg;
+  el.style.color = cls === 'err' ? 'var(--danger)' : cls === 'ok' ? 'var(--success)' : 'var(--text3)';
+  document.getElementById('page-meta').textContent = msg;
+}
+
+function showDebug(msg, cls) {
+  var el = document.getElementById('debug-bar');
+  el.textContent = '⬡ ' + msg;
+  el.className = 'debug-bar show' + (cls ? ' ' + cls : '');
+}
+
+function xe(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('form-modal').addEventListener('click', function(e) { if(e.target===e.currentTarget) closeModal(); });
+document.getElementById('view-modal').addEventListener('click', function(e) { if(e.target===e.currentTarget) closeView(); });
+</script>
+</body>
+</html>
