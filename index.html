@@ -261,9 +261,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
         <div class="nav-dot"></div>
         SRC-SCM Platform
       </div>
-      <div class="nav-item" id="nav-4" onclick="loadApp('app-access-manager.html','App Access Manager',4)">
+      <div class="nav-item" id="nav-4" onclick="openAdmin()">
         <div class="nav-dot"></div>
-        App Access Manager
+        App Access Manager &#x2197;
       </div>
     </div>
 
@@ -357,7 +357,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
           </div>
         </div>
 
-        <div class="app-card" onclick="loadApp('app-access-manager.html','App Access Manager',4)">
+        <div class="app-card" onclick="openAdmin()">
           <div class="card-top"></div>
           <div class="card-body">
             <div class="card-icon">🛡️</div>
@@ -423,6 +423,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
     frame.onload = () => {
       document.getElementById('frame-loader').classList.remove('show');
     };
+  }
+
+  function openAdmin() {
+    window.open('app-access-manager.html', '_blank');
   }
 
   function goHome() {
