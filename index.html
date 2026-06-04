@@ -95,6 +95,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .nav-item:nth-child(2) .nav-dot { background: var(--teal); }
 .nav-item:nth-child(3) .nav-dot { background: var(--rust); }
 .nav-item:nth-child(4) .nav-dot { background: var(--plum); }
+.nav-item:nth-child(5) .nav-dot { background: #0f4c81; }
 
 .sidebar-footer {
   margin-top: auto; padding: 12px;
@@ -154,6 +155,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .app-card:nth-child(2) .card-top { background: linear-gradient(135deg,#1a6b6e,#2d9da1); }
 .app-card:nth-child(3) .card-top { background: linear-gradient(135deg,#b84c2a,#d4693a); }
 .app-card:nth-child(4) .card-top { background: linear-gradient(135deg,#5a3d9e,#7c5cc4); }
+.app-card:nth-child(5) .card-top { background: linear-gradient(135deg,#0f4c81,#1a6b6e); }
 
 .card-top { height: 4px; }
 .card-body { padding: 22px 22px 18px; }
@@ -182,6 +184,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .app-card:nth-child(2) { animation: fadeUp 0.35s 0.21s ease both; }
 .app-card:nth-child(3) { animation: fadeUp 0.35s 0.27s ease both; }
 .app-card:nth-child(4) { animation: fadeUp 0.35s 0.33s ease both; }
+.app-card:nth-child(5) { animation: fadeUp 0.35s 0.39s ease both; }
 
 /* ══ LOADING OVERLAY ══ */
 .frame-loader {
@@ -257,6 +260,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
       <div class="nav-item" id="nav-3" onclick="loadApp('Duroply_SCM_Platform_v33.html','SRC-SCM Platform',3)">
         <div class="nav-dot"></div>
         SRC-SCM Platform
+      </div>
+      <div class="nav-item" id="nav-4" onclick="loadApp('app-access-manager.html','App Access Manager',4)">
+        <div class="nav-dot"></div>
+        App Access Manager
       </div>
     </div>
 
@@ -341,6 +348,23 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
             <div class="card-desc">Supply chain management platform for procurement, inventory and logistics operations across branches.</div>
             <div class="card-footer">
               <span class="card-tag">SCM · Supply Chain</span>
+              <div class="card-arrow">
+                <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card" onclick="loadApp('app-access-manager.html','App Access Manager',4)">
+          <div class="card-top"></div>
+          <div class="card-body">
+            <div class="card-icon">🛡️</div>
+            <div class="card-title">App Access Manager</div>
+            <div class="card-desc">Manage role-based access rights for all applications. Control who can view, create, approve or delete across every module.</div>
+            <div class="card-footer">
+              <span class="card-tag">Admin · RBAC</span>
               <div class="card-arrow">
                 <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/>
