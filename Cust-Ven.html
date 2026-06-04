@@ -138,7 +138,7 @@ tbody tr:hover td{background:var(--surface2);}
 .dyn-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;}
 .dyn-tbl th{background:var(--surface2);padding:7px 10px;text-align:left;font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);border-bottom:1px solid var(--border);text-transform:uppercase;}
 .dyn-tbl td{padding:5px 6px;border-bottom:1px solid rgba(208,215,224,.4);vertical-align:middle;}
-.dyn-tbl input,.dyn-tbl select{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:12px;padding:5px 8px;border-radius:5px;outline:none;width:100%;}
+.dyn-tbl input:not([type=file]),.dyn-tbl select{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:12px;padding:5px 8px;border-radius:5px;outline:none;width:100%;}
 .dyn-tbl input:focus,.dyn-tbl select:focus{border-color:var(--accent);}
 .drow-del{background:none;border:none;color:var(--danger);cursor:pointer;padding:2px 6px;font-size:15px;line-height:1;}
 .add-row{font-size:12px;color:var(--accent);background:none;border:1px dashed var(--accent);padding:5px 14px;border-radius:6px;cursor:pointer;transition:all .15s;margin-top:4px;}
@@ -163,7 +163,7 @@ tbody tr:hover td{background:var(--surface2);}
 .img-upload-label{font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;}
 .img-drop-zone{border:1.5px dashed var(--border);border-radius:7px;background:var(--bg);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;min-width:160px;}
 .img-drop-zone:hover{border-color:var(--accent);background:#eff6ff;}
-.img-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-drop-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;}
 .img-drop-icon{font-size:18px;flex-shrink:0;color:var(--text3);}
 .img-drop-text{font-size:11px;color:var(--text3);line-height:1.3;}
 .img-drop-text b{display:block;font-size:12px;color:var(--text2);font-weight:500;}
@@ -475,28 +475,28 @@ tbody tr:hover td{background:var(--surface2);}
               </div>
               <div class="fld img-upload-wrap">
                 <label class="img-upload-label">PAN Card Image <span style="color:var(--text3)">(Optional)</span></label>
-                <div class="img-drop-zone" id="dz-pan" onclick="document.getElementById('f-pan-img').click()">
-                  <input type="file" id="f-pan-img" accept="image/*,.pdf" onchange="onImgSelect('f-pan-img','prev-pan','dz-pan')" style="display:none">
-                  <span class="img-drop-icon">🪪</span>
+                <label for="f-pan-img" class="img-drop-zone" id="dz-pan" style="cursor:pointer;">
+                  <input type="file" id="f-pan-img" accept="image/*,.pdf" onchange="onImgSelect('f-pan-img','prev-pan','dz-pan')">
+                  <span class="img-drop-icon">&#128196;</span>
                   <div class="img-drop-text"><b>Upload PAN Card</b>JPG, PNG or PDF</div>
-                </div>
+                </label>
                 <div class="img-preview-wrap" id="prev-pan">
-                  <img class="img-preview-thumb" id="prev-pan-thumb" src="" alt="">
-                  <span class="img-preview-name" id="prev-pan-name"></span>
-                  <button class="img-preview-clear" onclick="clearImg('f-pan-img','prev-pan','dz-pan')" title="Remove">✕</button>
+                  <img class="img-preview-thumb" id="prev-pan-thumb" src="" alt="" style="display:none;">
+                  <a class="img-preview-name" id="prev-pan-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
+                  <button class="img-preview-clear" onclick="clearImg('f-pan-img','prev-pan','dz-pan')" title="Remove">&#10005;</button>
                 </div>
               </div>
               <div class="fld img-upload-wrap">
                 <label class="img-upload-label">GST Certificate Image <span style="color:var(--text3)">(Optional)</span></label>
-                <div class="img-drop-zone" id="dz-gst" onclick="document.getElementById('f-gst-img').click()">
-                  <input type="file" id="f-gst-img" accept="image/*,.pdf" onchange="onImgSelect('f-gst-img','prev-gst','dz-gst')" style="display:none">
-                  <span class="img-drop-icon">📋</span>
+                <label for="f-gst-img" class="img-drop-zone" id="dz-gst" style="cursor:pointer;">
+                  <input type="file" id="f-gst-img" accept="image/*,.pdf" onchange="onImgSelect('f-gst-img','prev-gst','dz-gst')">
+                  <span class="img-drop-icon">&#128203;</span>
                   <div class="img-drop-text"><b>Upload GST Certificate</b>JPG, PNG or PDF</div>
-                </div>
+                </label>
                 <div class="img-preview-wrap" id="prev-gst">
-                  <img class="img-preview-thumb" id="prev-gst-thumb" src="" alt="">
-                  <span class="img-preview-name" id="prev-gst-name"></span>
-                  <button class="img-preview-clear" onclick="clearImg('f-gst-img','prev-gst','dz-gst')" title="Remove">✕</button>
+                  <img class="img-preview-thumb" id="prev-gst-thumb" src="" alt="" style="display:none;">
+                  <a class="img-preview-name" id="prev-gst-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
+                  <button class="img-preview-clear" onclick="clearImg('f-gst-img','prev-gst','dz-gst')" title="Remove">&#10005;</button>
                 </div>
               </div>
               <div class="fld">
@@ -1045,29 +1045,32 @@ function addStockist(){
   tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Firm name"></td><td><input type="text" maxlength="200" placeholder="Address (optional)"></td><td><input type="text" maxlength="60" placeholder="Brand/Company"></td><td><input type="number" placeholder="Amount ₹ (opt.)"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;
   tb.appendChild(tr);
 }
-function addCheque(){
+function addCheque(savedImgData){
   const tb=document.getElementById('tb-cheques');
   if(tb.rows.length>=2){toast('Max 2 cheques','error');return;}
   const n=tb.rows.length+1;
-  const uid='chq-img-'+Date.now();
+  const uid='chq-img-'+Date.now()+'-'+n;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Cheque no."></td><td><input type="text" placeholder="Bank name"></td>
+  tr.innerHTML=`<td>${n}</td>
+  <td><input type="text" placeholder="Cheque no."></td>
+  <td><input type="text" placeholder="Bank name"></td>
   <td>
     <div class="img-upload-inline">
-      <div class="img-drop-zone" style="min-width:120px;padding:7px 10px;" onclick="document.getElementById('${uid}').click()">
-        <input type="file" id="${uid}" accept="image/*,.pdf" style="display:none" onchange="onImgSelectInline(this)">
-        <span class="img-drop-icon" style="font-size:15px;">🖼</span>
-        <div class="img-drop-text"><b>Upload</b>JPG/PNG/PDF</div>
-      </div>
-      <div class="img-preview-wrap" id="prev-${uid}" style="margin-top:3px;">
-        <img class="img-preview-thumb" src="" alt="">
-        <span class="img-preview-name"></span>
-        <button class="img-preview-clear" onclick="clearImgInline(this,'${uid}')" title="Remove">✕</button>
+      <label for="${uid}" class="img-drop-zone" id="dz-${uid}" style="min-width:130px;padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border:1.5px dashed var(--border);border-radius:7px;background:var(--bg);">
+        <input type="file" id="${uid}" accept="image/*,.pdf" onchange="onChequeImg(this,'${uid}')">
+        <span style="font-size:14px;color:var(--text3);">&#128444;</span>
+        <div class="img-drop-text"><b>Upload Image</b>JPG / PNG / PDF</div>
+      </label>
+      <div class="img-preview-wrap" id="prev-${uid}" style="margin-top:3px;display:none;align-items:center;gap:6px;">
+        <img class="img-preview-thumb" id="thumb-${uid}" src="" alt="" style="width:36px;height:36px;border-radius:4px;object-fit:cover;border:1px solid var(--border);">
+        <a class="img-preview-name" id="pname-${uid}" target="_blank" href="#" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--accent);text-decoration:none;"></a>
+        <button class="img-preview-clear" onclick="clearChequeImg('${uid}')" title="Remove" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 3px;">&#10005;</button>
       </div>
     </div>
   </td>
-  <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-cheques')">✕</button></td>`;
+  <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-cheques')">&#10005;</button></td>`;
   tb.appendChild(tr);
+  if(savedImgData){restoreChequeImg(uid,savedImgData);}
 }
 function addRef(){
   const tb=document.getElementById('tb-refs');
@@ -1146,8 +1149,22 @@ function collect(){
     bank_details:JSON.stringify(dyn('tb-bank',['bank_name','account_no','ifsc','account_type','account_name','address'])),
     other_brands:JSON.stringify(dyn('tb-brands',['brand','since_when','monthly_sale'])),
     stockists:JSON.stringify(dyn('tb-stock',['firm_name','address','brand','monthly_sale'])),
-    cheques:JSON.stringify(dyn('tb-cheques',['cheque_no','bank_name'])),
+    cheques:JSON.stringify(
+      Array.from(document.getElementById('tb-cheques').rows).map(r=>{
+        const fileInput=r.querySelector('input[type=file]');
+        return {
+          cheque_no:r.cells[1]?.querySelector('input')?.value||'',
+          bank_name:r.cells[2]?.querySelector('input')?.value||'',
+          img_b64:fileInput?._savedB64||'',
+          img_name:fileInput?._savedName||''
+        };
+      })
+    ),
     ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
+    pan_image_b64:(document.getElementById('f-pan-img')?._savedB64)||'',
+    pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
+    gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
+    gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
   };
 }
 
@@ -1191,8 +1208,12 @@ function genAppNo(){
 
 // ── Reset / Fill ───────────────────────────────────────
 function resetForm(){
-  document.querySelectorAll('#form-view input:not([type=radio]),#form-view select,#form-view textarea').forEach(el=>el.value='');
+  document.querySelectorAll('#form-view input:not([type=radio]):not([type=file]),#form-view select,#form-view textarea').forEach(el=>el.value='');
   document.querySelectorAll('#form-view input[type=radio]').forEach(el=>el.checked=false);
+  // Clear file inputs and their saved state
+  document.querySelectorAll('#form-view input[type=file]').forEach(el=>{el.value='';el._savedB64=null;el._savedName=null;});
+  clearImg('f-pan-img','prev-pan','dz-pan');
+  clearImg('f-gst-img','prev-gst','dz-gst');
   ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques','tb-refs'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
@@ -1231,71 +1252,122 @@ function fillForm(app){
     const v=app[{msme:'msme_registered',shop_t:'shop_type',godown_t:'godown_type',res_t:'residence_type',convicted:'convicted'}[n]];
     if(v){const el=document.querySelector(`input[name=${n}][value="${v}"]`);if(el){el.checked=true;if(n==='msme')onMsme();}}
   });
+  // Restore PAN image
+  if(app.pan_image_b64){restoreStaticImg('f-pan-img','prev-pan','dz-pan',app.pan_image_b64,app.pan_image_name);}
+  // Restore GST image
+  if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
+  // Restore cheques with images
+  const cheqTb=document.getElementById('tb-cheques');
+  cheqTb.innerHTML='';
+  const cheques=safeParseJSON(app.cheques)||[];
+  cheques.forEach(c=>{
+    addCheque(c.img_b64?{b64:c.img_b64,name:c.img_name||'Cheque image'}:null);
+    const lastRow=cheqTb.rows[cheqTb.rows.length-1];
+    if(lastRow){
+      const inputs=lastRow.querySelectorAll('input[type=text]');
+      if(inputs[0])inputs[0].value=c.cheque_no||'';
+      if(inputs[1])inputs[1].value=c.bank_name||'';
+    }
+  });
 }
+function safeParseJSON(s){try{return s?JSON.parse(s):null;}catch(e){return null;}}
 
 // ── Image upload helpers ────────────────────────────────
-function onImgSelect(inputId, prevId, dzId){
+// Store base64 data on the input element itself for collect()
+function readFileAsBase64(file){
+  return new Promise(resolve=>{
+    const r=new FileReader();
+    r.onload=e=>resolve(e.target.result);
+    r.readAsDataURL(file);
+  });
+}
+// PAN / GST static upload fields
+async function onImgSelect(inputId, prevId, dzId){
   const input=document.getElementById(inputId);
   const prev=document.getElementById(prevId);
   const dz=document.getElementById(dzId);
   if(!input.files||!input.files[0])return;
   const file=input.files[0];
+  const b64=await readFileAsBase64(file);
+  input._savedB64=b64;
+  input._savedName=file.name;
   const thumb=document.getElementById(prevId+'-thumb');
   const nameEl=document.getElementById(prevId+'-name');
-  if(file.type.startsWith('image/')){
-    const reader=new FileReader();
-    reader.onload=e=>{if(thumb)thumb.src=e.target.result;};
-    reader.readAsDataURL(file);
-    if(thumb)thumb.style.display='block';
-  } else {
-    if(thumb){thumb.src='';thumb.style.display='none';}
-  }
-  if(nameEl)nameEl.textContent=file.name;
+  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='block';}}
+  else{if(thumb){thumb.src='';thumb.style.display='none';}}
+  if(nameEl){nameEl.textContent=file.name;nameEl.href=b64;nameEl.style.display='block';}
   prev.classList.add('show');
   if(dz)dz.style.borderColor='var(--success)';
 }
 function clearImg(inputId, prevId, dzId){
   const input=document.getElementById(inputId);
+  if(input){input.value='';input._savedB64=null;input._savedName=null;}
   const prev=document.getElementById(prevId);
   const dz=document.getElementById(dzId);
-  if(input)input.value='';
   const thumb=document.getElementById(prevId+'-thumb');
   const nameEl=document.getElementById(prevId+'-name');
   if(thumb){thumb.src='';thumb.style.display='none';}
-  if(nameEl)nameEl.textContent='';
+  if(nameEl){nameEl.textContent='';nameEl.style.display='none';}
   if(prev)prev.classList.remove('show');
   if(dz)dz.style.borderColor='';
 }
-function onImgSelectInline(input){
-  if(!input.files||!input.files[0])return;
-  const file=input.files[0];
-  const prevWrap=document.getElementById('prev-'+input.id);
-  if(!prevWrap)return;
-  const thumb=prevWrap.querySelector('.img-preview-thumb');
-  const nameEl=prevWrap.querySelector('.img-preview-name');
-  if(file.type.startsWith('image/')&&thumb){
-    const reader=new FileReader();
-    reader.onload=e=>{thumb.src=e.target.result;thumb.style.display='block';};
-    reader.readAsDataURL(file);
-  } else if(thumb){thumb.src='';thumb.style.display='none';}
-  if(nameEl)nameEl.textContent=file.name;
-  prevWrap.classList.add('show');
-  const dz=input.closest('.img-drop-zone');
+// Restore PAN/GST from saved base64 (edit mode)
+function restoreStaticImg(inputId, prevId, dzId, b64, name){
+  if(!b64)return;
+  const input=document.getElementById(inputId);
+  const prev=document.getElementById(prevId);
+  const dz=document.getElementById(dzId);
+  if(input){input._savedB64=b64;input._savedName=name||'Saved file';}
+  const thumb=document.getElementById(prevId+'-thumb');
+  const nameEl=document.getElementById(prevId+'-name');
+  if(b64.startsWith('data:image')){if(thumb){thumb.src=b64;thumb.style.display='block';}}
+  else{if(thumb){thumb.src='';thumb.style.display='none';}}
+  if(nameEl){nameEl.textContent=name||'View file';nameEl.href=b64;nameEl.style.display='block';}
+  if(prev)prev.classList.add('show');
   if(dz)dz.style.borderColor='var(--success)';
 }
-function clearImgInline(btn, inputId){
-  const input=document.getElementById(inputId);
-  if(input)input.value='';
-  const prevWrap=document.getElementById('prev-'+inputId);
-  if(prevWrap){
-    const thumb=prevWrap.querySelector('.img-preview-thumb');
-    const nameEl=prevWrap.querySelector('.img-preview-name');
-    if(thumb){thumb.src='';thumb.style.display='none';}
-    if(nameEl)nameEl.textContent='';
-    prevWrap.classList.remove('show');
-  }
-  const dz=btn.closest('.img-upload-inline')?.querySelector('.img-drop-zone');
+// Cheque row upload
+async function onChequeImg(input, uid){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  const b64=await readFileAsBase64(file);
+  input._savedB64=b64;
+  input._savedName=file.name;
+  const prev=document.getElementById('prev-'+uid);
+  const thumb=document.getElementById('thumb-'+uid);
+  const pname=document.getElementById('pname-'+uid);
+  const dz=document.getElementById('dz-'+uid);
+  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='block';}}
+  else{if(thumb){thumb.src='';thumb.style.display='none';}}
+  if(pname){pname.textContent=file.name;pname.href=b64;pname.style.display='block';}
+  if(prev){prev.style.display='flex';}
+  if(dz)dz.style.borderColor='var(--success)';
+}
+function clearChequeImg(uid){
+  const input=document.getElementById(uid);
+  if(input){input.value='';input._savedB64=null;input._savedName=null;}
+  const prev=document.getElementById('prev-'+uid);
+  const thumb=document.getElementById('thumb-'+uid);
+  const pname=document.getElementById('pname-'+uid);
+  const dz=document.getElementById('dz-'+uid);
+  if(thumb){thumb.src='';thumb.style.display='none';}
+  if(pname){pname.textContent='';pname.style.display='none';}
+  if(prev)prev.style.display='none';
   if(dz)dz.style.borderColor='';
+}
+// Restore cheque image from saved base64 (edit mode)
+function restoreChequeImg(uid, savedData){
+  if(!savedData||!savedData.b64)return;
+  const prev=document.getElementById('prev-'+uid);
+  const thumb=document.getElementById('thumb-'+uid);
+  const pname=document.getElementById('pname-'+uid);
+  const dz=document.getElementById('dz-'+uid);
+  const input=document.getElementById(uid);
+  if(input){input._savedB64=savedData.b64;input._savedName=savedData.name||'Saved file';}
+  if(savedData.b64.startsWith('data:image')){if(thumb){thumb.src=savedData.b64;thumb.style.display='block';}}
+  if(pname){pname.textContent=savedData.name||'View file';pname.href=savedData.b64;pname.style.display='block';}
+  if(prev)prev.style.display='flex';
+  if(dz)dz.style.borderColor='var(--success)';
 }
 
 // ── Toast ──────────────────────────────────────────────
