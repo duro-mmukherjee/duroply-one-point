@@ -1160,11 +1160,12 @@ function collect(){
         };
       })
     ),
-    ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
     pan_image_b64:(document.getElementById('f-pan-img')?._savedB64)||'',
     pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
     gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
     gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
+    ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
+
   };
 }
 
@@ -1252,18 +1253,21 @@ function fillForm(app){
     const v=app[{msme:'msme_registered',shop_t:'shop_type',godown_t:'godown_type',res_t:'residence_type',convicted:'convicted'}[n]];
     if(v){const el=document.querySelector(`input[name=${n}][value="${v}"]`);if(el){el.checked=true;if(n==='msme')onMsme();}}
   });
-  // Restore PAN image
+  // Restore PAN image from DB
   if(app.pan_image_b64){restoreStaticImg('f-pan-img','prev-pan','dz-pan',app.pan_image_b64,app.pan_image_name);}
-  // Restore GST image
+  // Restore GST image from DB
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
+  // Cheque images come from inside the cheques JSON (handled below)
+  window._pendingChequeImgs=[];
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
   cheqTb.innerHTML='';
   const cheques=safeParseJSON(app.cheques)||[];
-  cheques.forEach(c=>{
-    const imgData=(c.img_b64&&c.img_b64.length>10)?{b64:c.img_b64,name:c.img_name||'Cheque image'}:null;
+  const pendingImgs=window._pendingChequeImgs||[];
+  cheques.forEach((c,i)=>{
+    const si=pendingImgs[i];
+    const imgData=(si&&si.b64&&si.b64.length>10)?{b64:si.b64,name:si.name||'Cheque image'}:null;
     addCheque(imgData);
-    // Wait for row to be appended then fill text inputs
     const lastRow=cheqTb.rows[cheqTb.rows.length-1];
     if(lastRow){
       const txtInputs=Array.from(lastRow.querySelectorAll('input')).filter(i=>i.type==='text');
@@ -1271,6 +1275,7 @@ function fillForm(app){
       if(txtInputs[1])txtInputs[1].value=c.bank_name||'';
     }
   });
+  window._pendingChequeImgs=[];
 }
 function safeParseJSON(s){try{return s?JSON.parse(s):null;}catch(e){return null;}}
 
