@@ -52,6 +52,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(37,99,235,.07);}
 .nav-item.logout{margin-top:auto;color:var(--danger);}
 .nav-item.logout:hover{background:#fee2e2;}
+.role-badge{display:inline-block;font-size:10px;font-family:var(--mono);background:rgba(37,99,235,.1);color:var(--accent);border-radius:4px;padding:2px 7px;margin:0 18px 12px;text-transform:capitalize;letter-spacing:.3px;}
 
 /* ── List view ── */
 .content{flex:1;padding:24px;overflow-y:auto;}
@@ -219,10 +220,11 @@ tbody tr:hover td{background:var(--surface2);}
       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
       My Applications
     </div>
-    <div class="nav-item" id="nav-new" onclick="showNewForm()">
+    <div class="nav-item" id="nav-new" data-module="customer_vendor" data-action="create" onclick="showNewForm()">
       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
       New Application
     </div>
+    <span class="role-badge" id="role-badge" style="display:none"></span>
     <div class="nav-item logout" onclick="doLogout()">
       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/></svg>
       Sign Out
@@ -234,7 +236,7 @@ tbody tr:hover td{background:var(--surface2);}
     <div id="list-view" class="content">
       <div class="list-header">
         <div class="list-title">My Applications</div>
-        <button class="btn btn-success" onclick="showNewForm()">+ New Application</button>
+        <button class="btn btn-success" id="btn-new-app" onclick="showNewForm()">+ New Application</button>
       </div>
       <div class="search-row">
         <div class="search-wrap">
@@ -831,6 +833,7 @@ async function doLogin(){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
     populateStatic();
+    await loadUserSession();
     await loadSalesPersons();
     await loadApps();
   }catch(e){showLE('Connection error: '+e.message);sb=null;}
@@ -851,7 +854,24 @@ async function loadSalesPersons(){
 // ── Load apps ──────────────────────────────────────────
 async function loadApps(){
   if(!sb||!currentUser)return;
-  const{data}=await sb.from('cvr_applications').select('*').eq('submitted_by_user_id',currentUser.id).order('created_at',{ascending:false});
+  let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
+  const scope=getRBACScope('customer_vendor');
+  if(scope==='all'){
+    // no filter
+  } else if(scope==='reportees'){
+    const ids=await getReporteeIds(currentUser.id);
+    query=query.in('submitted_by_user_id',ids);
+  } else if(scope==='zone'){
+    // zone filter — fetch branch ids in user's zone first
+    const{data:branches}=await sb.from('branch_master').select('id').eq('zone',currentUser.zone||'');
+    const bids=(branches||[]).map(b=>b.id);
+    if(bids.length) query=query.in('branch_id',bids);
+    else query=query.eq('submitted_by_user_id',currentUser.id);
+  } else {
+    // own_branch default
+    query=query.eq('submitted_by_user_id',currentUser.id);
+  }
+  const{data}=await query;
   apps=data||[];
   renderList(apps);
 }
@@ -897,6 +917,7 @@ function showList(){
   loadApps();
 }
 function showNewForm(){
+  if(!canDo('customer_vendor','create')){toast('You do not have permission to create applications.','error');return;}
   editId=null;resetForm();
   document.getElementById('fv-title').textContent='New Application';
   document.getElementById('app-no-disp').style.display='none';
@@ -1422,6 +1443,98 @@ function toast(msg,type){
   w.appendChild(el);setTimeout(()=>el.remove(),4000);
 }
 function xe(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ════════════════════════════════════════════════════════════
+//  RBAC — Role Based Access Control
+// ════════════════════════════════════════════════════════════
+
+// Loaded on login — stores user's role + permission map
+window.userPerms = {};   // { 'customer_vendor': { can_view, can_create, ... , data_scope } }
+window.userRole  = '';
+
+async function loadUserSession(){
+  if(!sb||!currentUser) return;
+  try{
+    // Fetch role from users_roles
+    const{data:roleRow}=await sb.from('users_roles')
+      .select('role,is_active')
+      .eq('id', currentUser.id)
+      .single();
+
+    if(!roleRow||!roleRow.is_active){
+      window.userRole='branch_staff_ops';
+    } else {
+      window.userRole=roleRow.role;
+    }
+    currentUser.role=window.userRole;
+
+    // Super admin gets full access — skip permission table
+    if(window.userRole==='super_admin'){
+      window.userPerms='super_admin';
+      applyNavAccess();
+      return;
+    }
+
+    // Fetch permissions for this role
+    const{data:perms}=await sb.from('role_permissions')
+      .select('*')
+      .eq('role', window.userRole);
+
+    window.userPerms={};
+    (perms||[]).forEach(p=>{ window.userPerms[p.module]=p; });
+    applyNavAccess();
+  } catch(e){
+    console.warn('RBAC load failed, defaulting to own-records access:', e.message);
+    window.userRole='branch_staff_ops';
+    window.userPerms={};
+  }
+}
+
+// Check if current user can perform an action on a module
+// action: 'view' | 'create' | 'edit' | 'approve' | 'delete'
+function canDo(module, action){
+  if(!currentUser) return false;
+  if(window.userPerms==='super_admin') return true;
+  const p=window.userPerms[module];
+  if(!p) return false;
+  return p['can_'+action]===true;
+}
+
+// Get data scope for a module
+function getRBACScope(module){
+  if(window.userPerms==='super_admin') return 'all';
+  const p=window.userPerms[module];
+  return p ? p.data_scope : 'own_branch';
+}
+
+// Recursive reportee IDs via Supabase RPC
+async function getReporteeIds(userId){
+  try{
+    const{data}=await sb.rpc('get_reportee_ids',{manager_id: userId});
+    return (data||[]).map(r=>r.id||r.emp_code||r.user_id||Object.values(r)[0]);
+  } catch(e){
+    return [userId]; // fallback to own records
+  }
+}
+
+// Show/hide nav items and buttons based on role
+function applyNavAccess(){
+  // New Application nav + button — hide if cannot create
+  const canCreate=canDo('customer_vendor','create');
+  const navNew=document.getElementById('nav-new');
+  const btnNew=document.getElementById('btn-new-app');
+  if(navNew) navNew.style.display=canCreate?'':'none';
+  if(btnNew) btnNew.style.display=canCreate?'':'none';
+
+  // Role badge in sidebar
+  const badge=document.getElementById('role-badge');
+  if(badge){
+    badge.textContent=(window.userRole||'').replace(/_/g,' ');
+    badge.style.display=window.userRole?'inline-block':'none';
+  }
+}
+
+// ════════════════════════════════════════════════════════════
 </script>
 </body>
 </html>
