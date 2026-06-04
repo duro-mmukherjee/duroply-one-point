@@ -1261,12 +1261,14 @@ function fillForm(app){
   cheqTb.innerHTML='';
   const cheques=safeParseJSON(app.cheques)||[];
   cheques.forEach(c=>{
-    addCheque(c.img_b64?{b64:c.img_b64,name:c.img_name||'Cheque image'}:null);
+    const imgData=(c.img_b64&&c.img_b64.length>10)?{b64:c.img_b64,name:c.img_name||'Cheque image'}:null;
+    addCheque(imgData);
+    // Wait for row to be appended then fill text inputs
     const lastRow=cheqTb.rows[cheqTb.rows.length-1];
     if(lastRow){
-      const inputs=lastRow.querySelectorAll('input[type=text]');
-      if(inputs[0])inputs[0].value=c.cheque_no||'';
-      if(inputs[1])inputs[1].value=c.bank_name||'';
+      const txtInputs=Array.from(lastRow.querySelectorAll('input')).filter(i=>i.type==='text');
+      if(txtInputs[0])txtInputs[0].value=c.cheque_no||'';
+      if(txtInputs[1])txtInputs[1].value=c.bank_name||'';
     }
   });
 }
@@ -1293,10 +1295,11 @@ async function onImgSelect(inputId, prevId, dzId){
   input._savedName=file.name;
   const thumb=document.getElementById(prevId+'-thumb');
   const nameEl=document.getElementById(prevId+'-name');
-  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='block';}}
+  const blobUrl=URL.createObjectURL(file);
+  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='inline-block';}}
   else{if(thumb){thumb.src='';thumb.style.display='none';}}
-  if(nameEl){nameEl.textContent=file.name;nameEl.href=b64;nameEl.style.display='block';}
-  prev.classList.add('show');
+  if(nameEl){nameEl.textContent=file.name;nameEl.href=blobUrl;nameEl.style.display='inline-block';}
+  if(prev){prev.style.display='flex';prev.classList.add('show');}
   if(dz)dz.style.borderColor='var(--success)';
 }
 function clearImg(inputId, prevId, dzId){
@@ -1307,11 +1310,23 @@ function clearImg(inputId, prevId, dzId){
   const thumb=document.getElementById(prevId+'-thumb');
   const nameEl=document.getElementById(prevId+'-name');
   if(thumb){thumb.src='';thumb.style.display='none';}
-  if(nameEl){nameEl.textContent='';nameEl.style.display='none';}
-  if(prev)prev.classList.remove('show');
+  if(nameEl){nameEl.textContent='';nameEl.href='#';nameEl.style.display='none';}
+  if(prev){prev.classList.remove('show');prev.style.display='';}
   if(dz)dz.style.borderColor='';
 }
 // Restore PAN/GST from saved base64 (edit mode)
+function b64ToUrl(b64){
+  // Convert base64 data URI to blob URL so browsers can open it reliably
+  try{
+    const arr=b64.split(',');
+    const mime=arr[0].match(/:(.*?);/)[1];
+    const bstr=atob(arr[1]);
+    let n=bstr.length;
+    const u8=new Uint8Array(n);
+    while(n--){u8[n]=bstr.charCodeAt(n);}
+    return URL.createObjectURL(new Blob([u8],{type:mime}));
+  }catch(e){return b64;}
+}
 function restoreStaticImg(inputId, prevId, dzId, b64, name){
   if(!b64)return;
   const input=document.getElementById(inputId);
@@ -1320,10 +1335,18 @@ function restoreStaticImg(inputId, prevId, dzId, b64, name){
   if(input){input._savedB64=b64;input._savedName=name||'Saved file';}
   const thumb=document.getElementById(prevId+'-thumb');
   const nameEl=document.getElementById(prevId+'-name');
-  if(b64.startsWith('data:image')){if(thumb){thumb.src=b64;thumb.style.display='block';}}
-  else{if(thumb){thumb.src='';thumb.style.display='none';}}
-  if(nameEl){nameEl.textContent=name||'View file';nameEl.href=b64;nameEl.style.display='block';}
-  if(prev)prev.classList.add('show');
+  const blobUrl=b64ToUrl(b64);
+  if(b64.startsWith('data:image')){
+    if(thumb){thumb.src=b64;thumb.style.display='inline-block';}
+  }else{
+    if(thumb){thumb.src='';thumb.style.display='none';}
+  }
+  if(nameEl){
+    nameEl.textContent=name||'View file';
+    nameEl.href=blobUrl;
+    nameEl.style.display='inline-block';
+  }
+  if(prev){prev.style.display='flex';prev.classList.add('show');}
   if(dz)dz.style.borderColor='var(--success)';
 }
 // Cheque row upload
@@ -1337,10 +1360,11 @@ async function onChequeImg(input, uid){
   const thumb=document.getElementById('thumb-'+uid);
   const pname=document.getElementById('pname-'+uid);
   const dz=document.getElementById('dz-'+uid);
-  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='block';}}
+  const blobUrl=URL.createObjectURL(file);
+  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='inline-block';}}
   else{if(thumb){thumb.src='';thumb.style.display='none';}}
-  if(pname){pname.textContent=file.name;pname.href=b64;pname.style.display='block';}
-  if(prev){prev.style.display='flex';}
+  if(pname){pname.textContent=file.name;pname.href=blobUrl;pname.style.display='inline-block';}
+  if(prev){prev.style.cssText='margin-top:3px;display:flex;align-items:center;gap:6px;';}
   if(dz)dz.style.borderColor='var(--success)';
 }
 function clearChequeImg(uid){
@@ -1358,19 +1382,32 @@ function clearChequeImg(uid){
 // Restore cheque image from saved base64 (edit mode)
 function restoreChequeImg(uid, savedData){
   if(!savedData||!savedData.b64)return;
-  const prev=document.getElementById('prev-'+uid);
-  const thumb=document.getElementById('thumb-'+uid);
-  const pname=document.getElementById('pname-'+uid);
-  const dz=document.getElementById('dz-'+uid);
-  const input=document.getElementById(uid);
-  if(input){input._savedB64=savedData.b64;input._savedName=savedData.name||'Saved file';}
-  if(savedData.b64.startsWith('data:image')){if(thumb){thumb.src=savedData.b64;thumb.style.display='block';}}
-  if(pname){pname.textContent=savedData.name||'View file';pname.href=savedData.b64;pname.style.display='block';}
-  if(prev)prev.style.display='flex';
-  if(dz)dz.style.borderColor='var(--success)';
+  // Use setTimeout to ensure DOM elements exist after tr append
+  setTimeout(function(){
+    const prev=document.getElementById('prev-'+uid);
+    const thumb=document.getElementById('thumb-'+uid);
+    const pname=document.getElementById('pname-'+uid);
+    const dz=document.getElementById('dz-'+uid);
+    const input=document.getElementById(uid);
+    if(!prev)return;
+    if(input){input._savedB64=savedData.b64;input._savedName=savedData.name||'Saved file';}
+    const blobUrl=b64ToUrl(savedData.b64);
+    if(savedData.b64.startsWith('data:image')){
+      if(thumb){thumb.src=savedData.b64;thumb.style.display='inline-block';}
+    }else{
+      if(thumb){thumb.src='';thumb.style.display='none';}
+    }
+    if(pname){
+      pname.textContent=savedData.name||'View file';
+      pname.href=blobUrl;
+      pname.style.display='inline-block';
+    }
+    prev.style.cssText='margin-top:3px;display:flex;align-items:center;gap:6px;';
+    if(dz)dz.style.borderColor='var(--success)';
+  },0);
 }
 
-// ── Toast ──────────────────────────────────────────────--
+// ── Toast ──────────────────────────────────────────────
 function toast(msg,type){
   type=type||'info';
   const w=document.getElementById('toasts'),el=document.createElement('div');
