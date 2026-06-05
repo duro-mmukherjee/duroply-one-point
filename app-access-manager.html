@@ -601,69 +601,75 @@ async function loadUsers(){
   const tbody=document.getElementById('users-tbody');
   tbody.innerHTML='<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
 
-  // Step 1: test raw users query
-  const{data:users, error:uErr}=await sb.from('users')
-    .select('id,userid,fname,lname,location_id,status')
-    .not('userid','is',null)
-    .limit(5);
+  try{
+    // Fetch ALL users using parallel batches (Supabase JS caps at 1000 per request)
+    const BATCH=1000;
 
-  console.log('RAW users response:', JSON.stringify({data:users, error:uErr}));
+    // First get total count
+    const{count:totalUsers}=await sb.from('users')
+      .select('*',{count:'exact',head:true})
+      .not('userid','is',null);
+    console.log('Total users in DB:',totalUsers);
 
-  if(uErr){
-    tbody.innerHTML=`<tr><td colspan="6" class="empty-state" style="color:var(--danger)">Users error: ${uErr.message}</td></tr>`;
-    toast('Users error: '+uErr.message,'error');
-    return;
+    // Build batch requests in parallel
+    const batches=[];
+    for(let from=0;from<totalUsers;from+=BATCH){
+      batches.push(
+        sb.from('users')
+          .select('id,userid,fname,lname,location_id,status')
+          .not('userid','is',null)
+          .order('id')
+          .range(from, Math.min(from+BATCH-1, totalUsers-1))
+      );
+    }
+    const results=await Promise.all(batches);
+    let allU=[];
+    for(const r of results){
+      if(r.error){toast('Users fetch error: '+r.error.message,'error');return;}
+      allU=[...allU,...(r.data||[])];
+    }
+    console.log('Users fetched:',allU.length);
+
+    // Fetch ALL roles — same approach
+    const{count:totalRoles}=await sb.from('users_roles')
+      .select('*',{count:'exact',head:true});
+    console.log('Total roles in DB:',totalRoles);
+
+    const roleBatches=[];
+    for(let from=0;from<(totalRoles||0);from+=BATCH){
+      roleBatches.push(
+        sb.from('users_roles')
+          .select('id,role,is_active')
+          .order('id')
+          .range(from, Math.min(from+BATCH-1,(totalRoles||0)-1))
+      );
+    }
+    const roleResults=await Promise.all(roleBatches);
+    let roles=[];
+    for(const r of roleResults){
+      if(r.error){toast('Roles fetch error: '+r.error.message,'error');return;}
+      roles=[...roles,...(r.data||[])];
+    }
+    console.log('Roles fetched:',roles.length);
+
+    // Build role map keyed by string id
+    const roleMap={};
+    roles.forEach(r=>{ roleMap[String(r.id)]={role:r.role,is_active:r.is_active}; });
+
+    // Merge
+    allUsers=allU.map(u=>({
+      ...u,
+      ...(roleMap[String(u.id)]||{role:'branch_staff_ops',is_active:true})
+    }));
+
+    console.log('Final allUsers count:',allUsers.length);
+    updateStats();
+    renderUsers(allUsers);
+
+  }catch(e){
+    toast('Unexpected error: '+e.message,'error');
+    console.error(e);
   }
-  if(!users||users.length===0){
-    tbody.innerHTML='<tr><td colspan="6" class="empty-state">No users returned from DB. Check RLS policy on users table.</td></tr>';
-    toast('No users returned — check RLS on users table','error');
-    return;
-  }
-
-  // Step 2: load ALL users — fetch in batches of 500 to bypass Supabase row limit
-  let allU=[];
-  const pageSize=500;
-  let from=0;
-  while(true){
-    const{data:page,error:uErr2}=await sb.from('users')
-      .select('id,userid,fname,lname,location_id,status')
-      .not('userid','is',null)
-      .order('id')
-      .range(from, from+pageSize-1);
-    if(uErr2){toast('Users load error: '+uErr2.message,'error');return;}
-    if(!page||page.length===0) break;
-    allU=[...allU,...page];
-    if(page.length<pageSize) break;
-    from+=pageSize;
-  }
-  console.log('Total users fetched:',allU.length);
-
-  // Step 3: load ALL roles with pagination
-  let roles=[], rFrom=0;
-  while(true){
-    const{data:rPage,error:rErr}=await sb.from('users_roles')
-      .select('id,role,is_active')
-      .range(rFrom, rFrom+499);
-    if(rErr){toast('Roles load error: '+rErr.message,'error');return;}
-    if(!rPage||rPage.length===0) break;
-    roles=[...roles,...rPage];
-    if(rPage.length<500) break;
-    rFrom+=500;
-  }
-  console.log('Total roles fetched:',roles.length);
-
-  const roleMap={};
-  (roles||[]).forEach(r=>{ roleMap[String(r.id)]={role:r.role,is_active:r.is_active}; });
-
-  allUsers=(allU||[]).map(u=>({
-    ...u,
-    id: u.id,
-    ...(roleMap[String(u.id)]||{role:'branch_staff_ops',is_active:true})
-  }));
-
-  console.log('Final: users=',allUsers.length,'roleMap keys=',Object.keys(roleMap).length,'sample user=',JSON.stringify(allUsers[0]));
-  updateStats();
-  renderUsers(allUsers);
 }
 
 function updateStats(){
