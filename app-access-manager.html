@@ -279,6 +279,11 @@ tr:last-child td{border-bottom:none;}
               <option>branch_manager</option><option>branch_accountant</option>
               <option>branch_staff_ops</option><option>branch_staff_finance</option>
             </select>
+            <select class="fsel" id="status-filter" onchange="filterUsers()">
+              <option value="">All users</option>
+              <option value="1">Active only</option>
+              <option value="0">Inactive only</option>
+            </select>
           </div>
 
           <div class="tw">
@@ -599,6 +604,7 @@ async function loadUsers(){
   // Step 1: test raw users query
   const{data:users, error:uErr}=await sb.from('users')
     .select('id,userid,fname,lname,location_id,status')
+    .not('userid','is',null)
     .limit(5);
 
   console.log('RAW users response:', JSON.stringify({data:users, error:uErr}));
@@ -614,16 +620,37 @@ async function loadUsers(){
     return;
   }
 
-  // Step 2: load all active users
-  const{data:allU, error:uErr2}=await sb.from('users')
-    .select('id,userid,fname,lname,location_id,status')
-    .order('fname');
-  if(uErr2){toast('Users load error: '+uErr2.message,'error');return;}
+  // Step 2: load ALL users — fetch in batches of 500 to bypass Supabase row limit
+  let allU=[];
+  const pageSize=500;
+  let from=0;
+  while(true){
+    const{data:page,error:uErr2}=await sb.from('users')
+      .select('id,userid,fname,lname,location_id,status')
+      .not('userid','is',null)
+      .order('id')
+      .range(from, from+pageSize-1);
+    if(uErr2){toast('Users load error: '+uErr2.message,'error');return;}
+    if(!page||page.length===0) break;
+    allU=[...allU,...page];
+    if(page.length<pageSize) break;
+    from+=pageSize;
+  }
+  console.log('Total users fetched:',allU.length);
 
-  // Step 3: load roles
-  const{data:roles, error:rErr}=await sb.from('users_roles').select('id,role,is_active');
-  console.log('RAW roles response:', JSON.stringify({data:roles?.slice(0,3), error:rErr}));
-  if(rErr){toast('Roles load error: '+rErr.message,'error');return;}
+  // Step 3: load ALL roles with pagination
+  let roles=[], rFrom=0;
+  while(true){
+    const{data:rPage,error:rErr}=await sb.from('users_roles')
+      .select('id,role,is_active')
+      .range(rFrom, rFrom+499);
+    if(rErr){toast('Roles load error: '+rErr.message,'error');return;}
+    if(!rPage||rPage.length===0) break;
+    roles=[...roles,...rPage];
+    if(rPage.length<500) break;
+    rFrom+=500;
+  }
+  console.log('Total roles fetched:',roles.length);
 
   const roleMap={};
   (roles||[]).forEach(r=>{ roleMap[String(r.id)]={role:r.role,is_active:r.is_active}; });
@@ -649,9 +676,11 @@ function updateStats(){
 function filterUsers(){
   const q=document.getElementById('user-search').value.toLowerCase();
   const rf=document.getElementById('role-filter').value;
+  const sf=document.getElementById('status-filter').value;
   let rows=allUsers;
-  if(q) rows=rows.filter(u=>(u.fname+' '+u.lname+' '+u.userid).toLowerCase().includes(q));
+  if(q)  rows=rows.filter(u=>((u.fname||'')+' '+(u.lname||'')+' '+(u.userid||'')).toLowerCase().includes(q));
   if(rf) rows=rows.filter(u=>u.role===rf);
+  if(sf!=='') rows=rows.filter(u=>String(u.status)===sf);
   renderUsers(rows);
 }
 
@@ -681,31 +710,35 @@ function renderUsers(rows){
 
 async function changeRole(userId, newRole){
   const uid=parseInt(userId);
-  // Try update first (row exists), then insert if not
-  const{data:existing}=await sb.from('users_roles').select('id').eq('id',uid).maybeSingle();
-  let error;
-  if(existing){
-    ({error}=await sb.from('users_roles').update({role:newRole}).eq('id',uid));
-  } else {
-    ({error}=await sb.from('users_roles').insert({id:uid,role:newRole,is_active:true}));
+  console.log('changeRole called:', uid, newRole);
+  const{error}=await sb.from('users_roles')
+    .upsert({id:uid, role:newRole, is_active:true}, {onConflict:'id', ignoreDuplicates:false});
+  console.log('changeRole result error:', error);
+  if(error){
+    toast('Save failed: '+error.message,'error');
+    // Reload to revert UI to actual DB state
+    await loadUsers();
+    return;
   }
-  if(error){toast('Failed to save role: '+error.message,'error');console.error('changeRole error:',error);return;}
-  const u=allUsers.find(u=>parseInt(u.id)===uid);if(u)u.role=newRole;
+  const u=allUsers.find(u=>parseInt(u.id)===uid);
+  if(u) u.role=newRole;
   updateStats();
-  toast('Role updated successfully','success');
+  toast('Role updated','success');
 }
 
 async function toggleActive(userId, isActive){
   const uid=parseInt(userId);
-  const{data:existing}=await sb.from('users_roles').select('id').eq('id',uid).maybeSingle();
-  let error;
-  if(existing){
-    ({error}=await sb.from('users_roles').update({is_active:isActive}).eq('id',uid));
-  } else {
-    ({error}=await sb.from('users_roles').insert({id:uid,role:'branch_staff_ops',is_active:isActive}));
+  console.log('toggleActive called:', uid, isActive);
+  const{error}=await sb.from('users_roles')
+    .upsert({id:uid, is_active:isActive, role:'branch_staff_ops'}, {onConflict:'id', ignoreDuplicates:false});
+  console.log('toggleActive result error:', error);
+  if(error){
+    toast('Save failed: '+error.message,'error');
+    await loadUsers();
+    return;
   }
-  if(error){toast('Failed to update status: '+error.message,'error');console.error('toggleActive error:',error);return;}
-  const u=allUsers.find(u=>parseInt(u.id)===uid);if(u)u.is_active=isActive;
+  const u=allUsers.find(u=>parseInt(u.id)===uid);
+  if(u) u.is_active=isActive;
   updateStats();
   toast(isActive?'User activated':'User deactivated','success');
 }
@@ -767,8 +800,17 @@ async function saveEditApp(){
   const name=document.getElementById('new-app-name').value.trim();
   const desc=document.getElementById('new-app-desc').value.trim();
   if(!name){toast('App Name is required','error');return;}
-  const{error}=await sb.from('app_registry').update({app_name:name,description:desc}).eq('app_key',key);
+  console.log('saveEditApp:', key, name, desc);
+  const{data, error}=await sb.from('app_registry')
+    .update({app_name:name, description:desc})
+    .eq('app_key',key)
+    .select();
+  console.log('saveEditApp result:', data, error);
   if(error){toast('Failed to update: '+error.message,'error');return;}
+  if(!data||data.length===0){
+    toast('No rows updated — check RLS policy on app_registry','error');
+    return;
+  }
   toast(`"${name}" updated successfully`,'success');
   closeAddApp();
   await loadAll();
