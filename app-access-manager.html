@@ -408,10 +408,16 @@ async function doLogin(){
     const u=data[0];
     if(u.pwd_old!==pwd){showLE('Incorrect password.');return;}
     if(u.status!=1){showLE('Account inactive. Contact administrator.');return;}
-    const{data:roleRow}=await sb.from('users_roles').select('role').eq('id',u.id).single();
-    if(!roleRow||roleRow.role!=='super_admin'){
-      showLE('Access denied. This tool is for super admins only.');sb=null;return;
-    }
+    // Check super_admin role — use maybeSingle to avoid error if row missing
+    const{data:roleRow, error:roleErr}=await sb.from('users_roles')
+      .select('role,is_active')
+      .eq('id', Number(u.id))
+      .maybeSingle();
+    console.log('Role check:', roleRow, roleErr); // debug — remove after fix
+    if(roleErr){showLE('Role check failed: '+roleErr.message);sb=null;return;}
+    if(!roleRow){showLE('No role assigned. Ask your administrator to assign a role.');sb=null;return;}
+    if(roleRow.role!=='super_admin'){showLE('Access denied. This tool is for super admins only. Your role: '+roleRow.role);sb=null;return;}
+    if(!roleRow.is_active){showLE('Your account is inactive. Contact administrator.');sb=null;return;}
     currentUser=u;
     document.getElementById('u-name').textContent=[u.fname,u.lname].filter(Boolean).join(' ')||u.userid;
     document.getElementById('u-id').textContent=u.userid;
