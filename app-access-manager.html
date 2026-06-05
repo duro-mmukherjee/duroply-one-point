@@ -287,7 +287,7 @@ tr:last-child td{border-bottom:none;}
                 <tr>
                   <th>Employee</th>
                   <th>User ID</th>
-                  <th>Branch</th>
+                  <th>Location</th>
                   <th>Current Role</th>
                   <th>Change Role</th>
                   <th>Active</th>
@@ -402,16 +402,17 @@ async function doLogin(){
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Signing in…';
   try{
     sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
-    const{data,error}=await sb.from('users').select('id,userid,fname,lname,status,pwd_old').eq('userid',uid).limit(1);
+    const{data,error}=await sb.from('users').select('id:id::bigint,userid,fname,lname,status,pwd_old').eq('userid',uid).limit(1);
     if(error){showLE('DB error: '+error.message);sb=null;return;}
     if(!data||!data.length){showLE('User ID not found.');return;}
     const u=data[0];
     if(u.pwd_old!==pwd){showLE('Incorrect password.');return;}
     if(u.status!=1){showLE('Account inactive. Contact administrator.');return;}
     // Check super_admin role — use maybeSingle to avoid error if row missing
+    const uid_int = parseInt(u.id);
     const{data:roleRow, error:roleErr}=await sb.from('users_roles')
       .select('role,is_active')
-      .eq('id', Number(u.id))
+      .eq('id', uid_int)
       .maybeSingle();
     console.log('Role check:', roleRow, roleErr); // debug — remove after fix
     if(roleErr){showLE('Role check failed: '+roleErr.message);sb=null;return;}
@@ -593,11 +594,26 @@ async function saveAllPermissions(){
 // ── User Roles page ───────────────────────────────────────────
 async function loadUsers(){
   document.getElementById('users-tbody').innerHTML='<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
-  const{data:users}=await sb.from('users').select('id,userid,fname,lname,branch_id,status').order('fname');
-  const{data:roles}=await sb.from('users_roles').select('id,role,is_active');
+  const{data:users, error:uErr}=await sb.from('users')
+    .select('id,userid,fname,lname,location_id,status')
+    .eq('status',1)
+    .order('fname');
+  if(uErr){toast('Users load error: '+uErr.message,'error');console.error('users error',uErr);return;}
+
+  const{data:roles, error:rErr}=await sb.from('users_roles').select('id,role,is_active');
+  if(rErr){toast('Roles load error: '+rErr.message,'error');console.error('roles error',rErr);return;}
+
+  // Map roles by id — parse to int to ensure bigint match
   const roleMap={};
-  (roles||[]).forEach(r=>{roleMap[r.id]={role:r.role,is_active:r.is_active};});
-  allUsers=(users||[]).map(u=>({...u,...(roleMap[u.id]||{role:'branch_staff_ops',is_active:true})}));
+  (roles||[]).forEach(r=>{ roleMap[parseInt(r.id)]={role:r.role,is_active:r.is_active}; });
+
+  allUsers=(users||[]).map(u=>({
+    ...u,
+    id: parseInt(u.id),
+    ...(roleMap[parseInt(u.id)]||{role:'branch_staff_ops',is_active:true})
+  }));
+
+  console.log('Users loaded:',allUsers.length,'Roles mapped:',Object.keys(roleMap).length);
   updateStats();
   renderUsers(allUsers);
 }
@@ -626,7 +642,7 @@ function renderUsers(rows){
     <tr>
       <td style="font-weight:500;color:var(--text)">${xe(u.fname||'')} ${xe(u.lname||'')}</td>
       <td style="font-family:var(--mono);font-size:11px;color:#1d4ed8">${xe(u.userid||'')}</td>
-      <td style="font-size:12px">${xe(u.branch_id||'—')}</td>
+      <td style="font-size:12px">${xe(u.location_id||'—')}</td>
       <td><span class="pill ${RPILL[u.role]||'p-ops'}">${(u.role||'').replace(/_/g,' ')}</span></td>
       <td>
         <select class="role-sel-td" onchange="changeRole(${u.id},this.value)">
