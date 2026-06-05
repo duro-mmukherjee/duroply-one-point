@@ -593,27 +593,48 @@ async function saveAllPermissions(){
 
 // ── User Roles page ───────────────────────────────────────────
 async function loadUsers(){
-  document.getElementById('users-tbody').innerHTML='<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
+  const tbody=document.getElementById('users-tbody');
+  tbody.innerHTML='<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
+
+  // Step 1: test raw users query
   const{data:users, error:uErr}=await sb.from('users')
     .select('id,userid,fname,lname,location_id,status')
-    .eq('status',1)
+    .limit(5);
+
+  console.log('RAW users response:', JSON.stringify({data:users, error:uErr}));
+
+  if(uErr){
+    tbody.innerHTML=`<tr><td colspan="6" class="empty-state" style="color:var(--danger)">Users error: ${uErr.message}</td></tr>`;
+    toast('Users error: '+uErr.message,'error');
+    return;
+  }
+  if(!users||users.length===0){
+    tbody.innerHTML='<tr><td colspan="6" class="empty-state">No users returned from DB. Check RLS policy on users table.</td></tr>';
+    toast('No users returned — check RLS on users table','error');
+    return;
+  }
+
+  // Step 2: load all active users
+  const{data:allU, error:uErr2}=await sb.from('users')
+    .select('id,userid,fname,lname,location_id,status')
     .order('fname');
-  if(uErr){toast('Users load error: '+uErr.message,'error');console.error('users error',uErr);return;}
+  if(uErr2){toast('Users load error: '+uErr2.message,'error');return;}
 
+  // Step 3: load roles
   const{data:roles, error:rErr}=await sb.from('users_roles').select('id,role,is_active');
-  if(rErr){toast('Roles load error: '+rErr.message,'error');console.error('roles error',rErr);return;}
+  console.log('RAW roles response:', JSON.stringify({data:roles?.slice(0,3), error:rErr}));
+  if(rErr){toast('Roles load error: '+rErr.message,'error');return;}
 
-  // Map roles by id — parse to int to ensure bigint match
   const roleMap={};
-  (roles||[]).forEach(r=>{ roleMap[parseInt(r.id)]={role:r.role,is_active:r.is_active}; });
+  (roles||[]).forEach(r=>{ roleMap[String(r.id)]={role:r.role,is_active:r.is_active}; });
 
-  allUsers=(users||[]).map(u=>({
+  allUsers=(allU||[]).map(u=>({
     ...u,
-    id: parseInt(u.id),
-    ...(roleMap[parseInt(u.id)]||{role:'branch_staff_ops',is_active:true})
+    id: u.id,
+    ...(roleMap[String(u.id)]||{role:'branch_staff_ops',is_active:true})
   }));
 
-  console.log('Users loaded:',allUsers.length,'Roles mapped:',Object.keys(roleMap).length);
+  console.log('Final: users=',allUsers.length,'roleMap keys=',Object.keys(roleMap).length,'sample user=',JSON.stringify(allUsers[0]));
   updateStats();
   renderUsers(allUsers);
 }
@@ -659,17 +680,32 @@ function renderUsers(rows){
 }
 
 async function changeRole(userId, newRole){
-  const{error}=await sb.from('users_roles').upsert({id:userId,role:newRole,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(error){toast('Failed: '+error.message,'error');return;}
-  const u=allUsers.find(u=>u.id===userId);if(u)u.role=newRole;
+  const uid=parseInt(userId);
+  // Try update first (row exists), then insert if not
+  const{data:existing}=await sb.from('users_roles').select('id').eq('id',uid).maybeSingle();
+  let error;
+  if(existing){
+    ({error}=await sb.from('users_roles').update({role:newRole}).eq('id',uid));
+  } else {
+    ({error}=await sb.from('users_roles').insert({id:uid,role:newRole,is_active:true}));
+  }
+  if(error){toast('Failed to save role: '+error.message,'error');console.error('changeRole error:',error);return;}
+  const u=allUsers.find(u=>parseInt(u.id)===uid);if(u)u.role=newRole;
   updateStats();
-  toast('Role updated — user will see new permissions on next login','success');
+  toast('Role updated successfully','success');
 }
 
 async function toggleActive(userId, isActive){
-  const{error}=await sb.from('users_roles').upsert({id:userId,is_active:isActive,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(error){toast('Failed: '+error.message,'error');return;}
-  const u=allUsers.find(u=>u.id===userId);if(u)u.is_active=isActive;
+  const uid=parseInt(userId);
+  const{data:existing}=await sb.from('users_roles').select('id').eq('id',uid).maybeSingle();
+  let error;
+  if(existing){
+    ({error}=await sb.from('users_roles').update({is_active:isActive}).eq('id',uid));
+  } else {
+    ({error}=await sb.from('users_roles').insert({id:uid,role:'branch_staff_ops',is_active:isActive}));
+  }
+  if(error){toast('Failed to update status: '+error.message,'error');console.error('toggleActive error:',error);return;}
+  const u=allUsers.find(u=>parseInt(u.id)===uid);if(u)u.is_active=isActive;
   updateStats();
   toast(isActive?'User activated':'User deactivated','success');
 }
@@ -692,13 +728,51 @@ function renderApps(){
       <td style="font-size:12px;color:var(--text2)">${xe(a.description||'—')}</td>
       <td><span class="pill ${a.is_active?'p-on':'p-off'}">${a.is_active?'Active':'Inactive'}</span></td>
       <td style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-xs" onclick="openEditApp('${a.app_key}')">Edit</button>
         <button class="btn btn-ghost btn-xs" onclick="toggleAppActive('${a.app_key}',${!a.is_active})">${a.is_active?'Deactivate':'Activate'}</button>
       </td>
     </tr>`).join('');
 }
 
 function openAddApp(){document.getElementById('modal-add-app').classList.add('open');}
-function closeAddApp(){document.getElementById('modal-add-app').classList.remove('open');['new-app-key','new-app-name','new-app-desc'].forEach(id=>{document.getElementById(id).value='';});}
+function closeAddApp(){
+  document.getElementById('modal-add-app').classList.remove('open');
+  ['new-app-key','new-app-name','new-app-desc'].forEach(id=>{document.getElementById(id).value='';});
+  // Reset modal back to Add mode
+  document.getElementById('new-app-key').readOnly=false;
+  document.getElementById('new-app-key').style.opacity='1';
+  document.querySelector('#modal-add-app .modal-title').textContent='Register New App';
+  document.querySelector('#modal-add-app .modal-actions .btn-success').textContent='Register App';
+  document.querySelector('#modal-add-app .modal-actions .btn-success').setAttribute('onclick','addApp()');
+}
+
+function openEditApp(appKey){
+  const a=allApps.find(a=>a.app_key===appKey);
+  if(!a)return;
+  // Populate modal fields with existing data
+  document.getElementById('new-app-key').value=a.app_key;
+  document.getElementById('new-app-key').readOnly=true;
+  document.getElementById('new-app-key').style.opacity='0.5';
+  document.getElementById('new-app-name').value=a.app_name;
+  document.getElementById('new-app-desc').value=a.description||'';
+  // Change modal title and button
+  document.querySelector('#modal-add-app .modal-title').textContent='Edit App';
+  document.querySelector('#modal-add-app .modal-actions .btn-success').textContent='Save Changes';
+  document.querySelector('#modal-add-app .modal-actions .btn-success').setAttribute('onclick','saveEditApp()');
+  document.getElementById('modal-add-app').classList.add('open');
+}
+
+async function saveEditApp(){
+  const key=document.getElementById('new-app-key').value.trim();
+  const name=document.getElementById('new-app-name').value.trim();
+  const desc=document.getElementById('new-app-desc').value.trim();
+  if(!name){toast('App Name is required','error');return;}
+  const{error}=await sb.from('app_registry').update({app_name:name,description:desc}).eq('app_key',key);
+  if(error){toast('Failed to update: '+error.message,'error');return;}
+  toast(`"${name}" updated successfully`,'success');
+  closeAddApp();
+  await loadAll();
+}
 
 async function addApp(){
   const key=document.getElementById('new-app-key').value.trim().toLowerCase().replace(/\s+/g,'_');
