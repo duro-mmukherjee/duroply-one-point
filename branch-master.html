@@ -162,6 +162,7 @@ tbody tr:hover td{background:var(--surface2);color:var(--text);}
 @keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
 .spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle;}
 @keyframes sp{to{transform:rotate(360deg)}}
+.role-badge{font-size:10px;font-family:var(--mono);background:rgba(37,99,235,.1);color:var(--accent);border-radius:4px;padding:2px 8px;margin-top:4px;text-transform:capitalize;letter-spacing:.3px;display:none;}
 </style>
 </head>
 <body>
@@ -215,6 +216,7 @@ tbody tr:hover td{background:var(--surface2);color:var(--text);}
     <div class="user-chip" id="user-chip">
       <div class="user-chip-name" id="user-fullname">—</div>
       <div class="user-chip-id" id="user-id-display">—</div>
+      <div class="role-badge" id="role-badge"></div>
     </div>
     <div class="nav-item active">
       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
@@ -246,7 +248,7 @@ tbody tr:hover td{background:var(--surface2);color:var(--text);}
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost" onclick="loadBranches()">↻ Refresh</button>
-          <button class="btn btn-success" onclick="openModal()">+ New Branch</button>
+          <button class="btn btn-success" id="btn-new-branch" onclick="openModalGuarded()">+ New Branch</button>
         </div>
       </div>
 
@@ -437,9 +439,10 @@ async function doLogin() {
     document.getElementById('user-id-display').textContent = user.userid;
 
     // Short delay then switch screens
-    setTimeout(function() {
+    setTimeout(async function() {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
+      await loadUserSession();
       loadBranches();
     }, 600);
 
@@ -537,7 +540,7 @@ function renderTable(rows) {
       '<td>' + (r.is_billing_branch === 'Y' ? '<span class="pill p-y">Y</span>' : '<span class="pill p-n">N</span>') + '</td>' +
       '<td onclick="event.stopPropagation()">' +
         '<div class="action-cell">' +
-          '<button class="ibtn" onclick="editRow(' + r.id + ')">✎ Edit</button>' +
+          (canDo('branch_master','edit') ? '<button class="ibtn" onclick="editRow(' + r.id + ')">✎ Edit</button>' : '') +
           '<button class="ibtn del" onclick="deleteRow(' + r.id + ',\'' + xe(r.name || '') + '\')">✕</button>' +
         '</div></td></tr>';
   }).join('');
@@ -612,6 +615,14 @@ function editRow(id) {
   document.getElementById('form-sub').textContent = '#' + id + ' — ' + (r.name || '');
   document.getElementById('save-btn').textContent = 'Update Branch';
   document.getElementById('form-modal').classList.add('open');
+}
+
+function openModalGuarded(){
+  if(!canDo('branch_master','create')){
+    toast('You do not have permission to create branches.','error');
+    return;
+  }
+  openModal();
 }
 
 async function saveBranch() {
@@ -702,6 +713,82 @@ function xe(s) {
 
 document.getElementById('form-modal').addEventListener('click', function(e) { if(e.target===e.currentTarget) closeModal(); });
 document.getElementById('view-modal').addEventListener('click', function(e) { if(e.target===e.currentTarget) closeView(); });
+
+// ════════════════════════════════════════════════════════
+//  RBAC — reads from app_permissions table
+//  App key: 'branch_master'
+// ════════════════════════════════════════════════════════
+const APP_KEY = 'branch_master';
+window.userPerms = null;
+window.userRole  = '';
+
+async function loadUserSession(){
+  if(!sb||!currentUser) return;
+  try{
+    // Get role
+    const{data:roleRow}=await sb.from('users_roles')
+      .select('role,is_active')
+      .eq('id', parseInt(currentUser.id))
+      .maybeSingle();
+
+    window.userRole = roleRow?.role || 'branch_staff_ops';
+    currentUser.role = window.userRole;
+
+    if(window.userRole === 'super_admin'){
+      window.userPerms = {
+        can_access:true, can_create:true, can_edit:true,
+        can_approve:true, can_delete:true, data_scope:'all'
+      };
+      applyRBACToUI();
+      return;
+    }
+
+    // Get app permission for this role
+    const{data:perm}=await sb.from('app_permissions')
+      .select('*')
+      .eq('role', window.userRole)
+      .eq('app_key', APP_KEY)
+      .maybeSingle();
+
+    window.userPerms = perm || {
+      can_access:true, can_create:false, can_edit:false,
+      can_approve:false, can_delete:false, data_scope:'own_branch'
+    };
+
+    // Block access entirely if can_access is false
+    if(!window.userPerms.can_access){
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+      showLoginErr('You do not have access to Branch Master. Contact your administrator.');
+      return;
+    }
+
+    applyRBACToUI();
+  }catch(e){
+    console.warn('RBAC load failed, defaulting to read-only:', e.message);
+    window.userPerms = {can_access:true,can_create:false,can_edit:false,can_approve:false,can_delete:false,data_scope:'own_branch'};
+    applyRBACToUI();
+  }
+}
+
+function canDo(appKey, action){
+  if(!window.userPerms) return false;
+  return window.userPerms['can_'+action] === true;
+}
+
+function applyRBACToUI(){
+  // New Branch button
+  const btnNew = document.getElementById('btn-new-branch');
+  if(btnNew) btnNew.style.display = canDo(APP_KEY,'create') ? '' : 'none';
+
+  // Role badge in sidebar
+  const badge = document.getElementById('role-badge');
+  if(badge){
+    badge.textContent = (window.userRole||'').replace(/_/g,' ');
+    badge.style.display = window.userRole ? 'block' : 'none';
+  }
+}
+// ════════════════════════════════════════════════════════
 </script>
 </body>
 </html>
