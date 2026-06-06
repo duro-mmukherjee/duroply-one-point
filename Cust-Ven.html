@@ -51,8 +51,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .nav-item:hover{color:var(--text);background:var(--surface2);}
 .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(37,99,235,.07);}
 .nav-item.logout{margin-top:auto;color:var(--danger);}
+.role-badge{font-size:10px;font-family:var(--mono);background:rgba(37,99,235,.1);color:var(--accent);border-radius:4px;padding:2px 8px;margin:4px 18px 0;text-transform:capitalize;letter-spacing:.3px;display:none;}
 .nav-item.logout:hover{background:#fee2e2;}
-.role-badge{display:inline-block;font-size:10px;font-family:var(--mono);background:rgba(37,99,235,.1);color:var(--accent);border-radius:4px;padding:2px 7px;margin:0 18px 12px;text-transform:capitalize;letter-spacing:.3px;}
 
 /* ── List view ── */
 .content{flex:1;padding:24px;overflow-y:auto;}
@@ -220,11 +220,11 @@ tbody tr:hover td{background:var(--surface2);}
       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
       My Applications
     </div>
-    <div class="nav-item" id="nav-new" data-module="customer_vendor" data-action="create" onclick="showNewForm()">
+    <div class="nav-item" id="nav-new" onclick="showNewForm()">
       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
       New Application
     </div>
-    <span class="role-badge" id="role-badge" style="display:none"></span>
+    <div class="role-badge" id="role-badge"></div>
     <div class="nav-item logout" onclick="doLogout()">
       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/></svg>
       Sign Out
@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--surface2);}
     <div id="list-view" class="content">
       <div class="list-header">
         <div class="list-title">My Applications</div>
-        <button class="btn btn-success" id="btn-new-app" onclick="showNewForm()">+ New Application</button>
+        <button class="btn btn-success" onclick="showNewForm()">+ New Application</button>
       </div>
       <div class="search-row">
         <div class="search-wrap">
@@ -854,21 +854,20 @@ async function loadSalesPersons(){
 // ── Load apps ──────────────────────────────────────────
 async function loadApps(){
   if(!sb||!currentUser)return;
+  const scope=getRBACScope();
   let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
-  const scope=getRBACScope('customer_vendor');
   if(scope==='all'){
-    // no filter
+    // no filter — super_admin sees everything
   } else if(scope==='reportees'){
     const ids=await getReporteeIds(currentUser.id);
     query=query.in('submitted_by_user_id',ids);
   } else if(scope==='zone'){
-    // zone filter — fetch branch ids in user's zone first
     const{data:branches}=await sb.from('branch_master').select('id').eq('zone',currentUser.zone||'');
     const bids=(branches||[]).map(b=>b.id);
     if(bids.length) query=query.in('branch_id',bids);
     else query=query.eq('submitted_by_user_id',currentUser.id);
   } else {
-    // own_branch default
+    // own_branch — default
     query=query.eq('submitted_by_user_id',currentUser.id);
   }
   const{data}=await query;
@@ -881,7 +880,7 @@ function renderList(rows){
   const tb=document.getElementById('list-tbody');
   if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No applications yet. Click "+ New Application" to get started.</td></tr>';return;}
   tb.innerHTML=rows.map(r=>`
-    <tr onclick="editApp('${r.id}')">
+    <tr onclick="canDo('customer_vendor','edit') ? editApp('${r.id}') : null" style="cursor:${canDo('customer_vendor','edit')?'pointer':'default'}">
       <td class="cm">${xe(r.app_number||'—')}</td>
       <td class="cp">${xe(r.party_name||'—')}</td>
       <td>${xe(r.party_type||'—')}</td>
@@ -891,7 +890,7 @@ function renderList(rows){
       <td>${statusPill(r.status||'Draft')}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          <button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>
+          ${canDo('customer_vendor','edit') ? `<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>` : ''}
           ${(r.status==='Draft'||r.status==='New')?`<button class="btn btn-danger btn-sm" onclick="delApp('${r.id}')">✕</button>`:''}
         </div>
       </td>
@@ -917,7 +916,10 @@ function showList(){
   loadApps();
 }
 function showNewForm(){
-  if(!canDo('customer_vendor','create')){toast('You do not have permission to create applications.','error');return;}
+  if(!canDo('customer_vendor','create')){
+    toast('You do not have permission to create applications.','error');
+    return;
+  }
   editId=null;resetForm();
   document.getElementById('fv-title').textContent='New Application';
   document.getElementById('app-no-disp').style.display='none';
@@ -928,6 +930,10 @@ function showNewForm(){
   window.scrollTo(0,0);
 }
 function editApp(id){
+  if(!canDo('customer_vendor','edit')){
+    toast('You do not have permission to edit applications.','error');
+    return;
+  }
   const numId=isNaN(id)?id:Number(id);
   const app=apps.find(a=>a.id===numId||String(a.id)===String(id));if(!app)return;
   editId=id;resetForm();fillForm(app);
@@ -1445,95 +1451,112 @@ function toast(msg,type){
 function xe(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ════════════════════════════════════════════════════════════
-//  RBAC — Role Based Access Control
+//  RBAC — Customer/Vendor Requisition
+//  Reads permissions from app_permissions table
+//  App key: 'customer_vendor'
 // ════════════════════════════════════════════════════════════
-
-// Loaded on login — stores user's role + permission map
-window.userPerms = {};   // { 'customer_vendor': { can_view, can_create, ... , data_scope } }
+const APP_KEY = 'customer_vendor';
+window.userPerms = null;
 window.userRole  = '';
 
 async function loadUserSession(){
   if(!sb||!currentUser) return;
   try{
-    // Fetch role from users_roles
+    // 1. Get role from users_roles
     const{data:roleRow}=await sb.from('users_roles')
       .select('role,is_active')
-      .eq('id', currentUser.id)
-      .single();
+      .eq('id', parseInt(currentUser.id))
+      .maybeSingle();
 
-    if(!roleRow||!roleRow.is_active){
-      window.userRole='branch_staff_ops';
-    } else {
-      window.userRole=roleRow.role;
-    }
-    currentUser.role=window.userRole;
+    window.userRole = roleRow?.role || 'branch_staff_ops';
+    currentUser.role = window.userRole;
 
-    // Super admin gets full access — skip permission table
-    if(window.userRole==='super_admin'){
-      window.userPerms='super_admin';
-      applyNavAccess();
+    // 2. Super admin — full access, no DB lookup needed
+    if(window.userRole === 'super_admin'){
+      window.userPerms = {
+        can_access:true, can_create:true, can_edit:true,
+        can_approve:true, can_delete:true, data_scope:'all'
+      };
+      applyRBACToUI();
       return;
     }
 
-    // Fetch permissions for this role
-    const{data:perms}=await sb.from('role_permissions')
+    // 3. Get permissions for this role + app
+    const{data:perm}=await sb.from('app_permissions')
       .select('*')
-      .eq('role', window.userRole);
+      .eq('role', window.userRole)
+      .eq('app_key', APP_KEY)
+      .maybeSingle();
 
-    window.userPerms={};
-    (perms||[]).forEach(p=>{ window.userPerms[p.module]=p; });
-    applyNavAccess();
-  } catch(e){
-    console.warn('RBAC load failed, defaulting to own-records access:', e.message);
-    window.userRole='branch_staff_ops';
-    window.userPerms={};
+    // If no permission row found — default to view-only own records
+    window.userPerms = perm || {
+      can_access:true, can_create:false, can_edit:false,
+      can_approve:false, can_delete:false, data_scope:'own_branch'
+    };
+
+    // 4. Block entirely if can_access = false
+    if(!window.userPerms.can_access){
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+      const e=document.getElementById('lerr');
+      e.textContent='You do not have access to this application. Contact your administrator.';
+      e.className='lerr show';
+      return;
+    }
+
+    applyRBACToUI();
+  }catch(e){
+    console.warn('RBAC load error — defaulting to view-only:', e.message);
+    window.userPerms={can_access:true,can_create:false,can_edit:false,can_approve:false,can_delete:false,data_scope:'own_branch'};
+    applyRBACToUI();
   }
 }
 
-// Check if current user can perform an action on a module
-// action: 'view' | 'create' | 'edit' | 'approve' | 'delete'
-function canDo(module, action){
-  if(!currentUser) return false;
-  if(window.userPerms==='super_admin') return true;
-  const p=window.userPerms[module];
-  if(!p) return false;
-  return p['can_'+action]===true;
+// Check if current user can do an action
+function canDo(appKey, action){
+  if(!window.userPerms) return false;
+  if(window.userPerms.can_access===false) return false;
+  return window.userPerms['can_'+action] === true;
 }
 
-// Get data scope for a module
-function getRBACScope(module){
-  if(window.userPerms==='super_admin') return 'all';
-  const p=window.userPerms[module];
-  return p ? p.data_scope : 'own_branch';
+// Get data scope for query filtering
+function getRBACScope(){
+  if(!window.userPerms) return 'own_branch';
+  return window.userPerms.data_scope || 'own_branch';
 }
 
 // Recursive reportee IDs via Supabase RPC
 async function getReporteeIds(userId){
   try{
-    const{data}=await sb.rpc('get_reportee_ids',{manager_id: userId});
-    return (data||[]).map(r=>r.id||r.emp_code||r.user_id||Object.values(r)[0]);
-  } catch(e){
-    return [userId]; // fallback to own records
+    const{data}=await sb.rpc('get_reportee_ids',{manager_id: parseInt(userId)});
+    return (data||[]).map(r=>r.id||r.user_id||Object.values(r)[0]);
+  }catch(e){
+    return [userId];
   }
 }
 
-// Show/hide nav items and buttons based on role
-function applyNavAccess(){
-  // New Application nav + button — hide if cannot create
-  const canCreate=canDo('customer_vendor','create');
-  const navNew=document.getElementById('nav-new');
-  const btnNew=document.getElementById('btn-new-app');
-  if(navNew) navNew.style.display=canCreate?'':'none';
-  if(btnNew) btnNew.style.display=canCreate?'':'none';
+// Apply permissions to UI elements
+function applyRBACToUI(){
+  const canCreate = canDo(APP_KEY,'create');
+  const canEdit   = canDo(APP_KEY,'edit');
 
-  // Role badge in sidebar
-  const badge=document.getElementById('role-badge');
+  // New Application nav item + button
+  const navNew = document.getElementById('nav-new');
+  if(navNew) navNew.style.display = canCreate ? '' : 'none';
+
+  const btnNew = document.querySelector('.btn.btn-success[onclick="showNewForm()"]');
+  if(btnNew) btnNew.style.display = canCreate ? '' : 'none';
+
+  // Edit buttons in list — re-render will pick this up via canDo check
+  // Role badge
+  const badge = document.getElementById('role-badge');
   if(badge){
-    badge.textContent=(window.userRole||'').replace(/_/g,' ');
-    badge.style.display=window.userRole?'inline-block':'none';
+    badge.textContent = (window.userRole||'').replace(/_/g,' ');
+    badge.style.display = window.userRole ? 'block' : 'none';
   }
-}
 
+  console.log('RBAC applied — role:',window.userRole,'create:',canCreate,'edit:',canEdit,'scope:',getRBACScope());
+}
 // ════════════════════════════════════════════════════════════
 </script>
 </body>
