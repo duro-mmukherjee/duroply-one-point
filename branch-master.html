@@ -494,10 +494,15 @@ async function loadBranches() {
   document.getElementById('tbody').innerHTML =
     '<tr><td colspan="9" class="empty-state"><span class="spin"></span> Loading…</td></tr>';
 
-  const { data, error, status } = await sb
-    .from('branch')
-    .select('*')
-    .order('id', { ascending: true });
+  // Apply data scope based on role
+  const scope = getRBACScope();
+  let query = sb.from('branch').select('*').order('id', { ascending: true });
+  // Note: branch is a master table — zone_manager sees own zone, others see all
+  // super_admin and branch_manager see all branches (master data)
+  if(scope === 'zone' && currentUser){
+    query = query.eq('zone', currentUser.zone || '');
+  }
+  const { data, error, status } = await query;
 
   if (error) {
     const msg = 'HTTP ' + status + ' — ' + error.message + ' (code: ' + error.code + ')';
@@ -541,7 +546,7 @@ function renderTable(rows) {
       '<td onclick="event.stopPropagation()">' +
         '<div class="action-cell">' +
           (canDo('branch_master','edit') ? '<button class="ibtn" onclick="editRow(' + r.id + ')">✎ Edit</button>' : '') +
-          '<button class="ibtn del" onclick="deleteRow(' + r.id + ',\'' + xe(r.name || '') + '\')">✕</button>' +
+          (canDo('branch_master','delete') ? '<button class="ibtn del" onclick="deleteRow(' + r.id + ',\'' + xe(r.name || '') + '\')">✕</button>' : '') +
         '</div></td></tr>';
   }).join('');
 }
@@ -559,7 +564,11 @@ function viewRow(id) {
   if (!r) return;
   document.getElementById('view-title').textContent = r.name || 'Branch #' + id;
   document.getElementById('view-sub').textContent = '#' + id + (r.branch_code_for_login ? ' · ' + r.branch_code_for_login : '');
-  document.getElementById('view-edit-btn').onclick = function() { closeView(); editRow(id); };
+  const viewEditBtn = document.getElementById('view-edit-btn');
+  if(viewEditBtn){
+    viewEditBtn.style.display = canDo('branch_master','edit') ? '' : 'none';
+    viewEditBtn.onclick = function() { closeView(); editRow(id); };
+  }
   var pairs = [
     ['ID',r.id],['Name',r.name],['Login Code',r.branch_code_for_login],
     ['Short Code',r.short_code],['Zone Code',r.zone_code],['BS Area',r.bs_area],
@@ -671,6 +680,7 @@ async function saveBranch() {
 }
 
 async function deleteRow(id, name) {
+  if(!canDo('branch_master','delete')){ toast('You do not have permission to delete branches.','error'); return; }
   if (!confirm('Delete "' + name + '" (#' + id + ')?\nThis cannot be undone.')) return;
   var result = await sb.from('branch').delete().eq('id', id);
   if (result.error) { toast('Delete failed: ' + result.error.message, 'error'); return; }
@@ -776,10 +786,19 @@ function canDo(appKey, action){
   return window.userPerms['can_'+action] === true;
 }
 
+function getRBACScope(){
+  if(!window.userPerms) return 'own_branch';
+  return window.userPerms.data_scope || 'own_branch';
+}
+
 function applyRBACToUI(){
+  const canCreate = canDo(APP_KEY,'create');
+  const canEdit   = canDo(APP_KEY,'edit');
+  const canDelete = canDo(APP_KEY,'delete');
+
   // New Branch button
   const btnNew = document.getElementById('btn-new-branch');
-  if(btnNew) btnNew.style.display = canDo(APP_KEY,'create') ? '' : 'none';
+  if(btnNew) btnNew.style.display = canCreate ? '' : 'none';
 
   // Role badge in sidebar
   const badge = document.getElementById('role-badge');
@@ -787,6 +806,10 @@ function applyRBACToUI(){
     badge.textContent = (window.userRole||'').replace(/_/g,' ');
     badge.style.display = window.userRole ? 'block' : 'none';
   }
+
+  console.log('RBAC applied — role:',window.userRole,
+    'create:',canCreate,'edit:',canEdit,'delete:',canDelete,
+    'scope:',getRBACScope());
 }
 // ════════════════════════════════════════════════════════
 </script>
