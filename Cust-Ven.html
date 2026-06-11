@@ -855,22 +855,31 @@ async function loadSalesPersons(){
 async function loadApps(){
   if(!sb||!currentUser)return;
   const scope=getRBACScope();
+  console.log('loadApps scope:',scope,'user:',currentUser.userid,'id:',currentUser.id);
   let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
+
   if(scope==='all'){
-    // no filter — super_admin sees everything
+    // super_admin — no filter
   } else if(scope==='reportees'){
-    const ids=await getReporteeIds(currentUser.id);
-    query=query.in('submitted_by_user_id',ids);
+    // Get all reportees (includes the manager themselves)
+    const userids=await getReporteeIds(currentUser.id, currentUser.userid);
+    console.log('reportee userids:',userids);
+    if(userids.length){
+      query=query.in('submitted_by_user_id',userids);
+    } else {
+      query=query.eq('submitted_by_user_id',currentUser.userid);
+    }
   } else if(scope==='zone'){
     const{data:branches}=await sb.from('branch_master').select('id').eq('zone',currentUser.zone||'');
     const bids=(branches||[]).map(b=>b.id);
     if(bids.length) query=query.in('branch_id',bids);
-    else query=query.eq('submitted_by_user_id',currentUser.id);
+    else query=query.eq('submitted_by_user_id',currentUser.userid);
   } else {
-    // own_branch — default
-    query=query.eq('submitted_by_user_id',currentUser.id);
+    // own_branch — filter by userid text
+    query=query.eq('submitted_by_user_id',currentUser.userid);
   }
-  const{data}=await query;
+  const{data,error}=await query;
+  console.log('loadApps result: count=',data?.length,'error=',error?.message);
   apps=data||[];
   renderList(apps);
 }
@@ -1204,7 +1213,7 @@ async function saveApp(status){
   if(!sb){toast('Not connected','error');return;}
   const data=collect();
   data.status=status;
-  data.submitted_by_user_id=currentUser.id;
+  data.submitted_by_user_id=currentUser.userid; // store userid text (e.g. S01429)
   data.updated_at=new Date().toISOString();
   if(!editId){data.app_number=genAppNo();data.created_at=new Date().toISOString();}
   if(status==='New')data.submitted_at=new Date().toISOString();
@@ -1527,13 +1536,48 @@ function getRBACScope(){
   return window.userPerms.data_scope || 'own_branch';
 }
 
-// Recursive reportee IDs via Supabase RPC
-async function getReporteeIds(userId){
+// Get all userids in the reporting tree under this manager
+// Tries RPC first (fast), falls back to manual traversal if RPC not set up
+async function getReporteeIds(userDbId, userLoginId){
   try{
-    const{data}=await sb.rpc('get_reportee_ids',{manager_id: parseInt(userId)});
-    return (data||[]).map(r=>r.id||r.user_id||Object.values(r)[0]);
+    // Strategy 1: use the get_reportee_ids RPC (based on bigint id)
+    const{data:rpcData, error:rpcErr}=await sb.rpc('get_reportee_ids',{manager_id: parseInt(userDbId)});
+    if(!rpcErr && rpcData && rpcData.length>0){
+      // RPC returns bigint ids — convert to userid text for query
+      const bigintIds=rpcData.map(r=>parseInt(r.id||r.user_id||Object.values(r)[0]));
+      const{data:users}=await sb.from('users').select('userid').in('id',bigintIds);
+      const userids=(users||[]).map(u=>u.userid);
+      // Always include the manager's own userid
+      if(!userids.includes(userLoginId)) userids.push(userLoginId);
+      console.log('getReporteeIds via RPC:',userids);
+      return userids;
+    }
   }catch(e){
-    return [userId];
+    console.warn('RPC get_reportee_ids failed:',e.message);
+  }
+
+  // Strategy 2: manual traversal using reporting_manager field (stores userid text)
+  try{
+    const collected=[userLoginId];
+    const toProcess=[userLoginId];
+    while(toProcess.length>0){
+      const batch=toProcess.splice(0,50);
+      const{data:reports}=await sb.from('users')
+        .select('userid')
+        .in('reporting_manager', batch)
+        .eq('status',1);
+      (reports||[]).forEach(r=>{
+        if(!collected.includes(r.userid)){
+          collected.push(r.userid);
+          toProcess.push(r.userid);
+        }
+      });
+    }
+    console.log('getReporteeIds via manual traversal:',collected);
+    return collected;
+  }catch(e){
+    console.warn('Manual reportee traversal failed:',e.message);
+    return [userLoginId];
   }
 }
 
