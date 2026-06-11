@@ -1488,10 +1488,12 @@ async function loadUserSession(){
       .eq('app_key', APP_KEY)
       .maybeSingle();
 
-    // If no permission row found — default to view-only own records
+    // If no permission row found — use role-based hierarchical default scope
+    const _hierScope={zone_manager:'zone',branch_manager:'reportees',branch_accountant:'own_branch',branch_staff_ops:'reportees',branch_staff_finance:'own_branch'};
     window.userPerms = perm || {
       can_access:true, can_create:false, can_edit:false,
-      can_approve:false, can_delete:false, data_scope:'own_branch'
+      can_approve:false, can_delete:false,
+      data_scope: _hierScope[window.userRole]||'own_branch'
     };
 
     // 4. Block entirely if can_access = false
@@ -1507,7 +1509,7 @@ async function loadUserSession(){
     applyRBACToUI();
   }catch(e){
     console.warn('RBAC load error — defaulting to view-only:', e.message);
-    window.userPerms={can_access:true,can_create:false,can_edit:false,can_approve:false,can_delete:false,data_scope:'own_branch'};
+    const _hs={zone_manager:'zone',branch_manager:'reportees',branch_accountant:'own_branch',branch_staff_ops:'reportees',branch_staff_finance:'own_branch'};window.userPerms={can_access:true,can_create:false,can_edit:false,can_approve:false,can_delete:false,data_scope:_hs[window.userRole]||'own_branch'};
     applyRBACToUI();
   }
 }
