@@ -467,7 +467,7 @@ function getPermValue(role, appKey, field){
   const pk=role+'|'+appKey;
   if(pendingPerms[pk]&&pendingPerms[pk][field]!==undefined) return pendingPerms[pk][field];
   const row=allPerms.find(p=>p.role===role&&p.app_key===appKey);
-  if(field==='data_scope') return row?.data_scope||'own_branch';
+  if(field==='data_scope'){const _d={zone_manager:'zone',branch_manager:'reportees',branch_accountant:'own_branch',branch_staff_ops:'reportees',branch_staff_finance:'own_branch'};return row?.data_scope||_d[role]||'own_branch';}
   return row?.[field]||false;
 }
 
@@ -584,7 +584,7 @@ async function saveAllPermissions(){
       can_edit:    changes.can_edit    ??existing.can_edit    ??false,
       can_approve: changes.can_approve ??existing.can_approve ??false,
       can_delete:  changes.can_delete  ??existing.can_delete  ??false,
-      data_scope:  changes.data_scope  ??existing.data_scope  ??'own_branch',
+      data_scope:  changes.data_scope  ??existing.data_scope  ??(({zone_manager:'zone',branch_manager:'reportees',branch_accountant:'own_branch',branch_staff_ops:'reportees',branch_staff_finance:'own_branch'})[role]||'own_branch'),
     });
   });
   document.getElementById('save-btn').innerHTML='<span class="spin"></span> Saving…';
@@ -837,7 +837,7 @@ async function addApp(){
   const permRows=ROLES.filter(r=>r.key!=='super_admin').map(r=>({
     role:r.key, app_key:key,
     can_access:false, can_create:false, can_edit:false,
-    can_approve:false, can_delete:false, data_scope:'own_branch'
+    can_approve:false, can_delete:false, data_scope:(({zone_manager:'zone',branch_manager:'reportees',branch_accountant:'own_branch',branch_staff_ops:'reportees',branch_staff_finance:'own_branch'})[r.key]||'own_branch')
   }));
   await sb.from('app_permissions').insert(permRows);
 
