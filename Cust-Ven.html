@@ -856,14 +856,50 @@ async function loadApps(){
   if(!sb||!currentUser)return;
   const scope=getRBACScope();
   const myId=parseInt(currentUser.id);
-  console.log('loadApps scope:',scope,'userid:',currentUser.userid,'db id:',myId);
-  let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
 
+  console.group('=== loadApps DEBUG ===');
+  console.log('currentUser.id raw:', currentUser.id, 'type:', typeof currentUser.id);
+  console.log('currentUser.id parsed:', myId);
+  console.log('currentUser.userid:', currentUser.userid);
+  console.log('scope:', scope);
+  console.log('userRole:', window.userRole);
+  console.log('userPerms:', JSON.stringify(window.userPerms));
+
+  // Step A: check what submitted_by_user_id actually contains
+  const{data:sampleRows}=await sb.from('cvr_applications').select('id,submitted_by_user_id,party_name').limit(3);
+  console.log('Sample cvr rows (to see submitted_by_user_id format):', JSON.stringify(sampleRows));
+
+  // Step B: try direct own-record fetch regardless of scope
+  const{data:ownCheck, error:ownErr}=await sb.from('cvr_applications')
+    .select('id,submitted_by_user_id,party_name')
+    .eq('submitted_by_user_id', myId)
+    .limit(5);
+  console.log('Direct own check (eq bigint '+myId+'):', JSON.stringify(ownCheck), 'error:', ownErr?.message);
+
+  // Step C: try with string version
+  const{data:ownCheckStr}=await sb.from('cvr_applications')
+    .select('id,submitted_by_user_id,party_name')
+    .eq('submitted_by_user_id', String(myId))
+    .limit(5);
+  console.log('Direct own check (eq string "'+myId+'"):', JSON.stringify(ownCheckStr));
+
+  // Step D: check cc_users for hierarchy
+  const{data:ccCheck}=await sb.from('users').select('id,userid,cc_users').eq('id', myId).limit(1);
+  console.log('My user row (id,userid,cc_users):', JSON.stringify(ccCheck));
+
+  // Step E: find who has cc_users = myId
+  const{data:reporteeCheck}=await sb.from('users').select('id,userid,cc_users').eq('cc_users', myId).limit(10);
+  console.log('Users with cc_users='+myId+':', JSON.stringify(reporteeCheck));
+
+  console.groupEnd();
+
+  // Now run actual query
+  let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
   if(scope==='all'){
-    // super_admin — no filter
+    // no filter
   } else if(scope==='reportees'){
     const ids=await getReporteeIds(myId);
-    console.log('reportee ids:',ids);
+    console.log('getReporteeIds returned:', ids);
     query=query.in('submitted_by_user_id', ids);
   } else if(scope==='zone'){
     const{data:branches}=await sb.from('branch_master').select('id').eq('zone',currentUser.zone||'');
@@ -871,11 +907,10 @@ async function loadApps(){
     if(bids.length) query=query.in('branch_id',bids);
     else query=query.eq('submitted_by_user_id',myId);
   } else {
-    // own_branch
     query=query.eq('submitted_by_user_id',myId);
   }
   const{data,error}=await query;
-  console.log('loadApps result: count=',data?.length,'error=',error?.message);
+  console.log('Final loadApps result: count=',data?.length,'error=',error?.message);
   apps=data||[];
   renderList(apps);
 }
