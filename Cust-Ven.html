@@ -893,22 +893,25 @@ async function loadApps(){
 
   console.groupEnd();
 
-  // Now run actual query
+  // Always get full reportee tree first (includes self)
+  const reporteeIds=await getReporteeIds(myId);
+  console.log('reporteeIds (always computed):', reporteeIds);
+
   let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
+
   if(scope==='all'){
-    // no filter
-  } else if(scope==='reportees'){
-    const ids=await getReporteeIds(myId);
-    console.log('getReporteeIds returned:', ids);
-    query=query.in('submitted_by_user_id', ids);
+    // no filter — super_admin sees everything
   } else if(scope==='zone'){
-    const{data:branches}=await sb.from('branch_master').select('id').eq('zone',currentUser.zone||'');
-    const bids=(branches||[]).map(b=>b.id);
-    if(bids.length) query=query.in('branch_id',bids);
-    else query=query.eq('submitted_by_user_id',myId);
+    // Zone manager: see all reportees' records (via cc_users tree)
+    // This covers S01429 reporting to S01269 regardless of branch/zone field
+    query=query.in('submitted_by_user_id', reporteeIds);
+  } else if(scope==='reportees'){
+    query=query.in('submitted_by_user_id', reporteeIds);
   } else {
-    query=query.eq('submitted_by_user_id',myId);
+    // own_branch — only own records
+    query=query.eq('submitted_by_user_id', myId);
   }
+
   const{data,error}=await query;
   console.log('Final loadApps result: count=',data?.length,'error=',error?.message);
   apps=data||[];
