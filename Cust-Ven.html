@@ -857,45 +857,8 @@ async function loadApps(){
   const scope=getRBACScope();
   const myId=parseInt(currentUser.id);
 
-  console.group('=== loadApps DEBUG ===');
-  console.log('currentUser.id raw:', currentUser.id, 'type:', typeof currentUser.id);
-  console.log('currentUser.id parsed:', myId);
-  console.log('currentUser.userid:', currentUser.userid);
-  console.log('scope:', scope);
-  console.log('userRole:', window.userRole);
-  console.log('userPerms:', JSON.stringify(window.userPerms));
-
-  // Step A: check what submitted_by_user_id actually contains
-  const{data:sampleRows}=await sb.from('cvr_applications').select('id,submitted_by_user_id,party_name').limit(3);
-  console.log('Sample cvr rows (to see submitted_by_user_id format):', JSON.stringify(sampleRows));
-
-  // Step B: try direct own-record fetch regardless of scope
-  const{data:ownCheck, error:ownErr}=await sb.from('cvr_applications')
-    .select('id,submitted_by_user_id,party_name')
-    .eq('submitted_by_user_id', myId)
-    .limit(5);
-  console.log('Direct own check (eq bigint '+myId+'):', JSON.stringify(ownCheck), 'error:', ownErr?.message);
-
-  // Step C: try with string version
-  const{data:ownCheckStr}=await sb.from('cvr_applications')
-    .select('id,submitted_by_user_id,party_name')
-    .eq('submitted_by_user_id', String(myId))
-    .limit(5);
-  console.log('Direct own check (eq string "'+myId+'"):', JSON.stringify(ownCheckStr));
-
-  // Step D: check cc_users for hierarchy
-  const{data:ccCheck}=await sb.from('users').select('id,userid,cc_users').eq('id', myId).limit(1);
-  console.log('My user row (id,userid,cc_users):', JSON.stringify(ccCheck));
-
-  // Step E: find who has cc_users = myId
-  const{data:reporteeCheck}=await sb.from('users').select('id,userid,cc_users').eq('cc_users', myId).limit(10);
-  console.log('Users with cc_users='+myId+':', JSON.stringify(reporteeCheck));
-
-  console.groupEnd();
-
   // Always get full reportee tree first (includes self)
   const reporteeIds=await getReporteeIds(myId);
-  console.log('reporteeIds (always computed):', reporteeIds);
 
   let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
 
@@ -913,7 +876,6 @@ async function loadApps(){
   }
 
   const{data,error}=await query;
-  console.log('Final loadApps result: count=',data?.length,'error=',error?.message);
   apps=data||[];
   renderList(apps);
 }
@@ -923,7 +885,7 @@ function renderList(rows){
   const tb=document.getElementById('list-tbody');
   if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No applications yet. Click "+ New Application" to get started.</td></tr>';return;}
   tb.innerHTML=rows.map(r=>`
-    <tr onclick="canDo('customer_vendor','edit') ? editApp('${r.id}') : null" style="cursor:${canDo('customer_vendor','edit')?'pointer':'default'}">
+    <tr onclick="canEditRecord(r) ? editApp('${r.id}') : null" style="cursor:${canEditRecord(r)?'pointer':'default'}">
       <td class="cm">${xe(r.app_number||'—')}</td>
       <td class="cp">${xe(r.party_name||'—')}</td>
       <td>${xe(r.party_type||'—')}</td>
@@ -933,7 +895,7 @@ function renderList(rows){
       <td>${statusPill(r.status||'Draft')}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          ${canDo('customer_vendor','edit') ? `<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>` : ''}
+          ${canEditRecord(r) ? `<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>` : ''}
           ${(r.status==='Draft'||r.status==='New')?`<button class="btn btn-danger btn-sm" onclick="delApp('${r.id}')">✕</button>`:''}
         </div>
       </td>
@@ -973,12 +935,12 @@ function showNewForm(){
   window.scrollTo(0,0);
 }
 function editApp(id){
-  if(!canDo('customer_vendor','edit')){
-    toast('You do not have permission to edit applications.','error');
-    return;
-  }
   const numId=isNaN(id)?id:Number(id);
   const app=apps.find(a=>a.id===numId||String(a.id)===String(id));if(!app)return;
+  if(!canEditRecord(app)){
+    toast('You do not have permission to edit this application.','error');
+    return;
+  }
   editId=id;resetForm();fillForm(app);
   document.getElementById('fv-title').textContent='Edit Application';
   if(app.app_number){document.getElementById('app-no-disp').textContent=app.app_number;document.getElementById('app-no-disp').style.display='inline-block';}
@@ -1544,8 +1506,7 @@ async function loadUserSession(){
       // that should have broader hierarchical access, apply the correct default
       if(perm.data_scope==='own_branch' && _hierScope[window.userRole] && _hierScope[window.userRole]!=='own_branch'){
         perm.data_scope = _hierScope[window.userRole];
-        console.log('Overriding data_scope to hierarchical default:',perm.data_scope);
-      }
+          }
       window.userPerms = perm;
     } else {
       // No row found — use full hierarchical defaults
@@ -1581,6 +1542,15 @@ function canDo(appKey, action){
   return window.userPerms['can_'+action] === true;
 }
 
+// Can edit a specific record — true if role has edit permission
+// OR if the record was created by the current user (own record always editable)
+function canEditRecord(record){
+  if(!window.userPerms||window.userPerms.can_access===false) return false;
+  if(window.userPerms.can_edit) return true;
+  if(!record) return false;
+  return parseInt(record.submitted_by_user_id)===parseInt(currentUser?.id);
+}
+
 // Get data scope for query filtering
 function getRBACScope(){
   if(!window.userPerms) return 'own_branch';
@@ -1608,7 +1578,6 @@ async function getReporteeIds(managerBigintId){
         }
       });
     }
-    console.log('getReporteeIds result:',collected);
     return collected;
   }catch(e){
     console.warn('getReporteeIds failed:',e.message);
@@ -1636,7 +1605,6 @@ function applyRBACToUI(){
     badge.style.display = window.userRole ? 'block' : 'none';
   }
 
-  console.log('RBAC applied — role:',window.userRole,'create:',canCreate,'edit:',canEdit,'scope:',getRBACScope());
 }
 // ════════════════════════════════════════════════════════════
 </script>
