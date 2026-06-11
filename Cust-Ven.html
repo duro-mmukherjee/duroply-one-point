@@ -1546,9 +1546,15 @@ function canDo(appKey, action){
 // OR if the record was created by the current user (own record always editable)
 function canEditRecord(record){
   if(!window.userPerms||window.userPerms.can_access===false) return false;
-  if(window.userPerms.can_edit) return true;
   if(!record) return false;
-  return parseInt(record.submitted_by_user_id)===parseInt(currentUser?.id);
+  // If role has edit permission — can edit all visible records
+  if(window.userPerms.can_edit) return true;
+  // If role has no edit permission but can create —
+  // allow editing own records only (created by this user)
+  if(window.userPerms.can_create){
+    return parseInt(record.submitted_by_user_id)===parseInt(currentUser?.id);
+  }
+  return false;
 }
 
 // Get data scope for query filtering
