@@ -291,12 +291,12 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
 
           <div class="form-wrap">
-            <!-- Requester Details -->
+            <!-- Raised By -->
             <div class="form-section">
-              <div class="form-section-title">Requester Details</div>
+              <div class="form-section-title">Raised By</div>
               <div class="form-grid">
                 <div class="fld">
-                  <label>Name <span class="req">*</span></label>
+                  <label>Name</label>
                   <input id="f-name" readonly>
                 </div>
                 <div class="fld">
@@ -312,12 +312,42 @@ tbody tr:hover td{background:var(--surface2);}
                   <input id="f-grade" readonly>
                 </div>
                 <div class="fld">
-                  <label>Branch / Location <span class="req">*</span></label>
+                  <label>Branch / Location</label>
                   <input id="f-branch" readonly>
                 </div>
                 <div class="fld">
                   <label>Date <span class="req">*</span></label>
                   <input id="f-date" type="date">
+                </div>
+              </div>
+            </div>
+
+            <!-- Request For -->
+            <div class="form-section">
+              <div class="form-section-title">Request For <span style="font-size:11px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;">(leave as "Self" if requesting for yourself)</span></div>
+              <div class="form-grid">
+                <div class="fld full">
+                  <label>Select Employee <span class="req">*</span></label>
+                  <select id="f-for-emp" onchange="onForEmpChange()">
+                    <option value="self">Self</option>
+                  </select>
+                  <span class="hint">Shows all active employees in your branch</span>
+                </div>
+                <div class="fld" id="for-name-wrap" style="display:none;">
+                  <label>Name</label>
+                  <input id="f-for-name" readonly>
+                </div>
+                <div class="fld" id="for-desig-wrap" style="display:none;">
+                  <label>Designation</label>
+                  <input id="f-for-designation" readonly>
+                </div>
+                <div class="fld" id="for-dept-wrap" style="display:none;">
+                  <label>Department</label>
+                  <input id="f-for-department" readonly>
+                </div>
+                <div class="fld" id="for-grade-wrap" style="display:none;">
+                  <label>Grade</label>
+                  <input id="f-for-grade" readonly>
                 </div>
               </div>
             </div>
@@ -373,7 +403,8 @@ tbody tr:hover td{background:var(--surface2);}
             <div class="form-section">
               <div class="form-section-title">Requester Details</div>
               <div class="form-grid">
-                <div class="fld"><label>Name</label><input id="d-name" readonly></div>
+                <div class="fld"><label>Raised By</label><input id="d-raised-by" readonly></div>
+                <div class="fld"><label>Request For</label><input id="d-name" readonly></div>
                 <div class="fld"><label>Designation</label><input id="d-designation" readonly></div>
                 <div class="fld"><label>Department</label><input id="d-department" readonly></div>
                 <div class="fld"><label>Grade</label><input id="d-grade" readonly></div>
@@ -569,7 +600,8 @@ async function prefillRequester(){
 
   // Location — fetch name from 'location' table
   if(currentUser.location_id){
-    const{data:loc}=await sb.from('location').select('name').eq('id',currentUser.location_id).maybeSingle();
+    const{data:loc, error:locErr}=await sb.from('location').select('name').eq('id',currentUser.location_id).maybeSingle();
+    console.log('location query result:', loc, 'error:', locErr?.message, 'location_id:', currentUser.location_id);
     const bname=loc?.name||String(currentUser.location_id);
     document.getElementById('f-branch').value=bname;
     currentUser._branchName=bname;
@@ -590,6 +622,47 @@ async function prefillRequester(){
     currentUser._gradeName=String(currentUser.grade_id);
   }
   addPeriphRow();
+  // Load branch colleagues for "Request For" dropdown
+  await loadBranchColleagues();
+}
+
+async function loadBranchColleagues(){
+  const sel=document.getElementById('f-for-emp');
+  if(!sel) return;
+  sel.innerHTML='<option value="self">— Self —</option>';
+  if(!currentUser.location_id) return;
+  const{data:colleagues}=await sb.from('users')
+    .select('id,userid,fname,lname,designation_id,department_id,grade_id')
+    .eq('location_id',currentUser.location_id)
+    .eq('status',1)
+    .order('fname');
+  (colleagues||[]).forEach(u=>{
+    if(parseInt(u.id)===parseInt(currentUser.id)) return;
+    const name=[u.fname,u.lname].filter(Boolean).join(' ')||u.userid;
+    const opt=document.createElement('option');
+    opt.value=u.id;
+    opt.textContent=name+' ('+u.userid+')';
+    opt.dataset.name=name;
+    opt.dataset.desig=u.designation_id||'';
+    opt.dataset.dept=u.department_id||'';
+    opt.dataset.grade=u.grade_id||'';
+    sel.appendChild(opt);
+  });
+}
+
+function onForEmpChange(){
+  const sel=document.getElementById('f-for-emp');
+  const isSelf=sel.value==='self';
+  ['for-name-wrap','for-desig-wrap','for-dept-wrap','for-grade-wrap'].forEach(id=>{
+    document.getElementById(id).style.display=isSelf?'none':'';
+  });
+  if(!isSelf){
+    const opt=sel.options[sel.selectedIndex];
+    document.getElementById('f-for-name').value=opt.dataset.name||'';
+    document.getElementById('f-for-designation').value=opt.dataset.desig||'';
+    document.getElementById('f-for-department').value=opt.dataset.dept||'';
+    document.getElementById('f-for-grade').value=opt.dataset.grade||'';
+  }
 }
 
 // ── Peripheral rows ────────────────────────────────────
@@ -622,6 +695,14 @@ function resetForm(){
   ['f-name','f-designation','f-department','f-grade','f-branch','f-date','f-justification'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
+  const forSel=document.getElementById('f-for-emp');
+  if(forSel) forSel.value='self';
+  ['for-name-wrap','for-desig-wrap','for-dept-wrap','for-grade-wrap'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  ['f-for-name','f-for-designation','f-for-department','f-for-grade'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
   document.getElementById('periph-tbody').innerHTML='';
 }
 
@@ -632,13 +713,26 @@ async function saveRequisition(status){
   if(!justification){toast('Please enter a justification.','error');return;}
   if(!periph.length||!periph[0].type){toast('Add at least one peripheral item.','error');return;}
 
+  // Determine who this is for
+  const forSel=document.getElementById('f-for-emp');
+  const isSelf=!forSel||forSel.value==='self';
+  const forOpt=forSel?forSel.options[forSel.selectedIndex]:null;
+  const requestForName=isSelf?([currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid):(forOpt?.dataset.name||'');
+  const requestForDesig=isSelf?(currentUser._designationName||''):(forOpt?.dataset.desig||'');
+  const requestForDept=isSelf?(currentUser._departmentName||''):(forOpt?.dataset.dept||'');
+  const requestForGrade=isSelf?(currentUser._gradeName||''):(forOpt?.dataset.grade||'');
+  const requestForId=isSelf?parseInt(currentUser.id):parseInt(forSel.value);
+
   const data={
     submitted_by:parseInt(currentUser.id),
     submitted_by_userid:currentUser.userid,
-    requester_name:[currentUser.fname,currentUser.lname].filter(Boolean).join(' '),
-    requester_designation:currentUser._designationName||document.getElementById('f-designation').value||'',
-    requester_department:currentUser._departmentName||document.getElementById('f-department').value||'',
-    requester_grade:currentUser._gradeName||document.getElementById('f-grade').value||'',
+    raised_by_name:[currentUser.fname,currentUser.lname].filter(Boolean).join(' '),
+    raised_by_userid:currentUser.userid,
+    request_for_id:requestForId,
+    requester_name:requestForName,
+    requester_designation:requestForDesig,
+    requester_department:requestForDept,
+    requester_grade:requestForGrade,
     requester_branch:currentUser._branchName||document.getElementById('f-branch').value||'',
     location_id:currentUser.location_id||null,
     req_date:document.getElementById('f-date').value,
@@ -757,6 +851,7 @@ async function viewDetail(id){
   document.getElementById('detail-title').textContent='Requisition '+( req.req_number||'');
   document.getElementById('detail-sub').textContent=req.status;
 
+  document.getElementById('d-raised-by').value=req.raised_by_name||req.requester_name||'';
   document.getElementById('d-name').value=req.requester_name||'';
   document.getElementById('d-designation').value=req.requester_designation||'';
   document.getElementById('d-department').value=req.requester_department||'';
