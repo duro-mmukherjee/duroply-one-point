@@ -9,8 +9,7 @@
 <style>
 :root{
   --bg:#f0f4f8;--surface:#fff;--surface2:#e8edf2;--border:#d0d7e0;
-  --accent:#2563eb;--success:#16a34a;--danger:#dc2626;--warn:#d97706;
-  --info:#0891b2;
+  --accent:#2563eb;--success:#16a34a;--danger:#dc2626;--warn:#d97706;--info:#0891b2;
   --text:#1a202c;--text2:#4a5568;--text3:#8896a8;
   --r:10px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
 }
@@ -21,7 +20,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#e0e7ff,#f0f4f8,#dbeafe);}
 .lcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(37,99,235,.1);}
 .llogo{text-align:center;margin-bottom:28px;}
-.llogo-icon{width:52px;height:52px;background:linear-gradient(135deg,#0891b2,#2563eb);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px;}
+.llogo-icon{width:52px;height:52px;background:linear-gradient(135deg,#0891b2,#2563eb);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px;}
 .ltitle{font-size:20px;font-weight:600;letter-spacing:-.4px;}
 .lsub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px;}
 .lsec{margin-bottom:14px;}
@@ -34,7 +33,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .lerr{background:#fee2e2;border:1px solid #fca5a5;color:#b91c1c;border-radius:7px;padding:9px 12px;font-size:13px;margin-top:12px;display:none;}
 .lerr.show{display:block;}
 
-/* ── App shell ── */
+/* ── Shell ── */
 #app{display:none;}
 .shell{display:flex;min-height:100vh;}
 .sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;flex-shrink:0;}
@@ -62,14 +61,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
 .btn-ghost:hover{color:var(--text);}
 .btn-danger{background:var(--danger);color:#fff;}
-.btn-warn{background:var(--warn);color:#fff;}
 .btn-info{background:var(--info);color:#fff;}
 .btn-sm{padding:5px 11px;font-size:11px;}
-.btn:disabled{opacity:.5;cursor:not-allowed;}
 
 /* ── Content ── */
 .content{flex:1;padding:24px;overflow-y:auto;}
-.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;}
+.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;}
 .page-title{font-size:18px;font-weight:600;}
 .page-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:3px;}
 
@@ -93,13 +90,10 @@ tbody tr:hover td{background:var(--surface2);}
 .p-issued{background:#e0e7ff;color:#4338ca;border:1px solid #a5b4fc;}
 
 /* ── Form ── */
-.form-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:820px;}
-.form-title{font-size:16px;font-weight:600;margin-bottom:4px;}
-.form-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:24px;}
+.form-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:860px;}
 .form-section{margin-bottom:24px;}
 .form-section-title{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
 .fld{display:flex;flex-direction:column;gap:5px;}
 .fld.full{grid-column:1/-1;}
 .fld label{font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;}
@@ -111,7 +105,7 @@ tbody tr:hover td{background:var(--surface2);}
 .fld .hint{font-size:11px;color:var(--text3);}
 .form-actions{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
 
-/* ── Peripherals table in form ── */
+/* ── Peripherals table ── */
 .periph-table-wrap{overflow-x:auto;}
 .periph-table{width:100%;border-collapse:collapse;font-size:12px;}
 .periph-table th{background:var(--surface2);padding:8px 10px;text-align:left;font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.4px;border-bottom:1px solid var(--border);}
@@ -122,8 +116,8 @@ tbody tr:hover td{background:var(--surface2);}
 .add-row-btn:hover{text-decoration:underline;}
 .drow-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 4px;}
 
-/* ── Approval detail card ── */
-.approval-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;max-width:820px;}
+/* ── Approval card ── */
+.approval-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;max-width:860px;}
 .approval-card-title{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .approval-step{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
 .approval-step:last-child{border-bottom:none;padding-bottom:0;}
@@ -137,6 +131,24 @@ tbody tr:hover td{background:var(--surface2);}
 .step-remark{font-size:12px;color:var(--text2);margin-top:4px;font-style:italic;}
 .step-date{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
 
+/* ── Search ── */
+.search-row{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;max-width:300px;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;}
+.sinput{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px 8px 32px;border-radius:var(--r);outline:none;}
+.sinput:focus{border-color:var(--accent);}
+.fsel{font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:7px 10px;outline:none;cursor:pointer;}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border-radius:14px;padding:28px;width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,.15);}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:6px;}
+.modal-sub{font-size:12px;color:var(--text3);margin-bottom:18px;}
+.modal textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 12px;border-radius:8px;outline:none;resize:vertical;min-height:90px;}
+.modal textarea:focus{border-color:var(--accent);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+
 /* ── Toast ── */
 .toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;}
 .toast{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;color:#fff;opacity:0;transform:translateY(8px);transition:all .25s;max-width:320px;}
@@ -147,35 +159,8 @@ tbody tr:hover td{background:var(--surface2);}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ── Search ── */
-.search-row{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
-.search-wrap{position:relative;flex:1;min-width:200px;max-width:300px;}
-.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;}
-.sinput{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px 8px 32px;border-radius:var(--r);outline:none;}
-.sinput:focus{border-color:var(--accent);}
-.fsel{font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:7px 10px;outline:none;cursor:pointer;}
-
-/* ── Req number display ── */
-.req-no{font-family:var(--mono);font-size:11px;background:rgba(37,99,235,.08);color:var(--accent);border-radius:4px;padding:2px 8px;display:none;}
-
-/* ── Remark modal ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;}
-.modal-bg.open{display:flex;}
-.modal{background:var(--surface);border-radius:14px;padding:28px;width:100%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,.15);}
-.modal-title{font-size:16px;font-weight:600;margin-bottom:6px;}
-.modal-sub{font-size:12px;color:var(--text3);margin-bottom:18px;}
-.modal textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 12px;border-radius:8px;outline:none;resize:vertical;min-height:90px;}
-.modal textarea:focus{border-color:var(--accent);}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
-
-/* ── Print styles ── */
-@media print {
-  body * { visibility: hidden; }
-  #print-area, #print-area * { visibility: visible; }
-  #print-area { position: fixed; left: 0; top: 0; width: 100%; }
-  @page { margin: 20mm; }
-}
-.print-doc { display: none; }
+/* ── Print ── */
+@media print{body *{visibility:hidden;}#print-area,#print-area *{visibility:visible;}#print-area{position:fixed;left:0;top:0;width:100%;}@page{margin:20mm;}}
 </style>
 </head>
 <body>
@@ -204,6 +189,8 @@ tbody tr:hover td{background:var(--surface2);}
 <!-- ── App ── -->
 <div id="app">
   <div class="shell">
+
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="slogo">
         <div class="slogo-name">Duroply Industries</div>
@@ -223,7 +210,7 @@ tbody tr:hover td{background:var(--surface2);}
         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         New Requisition
       </div>
-      <div class="nav-item" id="nav-pending" onclick="showPending()">
+      <div class="nav-item" id="nav-pending" style="display:none;" onclick="showPending()">
         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         Pending Approvals
         <span id="pending-badge" style="display:none;margin-left:auto;background:var(--danger);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--mono);"></span>
@@ -234,10 +221,11 @@ tbody tr:hover td{background:var(--surface2);}
       </div>
     </aside>
 
+    <!-- Main -->
     <div class="main">
       <div class="content">
 
-        <!-- ── My Requisitions list ── -->
+        <!-- ── My Requisitions ── -->
         <div id="view-list">
           <div class="page-hd">
             <div>
@@ -249,33 +237,23 @@ tbody tr:hover td{background:var(--surface2);}
           <div class="search-row">
             <div class="search-wrap">
               <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-              <input class="sinput" id="list-search" placeholder="Search requisitions…" oninput="filterList()">
+              <input class="sinput" id="list-search" placeholder="Search…" oninput="filterList()">
             </div>
             <select class="fsel" id="list-filter" onchange="filterList()">
               <option value="">All statuses</option>
-              <option>Draft</option>
-              <option>Submitted</option>
+              <option>Draft</option><option>Submitted</option>
               <option>Approved by Branch Manager</option>
               <option>Approved by IT</option>
-              <option>Rejected</option>
-              <option>Issued</option>
+              <option>Rejected</option><option>Issued</option>
             </select>
           </div>
           <div class="tw">
             <table>
-              <thead>
-                <tr>
-                  <th>Req No.</th>
-                  <th>Date</th>
-                  <th>Peripherals</th>
-                  <th>Justification</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="list-tbody">
-                <tr><td colspan="6" class="empty-state">Loading…</td></tr>
-              </tbody>
+              <thead><tr>
+                <th>Req No.</th><th>Date</th><th>Request For</th>
+                <th>Peripherals</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="list-tbody"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -285,74 +263,44 @@ tbody tr:hover td{background:var(--surface2);}
           <div class="page-hd">
             <div>
               <div class="page-title" id="form-title">New Requisition</div>
-              <span class="req-no" id="req-no-disp"></span>
+              <span id="req-no-disp" style="display:none;font-family:var(--mono);font-size:11px;background:rgba(37,99,235,.08);color:var(--accent);border-radius:4px;padding:2px 8px;"></span>
             </div>
             <button class="btn btn-ghost btn-sm" onclick="showList()">← Back to list</button>
           </div>
 
           <div class="form-wrap">
-            <!-- Requestor -->
+
+            <!-- Requestor (logged-in user) -->
             <div class="form-section">
               <div class="form-section-title">Requestor</div>
               <div class="form-grid">
-                <div class="fld">
-                  <label>Name</label>
-                  <input id="f-name" readonly>
-                </div>
-                <div class="fld">
-                  <label>Designation</label>
-                  <input id="f-designation" readonly>
-                </div>
-                <div class="fld">
-                  <label>Department</label>
-                  <input id="f-department" readonly>
-                </div>
-                <div class="fld">
-                  <label>Grade</label>
-                  <input id="f-grade" readonly>
-                </div>
-                <div class="fld">
-                  <label>Branch / Location</label>
-                  <input id="f-branch" readonly>
-                </div>
-                <div class="fld">
-                  <label>Date <span class="req">*</span></label>
-                  <input id="f-date" type="date">
-                </div>
+                <div class="fld"><label>Name</label><input id="f-name" readonly></div>
+                <div class="fld"><label>Designation</label><input id="f-designation" readonly></div>
+                <div class="fld"><label>Department</label><input id="f-department" readonly></div>
+                <div class="fld"><label>Grade</label><input id="f-grade" readonly></div>
+                <div class="fld"><label>Branch / Location</label><input id="f-branch" readonly></div>
+                <div class="fld"><label>Date <span class="req">*</span></label><input id="f-date" type="date"></div>
               </div>
             </div>
 
-            <!-- Request For -->
+            <!-- Request For (self or colleague) -->
             <div class="form-section">
-              <div class="form-section-title">Request For <span style="font-size:11px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;">(leave as "Self" if requesting for yourself)</span></div>
+              <div class="form-section-title">Request For <span style="font-size:11px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;">(select colleague or leave as Self)</span></div>
               <div class="form-grid">
                 <div class="fld full">
-                  <label>Select Employee <span class="req">*</span></label>
+                  <label>Employee <span class="req">*</span></label>
                   <select id="f-for-emp" onchange="onForEmpChange()">
-                    <option value="self">Self</option>
+                    <option value="self">— Self —</option>
                   </select>
-                  <span class="hint">Shows all active employees in your branch</span>
                 </div>
-                <div class="fld" id="for-name-wrap" style="display:none;">
-                  <label>Name</label>
-                  <input id="f-for-name" readonly>
-                </div>
-                <div class="fld" id="for-desig-wrap" style="display:none;">
-                  <label>Designation</label>
-                  <input id="f-for-designation" readonly>
-                </div>
-                <div class="fld" id="for-dept-wrap" style="display:none;">
-                  <label>Department</label>
-                  <input id="f-for-department" readonly>
-                </div>
-                <div class="fld" id="for-grade-wrap" style="display:none;">
-                  <label>Grade</label>
-                  <input id="f-for-grade" readonly>
-                </div>
+                <div class="fld" id="for-name-wrap" style="display:none;"><label>Name</label><input id="f-for-name" readonly></div>
+                <div class="fld" id="for-desig-wrap" style="display:none;"><label>Designation</label><input id="f-for-designation" readonly></div>
+                <div class="fld" id="for-dept-wrap"  style="display:none;"><label>Department</label><input id="f-for-department" readonly></div>
+                <div class="fld" id="for-grade-wrap" style="display:none;"><label>Grade</label><input id="f-for-grade" readonly></div>
               </div>
             </div>
 
-            <!-- Peripherals Requested -->
+            <!-- Peripherals -->
             <div class="form-section">
               <div class="form-section-title">Peripherals Requested</div>
               <div class="fld full" style="margin-bottom:14px;">
@@ -361,50 +309,41 @@ tbody tr:hover td{background:var(--surface2);}
               </div>
               <div class="periph-table-wrap">
                 <table class="periph-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Peripheral Name / Type *</th>
-                      <th>Qty *</th>
-                      <th>Specification / Model</th>
-                      <th></th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>#</th><th>Peripheral Type *</th><th>Qty *</th><th>Specification / Model</th><th></th></tr></thead>
                   <tbody id="periph-tbody"></tbody>
                 </table>
               </div>
               <button class="add-row-btn" onclick="addPeriphRow()">+ Add Item</button>
             </div>
 
-            <!-- Form Actions -->
             <div class="form-actions">
               <button class="btn btn-primary" onclick="saveRequisition('Draft')">Save as Draft</button>
-              <button class="btn btn-success" id="submit-btn" onclick="submitRequisition()">Submit for Approval</button>
+              <button class="btn btn-success" id="submit-btn" onclick="saveRequisition('Submitted')">Submit for Approval</button>
               <button class="btn btn-ghost" onclick="showList()">Cancel</button>
             </div>
           </div>
         </div>
 
-        <!-- ── View / Approval detail ── -->
+        <!-- ── Detail / Approval ── -->
         <div id="view-detail" style="display:none;">
           <div class="page-hd">
             <div>
-              <div class="page-title" id="detail-title">Requisition Detail</div>
+              <div class="page-title" id="detail-title">Requisition</div>
               <div class="page-sub" id="detail-sub"></div>
             </div>
             <div style="display:flex;gap:8px;">
-            <button class="btn btn-ghost btn-sm" onclick="printRequisition()">🖨 Print</button>
-            <button class="btn btn-ghost btn-sm" id="detail-back-btn" onclick="showList()">← Back</button>
-          </div>
+              <button class="btn btn-ghost btn-sm" onclick="printRequisition()">🖨 Print</button>
+              <button class="btn btn-ghost btn-sm" onclick="goBackFromDetail()">← Back</button>
+            </div>
           </div>
 
-          <!-- Summary card -->
+          <!-- Summary -->
           <div class="form-wrap" style="margin-bottom:16px;">
             <div class="form-section">
               <div class="form-section-title">Requestor &amp; Request For</div>
               <div class="form-grid">
                 <div class="fld"><label>Requestor</label><input id="d-raised-by" readonly></div>
-                <div class="fld"><label>Request For</label><input id="d-name" readonly></div>
+                <div class="fld"><label>Request For</label><input id="d-request-for" readonly></div>
                 <div class="fld"><label>Designation</label><input id="d-designation" readonly></div>
                 <div class="fld"><label>Department</label><input id="d-department" readonly></div>
                 <div class="fld"><label>Grade</label><input id="d-grade" readonly></div>
@@ -415,10 +354,10 @@ tbody tr:hover td{background:var(--surface2);}
             </div>
             <div class="form-section">
               <div class="form-section-title">Justification</div>
-              <textarea id="d-justification" readonly style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:var(--sans);font-size:13px;padding:10px;border-radius:8px;resize:none;min-height:60px;"></textarea>
+              <textarea id="d-justification" readonly style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:var(--sans);font-size:13px;padding:10px;border-radius:8px;resize:none;min-height:60px;outline:none;"></textarea>
             </div>
-            <div class="form-section">
-              <div class="form-section-title">Peripherals Requested</div>
+            <div class="form-section" style="margin-bottom:0;">
+              <div class="form-section-title">Peripherals</div>
               <div class="periph-table-wrap">
                 <table class="periph-table">
                   <thead><tr><th>#</th><th>Peripheral</th><th>Qty</th><th>Specification</th></tr></thead>
@@ -438,24 +377,24 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
 
           <!-- Approval actions -->
-          <div id="approval-actions" style="display:none;margin-bottom:20px;">
-            <div class="form-wrap" style="padding:18px;">
+          <div id="approval-actions" style="display:none;margin-bottom:16px;max-width:860px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;">
               <div class="form-section-title" style="margin-bottom:12px;">Your Action</div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;" id="action-btns"></div>
             </div>
           </div>
 
-          <!-- IT Issue details (shown when IT approves) -->
-          <div id="issue-section" style="display:none;">
-            <div class="form-wrap" style="padding:18px;">
-              <div class="form-section-title" style="margin-bottom:12px;">Issue Details</div>
+          <!-- IT Issue section -->
+          <div id="issue-section" style="display:none;margin-bottom:20px;max-width:860px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;">
+              <div class="form-section-title" style="margin-bottom:12px;">Issue Details (IT Dept.)</div>
               <div class="form-grid">
                 <div class="fld"><label>Date of Issue</label><input id="i-date" type="date"></div>
                 <div class="fld"><label>Model No.</label><input id="i-model" placeholder="e.g. HP LaserJet M1136"></div>
-                <div class="fld"><label>Previous User (if any)</label><input id="i-prev-user" placeholder="Employee ID or name"></div>
+                <div class="fld"><label>Previous User (if any)</label><input id="i-prev-user" placeholder="Name or employee ID"></div>
                 <div class="fld"><label>Date of Purchase</label><input id="i-purchase-date" type="date"></div>
               </div>
-              <div style="margin-top:14px;display:flex;gap:10px;">
+              <div style="margin-top:14px;">
                 <button class="btn btn-info" onclick="issuePeripheral()">Mark as Issued</button>
               </div>
             </div>
@@ -473,19 +412,11 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
           <div class="tw">
             <table>
-              <thead>
-                <tr>
-                  <th>Req No.</th>
-                  <th>Requested By</th>
-                  <th>Date</th>
-                  <th>Peripherals</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="pending-tbody">
-                <tr><td colspan="6" class="empty-state">Loading…</td></tr>
-              </tbody>
+              <thead><tr>
+                <th>Req No.</th><th>Requestor / For</th><th>Date</th>
+                <th>Peripherals</th><th>Status</th><th>Action</th>
+              </tr></thead>
+              <tbody id="pending-tbody"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -499,7 +430,7 @@ tbody tr:hover td{background:var(--surface2);}
 <div class="modal-bg" id="remark-modal">
   <div class="modal">
     <div class="modal-title" id="remark-modal-title">Add Remark</div>
-    <div class="modal-sub" id="remark-modal-sub">Optional — describe your reason</div>
+    <div class="modal-sub" id="remark-modal-sub">Optional</div>
     <textarea id="remark-text" placeholder="Enter your remark…"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeRemarkModal()">Cancel</button>
@@ -511,12 +442,16 @@ tbody tr:hover td{background:var(--surface2);}
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
-const SUPABASE_URL = 'https://fplmoyrqmhoaanvfsoni.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js';
+const SUPABASE_URL='https://fplmoyrqmhoaanvfsoni.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js';
 
-let sb=null, currentUser=null, allReqs=[], editId=null, pendingAction=null;
+const PERIPH_TYPES=['Laptop','Desktop','Monitor','Keyboard','Mouse','Printer','Scanner',
+  'UPS','Webcam','Headset','Pendrive','External HDD','Network Switch','Router','Other'];
 
-// ── Login ──────────────────────────────────────────────
+let sb=null, currentUser=null, userRole='', allReqs=[], editId=null;
+let _pendingActionType=null, _pendingReqId=null, _requireRemark=false, _detailFrom='list';
+
+// ── Login ──────────────────────────────────────────────────
 async function doLogin(){
   const uid=document.getElementById('l-uid').value.trim();
   const pwd=document.getElementById('l-pwd').value;
@@ -533,10 +468,9 @@ async function doLogin(){
     if(!data||!data.length){showLE('User ID not found.');return;}
     const u=data[0];
     if(u.pwd_old!==pwd){showLE('Incorrect password.');return;}
-    if(u.status!=1){showLE('Account inactive. Contact administrator.');return;}
+    if(u.status!=1){showLE('Account inactive.');return;}
     currentUser=u;
-    const name=[u.fname,u.lname].filter(Boolean).join(' ')||u.userid;
-    document.getElementById('u-name').textContent=name;
+    document.getElementById('u-name').textContent=[u.fname,u.lname].filter(Boolean).join(' ')||u.userid;
     document.getElementById('u-id').textContent=u.userid;
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
@@ -550,82 +484,70 @@ function showLE(m){const e=document.getElementById('lerr');e.textContent=m;e.cla
 function doLogout(){sb=null;currentUser=null;document.getElementById('l-pwd').value='';document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';}
 ['l-uid','l-pwd'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
 
-// ── Role ───────────────────────────────────────────────
-let userRole='';
+// ── Role ────────────────────────────────────────────────────
 async function loadUserRole(){
   try{
     const{data}=await sb.from('users_roles').select('role').eq('id',parseInt(currentUser.id)).maybeSingle();
     userRole=data?.role||'branch_staff_ops';
   }catch(e){userRole='branch_staff_ops';}
   const badge=document.getElementById('role-badge');
-  badge.textContent=userRole.replace(/_/g,' ');
-  badge.style.display='block';
-  // Show pending approvals nav only for branch_manager, IT head (super_admin), zone_manager
+  badge.textContent=userRole.replace(/_/g,' ');badge.style.display='block';
   const canApprove=['super_admin','zone_manager','branch_manager'].includes(userRole);
   document.getElementById('nav-pending').style.display=canApprove?'':'none';
 }
 
-// ── Navigation ─────────────────────────────────────────
+// ── Navigation ──────────────────────────────────────────────
 function setNav(id){
   ['nav-list','nav-new','nav-pending'].forEach(n=>document.getElementById(n).classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.getElementById(id)?.classList.add('active');
   ['view-list','view-form','view-detail','view-pending'].forEach(v=>document.getElementById(v).style.display='none');
 }
-function showList(){
-  setNav('nav-list');
-  document.getElementById('view-list').style.display='block';
-  editId=null;
-}
+function showList(){setNav('nav-list');document.getElementById('view-list').style.display='block';editId=null;}
+function showPending(){setNav('nav-pending');document.getElementById('view-pending').style.display='block';loadPending();}
 function showNewForm(){
   setNav('nav-new');
   document.getElementById('view-form').style.display='block';
-  editId=null;
-  resetForm();
-  prefillRequester();
+  editId=null;resetForm();prefillRequestor();
   document.getElementById('form-title').textContent='New Requisition';
   document.getElementById('req-no-disp').style.display='none';
-  document.getElementById('submit-btn').style.display='';
 }
-function showPending(){
-  setNav('nav-pending');
-  document.getElementById('view-pending').style.display='block';
-  loadPending();
+function goBackFromDetail(){
+  if(_detailFrom==='pending') showPending(); else showList();
 }
 
-// ── Requester prefill ──────────────────────────────────
-async function prefillRequester(){
+// ── Prefill Requestor ───────────────────────────────────────
+async function prefillRequestor(){
   const name=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ');
   document.getElementById('f-name').value=name;
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
 
-  // Location — fetch name from 'location' table
+  // Location name from 'location' table
   if(currentUser.location_id){
-    const{data:loc, error:locErr}=await sb.from('location').select('name').eq('id',currentUser.location_id).maybeSingle();
-    console.log('location query result:', loc, 'error:', locErr?.message, 'location_id:', currentUser.location_id);
+    const{data:loc}=await sb.from('location').select('name').eq('id',currentUser.location_id).maybeSingle();
     const bname=loc?.name||String(currentUser.location_id);
     document.getElementById('f-branch').value=bname;
     currentUser._branchName=bname;
   }
-  // Designation — show raw designation_id from users table
+  // Designation — raw id
   if(currentUser.designation_id){
     document.getElementById('f-designation').value=currentUser.designation_id;
     currentUser._designationName=String(currentUser.designation_id);
   }
-  // Department — show raw department_id from users table
+  // Department — raw id
   if(currentUser.department_id){
     document.getElementById('f-department').value=currentUser.department_id;
     currentUser._departmentName=String(currentUser.department_id);
   }
-  // Grade — show raw grade_id from users table
+  // Grade — raw id
   if(currentUser.grade_id){
     document.getElementById('f-grade').value=currentUser.grade_id;
     currentUser._gradeName=String(currentUser.grade_id);
   }
   addPeriphRow();
-  // Load branch colleagues for "Request For" dropdown
   await loadBranchColleagues();
 }
 
+// ── Branch colleagues for Request For dropdown ───────────────
 async function loadBranchColleagues(){
   const sel=document.getElementById('f-for-emp');
   if(!sel) return;
@@ -665,9 +587,7 @@ function onForEmpChange(){
   }
 }
 
-// ── Peripheral rows ────────────────────────────────────
-const PERIPH_TYPES=['Laptop','Desktop','Monitor','Keyboard','Mouse','Printer','Scanner','UPS','Webcam','Headset','Pendrive','External HDD','Network Switch','Router','Other'];
-
+// ── Peripheral rows ─────────────────────────────────────────
 function addPeriphRow(){
   const tb=document.getElementById('periph-tbody');
   const n=tb.rows.length+1;
@@ -675,7 +595,7 @@ function addPeriphRow(){
   tr.innerHTML=`<td>${n}</td>
     <td><select class="periph-type">${PERIPH_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></td>
     <td><input type="number" min="1" value="1" class="periph-qty" style="width:60px;"></td>
-    <td><input type="text" class="periph-spec" placeholder="Optional spec or model"></td>
+    <td><input type="text" class="periph-spec" placeholder="Optional"></td>
     <td><button class="drow-del" onclick="this.closest('tr').remove();renumPeriph()">✕</button></td>`;
   tb.appendChild(tr);
 }
@@ -690,13 +610,12 @@ function collectPeriph(){
   }));
 }
 
-// ── Reset form ─────────────────────────────────────────
+// ── Reset form ──────────────────────────────────────────────
 function resetForm(){
   ['f-name','f-designation','f-department','f-grade','f-branch','f-date','f-justification'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
-  const forSel=document.getElementById('f-for-emp');
-  if(forSel) forSel.value='self';
+  const sel=document.getElementById('f-for-emp');if(sel)sel.value='self';
   ['for-name-wrap','for-desig-wrap','for-dept-wrap','for-grade-wrap'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='none';
   });
@@ -706,58 +625,53 @@ function resetForm(){
   document.getElementById('periph-tbody').innerHTML='';
 }
 
-// ── Save requisition ───────────────────────────────────
+// ── Save requisition ────────────────────────────────────────
 async function saveRequisition(status){
   const justification=document.getElementById('f-justification').value.trim();
   const periph=collectPeriph();
   if(!justification){toast('Please enter a justification.','error');return;}
   if(!periph.length||!periph[0].type){toast('Add at least one peripheral item.','error');return;}
 
-  // Determine who this is for
+  // Determine request for
   const forSel=document.getElementById('f-for-emp');
   const isSelf=!forSel||forSel.value==='self';
-  const forOpt=forSel?forSel.options[forSel.selectedIndex]:null;
-  const requestForName=isSelf?([currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid):(forOpt?.dataset.name||'');
-  const requestForDesig=isSelf?(currentUser._designationName||''):(forOpt?.dataset.desig||'');
-  const requestForDept=isSelf?(currentUser._departmentName||''):(forOpt?.dataset.dept||'');
-  const requestForGrade=isSelf?(currentUser._gradeName||''):(forOpt?.dataset.grade||'');
-  const requestForId=isSelf?parseInt(currentUser.id):parseInt(forSel.value);
+  const forOpt=isSelf?null:forSel.options[forSel.selectedIndex];
+  const requestorName=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+
+  // "Request For" details
+  const requestForName  = isSelf ? requestorName          : (forOpt?.dataset.name||'');
+  const requestForDesig = isSelf ? (currentUser._designationName||'') : (forOpt?.dataset.desig||'');
+  const requestForDept  = isSelf ? (currentUser._departmentName||'')  : (forOpt?.dataset.dept||'');
+  const requestForGrade = isSelf ? (currentUser._gradeName||'')       : (forOpt?.dataset.grade||'');
+  const requestForId    = isSelf ? parseInt(currentUser.id)           : parseInt(forSel.value);
 
   const data={
-    submitted_by:parseInt(currentUser.id),
-    submitted_by_userid:currentUser.userid,
-    raised_by_name:[currentUser.fname,currentUser.lname].filter(Boolean).join(' '),
-    raised_by_userid:currentUser.userid,
-    request_for_id:requestForId,
-    requester_name:requestForName,
-    requester_designation:requestForDesig,
-    requester_department:requestForDept,
-    requester_grade:requestForGrade,
-    requester_branch:currentUser._branchName||document.getElementById('f-branch').value||'',
-    location_id:currentUser.location_id||null,
-    req_date:document.getElementById('f-date').value,
+    submitted_by:      parseInt(currentUser.id),
+    submitted_by_userid: currentUser.userid,
+    raised_by_name:    requestorName,
+    raised_by_userid:  currentUser.userid,
+    request_for_id:    requestForId,
+    requester_name:    requestForName,
+    requester_designation: requestForDesig,
+    requester_department:  requestForDept,
+    requester_grade:   requestForGrade,
+    requester_branch:  currentUser._branchName||'',
+    location_id:       currentUser.location_id||null,
+    req_date:          document.getElementById('f-date').value,
     justification,
-    peripherals:JSON.stringify(periph),
+    peripherals:       JSON.stringify(periph),
     status,
-    created_at:editId?undefined:new Date().toISOString(),
-    updated_at:new Date().toISOString(),
+    updated_at:        new Date().toISOString(),
   };
-  if(!editId) data.req_number=genReqNo();
+  if(!editId){ data.req_number=genReqNo(); data.created_at=new Date().toISOString(); }
 
   let error;
-  if(editId){
-    ({error}=await sb.from('it_requisitions').update(data).eq('id',editId));
-  } else {
-    ({error}=await sb.from('it_requisitions').insert(data));
-  }
+  if(editId){({error}=await sb.from('it_requisitions').update(data).eq('id',editId));}
+  else{({error}=await sb.from('it_requisitions').insert(data));}
   if(error){toast('Save failed: '+error.message,'error');return;}
-  toast(status==='Draft'?'Draft saved.':'Submitted successfully.','success');
+  toast(status==='Draft'?'Draft saved.':'Submitted for approval.','success');
   await loadMyReqs();
   showList();
-}
-
-async function submitRequisition(){
-  await saveRequisition('Submitted');
 }
 
 function genReqNo(){
@@ -765,11 +679,10 @@ function genReqNo(){
   return 'ITR-'+d.getFullYear().toString().slice(2)+String(d.getMonth()+1).padStart(2,'0')+'-'+Math.floor(Math.random()*9000+1000);
 }
 
-// ── Load my requisitions ───────────────────────────────
+// ── Load my requisitions ────────────────────────────────────
 async function loadMyReqs(){
   const{data,error}=await sb.from('it_requisitions')
-    .select('*')
-    .eq('submitted_by',parseInt(currentUser.id))
+    .select('*').eq('submitted_by',parseInt(currentUser.id))
     .order('created_at',{ascending:false});
   if(error){toast('Load error: '+error.message,'error');return;}
   allReqs=data||[];
@@ -778,15 +691,19 @@ async function loadMyReqs(){
 
 function renderList(rows){
   const tb=document.getElementById('list-tbody');
-  if(!rows.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No requisitions yet. Click "+ New Requisition" to get started.</td></tr>';return;}
+  if(!rows.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No requisitions yet.</td></tr>';return;}
   tb.innerHTML=rows.map(r=>{
     const periph=safeParse(r.peripherals)||[];
-    const periphSummary=periph.slice(0,2).map(p=>p.qty+'× '+p.type).join(', ')+(periph.length>2?' +more':'');
-    return `<tr onclick="viewDetail('${r.id}')" style="cursor:pointer;">
+    const summary=periph.slice(0,2).map(p=>p.qty+'× '+p.type).join(', ')+(periph.length>2?' …':'');
+    const isSelf=!r.raised_by_name||r.raised_by_name===r.requester_name;
+    return `<tr onclick="viewDetail('${r.id}','list')" style="cursor:pointer;">
       <td><span style="font-family:var(--mono);font-size:11px;color:var(--accent)">${xe(r.req_number||'—')}</span></td>
       <td style="font-size:12px">${r.req_date||'—'}</td>
-      <td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${xe(periphSummary)}</td>
-      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${xe(r.justification||'—')}</td>
+      <td style="font-size:12px">
+        ${xe(r.requester_name||'—')}
+        ${!isSelf?`<br><span style="color:var(--text3);font-size:11px;">by ${xe(r.raised_by_name)}</span>`:''}
+      </td>
+      <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${xe(summary)}</td>
       <td>${statusPill(r.status)}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
@@ -802,7 +719,7 @@ function filterList(){
   const q=document.getElementById('list-search').value.toLowerCase();
   const sf=document.getElementById('list-filter').value;
   let rows=allReqs;
-  if(q) rows=rows.filter(r=>(r.req_number+' '+r.justification+' '+r.status).toLowerCase().includes(q));
+  if(q) rows=rows.filter(r=>(r.req_number+' '+r.requester_name+' '+r.justification+' '+r.status).toLowerCase().includes(q));
   if(sf) rows=rows.filter(r=>r.status===sf);
   renderList(rows);
 }
@@ -811,24 +728,19 @@ async function delReq(id){
   if(!confirm('Delete this draft?')) return;
   const{error}=await sb.from('it_requisitions').delete().eq('id',id);
   if(error){toast('Delete failed: '+error.message,'error');return;}
-  toast('Deleted','success');
-  await loadMyReqs();
+  toast('Deleted','success');await loadMyReqs();
 }
 
 async function editReq(id){
-  const req=allReqs.find(r=>String(r.id)===String(id));
-  if(!req)return;
+  const req=allReqs.find(r=>String(r.id)===String(id));if(!req)return;
   editId=id;
-  setNav('nav-new');
-  document.getElementById('view-form').style.display='block';
+  setNav('nav-new');document.getElementById('view-form').style.display='block';
   document.getElementById('form-title').textContent='Edit Requisition';
   document.getElementById('req-no-disp').textContent=req.req_number||'';
   document.getElementById('req-no-disp').style.display='inline-block';
-  resetForm();
-  await prefillRequester();
+  resetForm();await prefillRequestor();
   document.getElementById('f-justification').value=req.justification||'';
   document.getElementById('f-date').value=req.req_date||'';
-  // Repopulate peripherals
   document.getElementById('periph-tbody').innerHTML='';
   (safeParse(req.peripherals)||[]).forEach(p=>{
     addPeriphRow();
@@ -840,42 +752,40 @@ async function editReq(id){
   });
 }
 
-// ── View detail ────────────────────────────────────────
-async function viewDetail(id){
+// ── View detail ─────────────────────────────────────────────
+async function viewDetail(id, from='list'){
+  _detailFrom=from;
   const{data:req,error}=await sb.from('it_requisitions').select('*').eq('id',id).single();
   if(error||!req){toast('Could not load requisition.','error');return;}
-  window._currentReq=req; // store for print
+  window._currentReq=req;
 
-  setNav('nav-list');
+  setNav(from==='pending'?'nav-pending':'nav-list');
   document.getElementById('view-detail').style.display='block';
-  document.getElementById('detail-title').textContent='Requisition '+( req.req_number||'');
-  document.getElementById('detail-sub').textContent=req.status;
+  document.getElementById('detail-title').textContent='Requisition '+(req.req_number||'');
+  document.getElementById('detail-sub').textContent=req.status||'';
 
+  // Requestor = who raised it; Request For = who receives
   document.getElementById('d-raised-by').value=req.raised_by_name||req.requester_name||'';
-  document.getElementById('d-name').value=req.requester_name||'';
+  document.getElementById('d-request-for').value=req.requester_name||'';
   document.getElementById('d-designation').value=req.requester_designation||'';
   document.getElementById('d-department').value=req.requester_department||'';
   document.getElementById('d-grade').value=req.requester_grade||'';
-  document.getElementById('d-branch').value=req.requester_branch||req.location_id||'';
+  document.getElementById('d-branch').value=req.requester_branch||'';
   document.getElementById('d-date').value=req.req_date||'';
   document.getElementById('d-status').value=req.status||'';
   document.getElementById('d-justification').value=req.justification||'';
 
-  // Peripherals table
   const periph=safeParse(req.peripherals)||[];
   document.getElementById('d-periph-tbody').innerHTML=periph.map((p,i)=>
     `<tr><td>${i+1}</td><td>${xe(p.type)}</td><td>${p.qty}</td><td>${xe(p.spec||'—')}</td></tr>`
   ).join('');
 
-  // Approval trail
   renderApprovalTrail(req);
+  renderApprovalActions(req,id);
 
-  // Show actions for approvers
-  renderApprovalActions(req, id);
-
-  // Issue section
-  const isIT = userRole==='super_admin';
-  const canIssue = isIT && req.status==='Approved by IT' && !req.issued_at;
+  // IT Issue section
+  const isIT=userRole==='super_admin';
+  const canIssue=isIT&&req.status==='Approved by IT'&&!req.issued_at;
   document.getElementById('issue-section').style.display=canIssue?'block':'none';
   if(canIssue){
     document.getElementById('i-date').value=new Date().toISOString().slice(0,10);
@@ -885,34 +795,10 @@ async function viewDetail(id){
 
 function renderApprovalTrail(req){
   const steps=[
-    {
-      role:'Requester',
-      name:req.requester_name||'—',
-      status:req.status==='Draft'?'pending':'done',
-      remark:'',
-      date:req.created_at?new Date(req.created_at).toLocaleDateString('en-IN'):''
-    },
-    {
-      role:'Branch Manager',
-      name:req.bm_name||'Awaiting',
-      status:req.bm_approved_at?'done':req.status==='Rejected'&&req.rejected_by_role==='branch_manager'?'rejected':'pending',
-      remark:req.bm_remark||'',
-      date:req.bm_approved_at?new Date(req.bm_approved_at).toLocaleDateString('en-IN'):''
-    },
-    {
-      role:'IT Head',
-      name:req.it_name||'Awaiting',
-      status:req.it_approved_at?'done':req.status==='Rejected'&&req.rejected_by_role==='it_head'?'rejected':'pending',
-      remark:req.it_remark||'',
-      date:req.it_approved_at?new Date(req.it_approved_at).toLocaleDateString('en-IN'):''
-    },
-    {
-      role:'Issued By IT',
-      name:req.issued_by_name||'Awaiting',
-      status:req.issued_at?'done':'pending',
-      remark:req.model_no?'Model: '+req.model_no:'',
-      date:req.issued_at?new Date(req.issued_at).toLocaleDateString('en-IN'):''
-    },
+    {role:'Requestor',     name:req.raised_by_name||req.requester_name||'—', status:req.status==='Draft'?'pending':'done', remark:'', date:req.created_at?new Date(req.created_at).toLocaleDateString('en-IN'):''},
+    {role:'Branch Manager',name:req.bm_name||'Awaiting', status:req.bm_approved_at?'done':req.status==='Rejected'&&req.rejected_by_role==='branch_manager'?'rejected':'pending', remark:req.bm_remark||'', date:req.bm_approved_at?new Date(req.bm_approved_at).toLocaleDateString('en-IN'):''},
+    {role:'IT Head',       name:req.it_name||'Awaiting', status:req.it_approved_at?'done':req.status==='Rejected'&&req.rejected_by_role==='it_head'?'rejected':'pending', remark:req.it_remark||'', date:req.it_approved_at?new Date(req.it_approved_at).toLocaleDateString('en-IN'):''},
+    {role:'Issued by IT',  name:req.issued_by_name||'Awaiting', status:req.issued_at?'done':'pending', remark:req.model_no?'Model: '+req.model_no:'', date:req.issued_at?String(req.issued_at):''},
   ];
   const icons={done:'✓',rejected:'✕',pending:'…'};
   document.getElementById('approval-trail').innerHTML=steps.map(s=>`
@@ -927,37 +813,31 @@ function renderApprovalTrail(req){
     </div>`).join('');
 }
 
-function renderApprovalActions(req, id){
-  const actDiv=document.getElementById('approval-actions');
-  const btnDiv=document.getElementById('action-btns');
-  actDiv.style.display='none';
-  btnDiv.innerHTML='';
-
-  const isBM = ['branch_manager','zone_manager'].includes(userRole);
-  const isIT = userRole==='super_admin';
-
-  // BM can approve/reject if status=Submitted
-  if(isBM && req.status==='Submitted'){
-    actDiv.style.display='block';
-    btnDiv.innerHTML=`
-      <button class="btn btn-success" onclick="openRemarkModal('bm_approve','${id}','Approve','Confirm BM approval')">✓ Approve</button>
-      <button class="btn btn-danger"  onclick="openRemarkModal('bm_reject', '${id}','Reject', 'Reason for rejection (required)', true)">✕ Reject</button>`;
+function renderApprovalActions(req,id){
+  const div=document.getElementById('approval-actions');
+  const btns=document.getElementById('action-btns');
+  div.style.display='none';btns.innerHTML='';
+  const isBM=['branch_manager','zone_manager'].includes(userRole);
+  const isIT=userRole==='super_admin';
+  if(isBM&&req.status==='Submitted'){
+    div.style.display='block';
+    btns.innerHTML=`
+      <button class="btn btn-success" onclick="openRemarkModal('bm_approve','${id}','Approve','Optional remark')">✓ Approve</button>
+      <button class="btn btn-danger"  onclick="openRemarkModal('bm_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
-  // IT Head can approve/reject if status=Approved by Branch Manager
-  if(isIT && req.status==='Approved by Branch Manager'){
-    actDiv.style.display='block';
-    btnDiv.innerHTML=`
-      <button class="btn btn-success" onclick="openRemarkModal('it_approve','${id}','Approve','Confirm IT approval')">✓ Approve &amp; Arrange</button>
-      <button class="btn btn-danger"  onclick="openRemarkModal('it_reject', '${id}','Reject', 'Reason for rejection (required)', true)">✕ Reject</button>`;
+  if(isIT&&req.status==='Approved by Branch Manager'){
+    div.style.display='block';
+    btns.innerHTML=`
+      <button class="btn btn-success" onclick="openRemarkModal('it_approve','${id}','Approve','Optional remark')">✓ Approve &amp; Arrange</button>
+      <button class="btn btn-danger"  onclick="openRemarkModal('it_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
 }
 
-// ── Remark modal ───────────────────────────────────────
-let _pendingActionType=null, _pendingReqId=null, _requireRemark=false;
-function openRemarkModal(actionType, reqId, btnLabel, subText, requireRemark=false){
+// ── Remark modal ────────────────────────────────────────────
+function openRemarkModal(actionType,reqId,btnLabel,sub,requireRemark=false){
   _pendingActionType=actionType;_pendingReqId=reqId;_requireRemark=requireRemark;
   document.getElementById('remark-modal-title').textContent=btnLabel+' Requisition';
-  document.getElementById('remark-modal-sub').textContent=subText;
+  document.getElementById('remark-modal-sub').textContent=sub;
   document.getElementById('remark-text').value='';
   document.getElementById('remark-confirm-btn').textContent=btnLabel;
   document.getElementById('remark-confirm-btn').className='btn '+(actionType.includes('reject')?'btn-danger':'btn-success');
@@ -967,34 +847,26 @@ function closeRemarkModal(){document.getElementById('remark-modal').classList.re
 
 async function confirmAction(){
   const remark=document.getElementById('remark-text').value.trim();
-  if(_requireRemark&&!remark){toast('Please enter a reason for rejection.','error');return;}
+  if(_requireRemark&&!remark){toast('Please enter a reason.','error');return;}
   closeRemarkModal();
-
   const name=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
   let update={updated_at:new Date().toISOString()};
-
-  if(_pendingActionType==='bm_approve'){
-    update={...update,status:'Approved by Branch Manager',bm_name:name,bm_approved_at:new Date().toISOString(),bm_remark:remark};
-  } else if(_pendingActionType==='bm_reject'){
-    update={...update,status:'Rejected',bm_name:name,bm_remark:remark,rejected_by_role:'branch_manager'};
-  } else if(_pendingActionType==='it_approve'){
-    update={...update,status:'Approved by IT',it_name:name,it_approved_at:new Date().toISOString(),it_remark:remark};
-  } else if(_pendingActionType==='it_reject'){
-    update={...update,status:'Rejected',it_name:name,it_remark:remark,rejected_by_role:'it_head'};
-  }
-
+  if(_pendingActionType==='bm_approve') update={...update,status:'Approved by Branch Manager',bm_name:name,bm_approved_at:new Date().toISOString(),bm_remark:remark};
+  else if(_pendingActionType==='bm_reject')  update={...update,status:'Rejected',bm_name:name,bm_remark:remark,rejected_by_role:'branch_manager'};
+  else if(_pendingActionType==='it_approve') update={...update,status:'Approved by IT',it_name:name,it_approved_at:new Date().toISOString(),it_remark:remark};
+  else if(_pendingActionType==='it_reject')  update={...update,status:'Rejected',it_name:name,it_remark:remark,rejected_by_role:'it_head'};
   const{error}=await sb.from('it_requisitions').update(update).eq('id',_pendingReqId);
   if(error){toast('Action failed: '+error.message,'error');return;}
   toast('Done','success');
   await loadPendingCount();
-  await viewDetail(_pendingReqId);
+  await viewDetail(_pendingReqId,_detailFrom);
 }
 
-// ── Issue peripheral ───────────────────────────────────
+// ── Issue peripheral ────────────────────────────────────────
 async function issuePeripheral(){
   const id=document.getElementById('issue-section')._reqId;
   const name=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
-  const update={
+  const{error}=await sb.from('it_requisitions').update({
     status:'Issued',
     issued_at:document.getElementById('i-date').value||new Date().toISOString().slice(0,10),
     model_no:document.getElementById('i-model').value.trim(),
@@ -1002,33 +874,23 @@ async function issuePeripheral(){
     purchase_date:document.getElementById('i-purchase-date').value||null,
     issued_by_name:name,
     updated_at:new Date().toISOString()
-  };
-  const{error}=await sb.from('it_requisitions').update(update).eq('id',id);
-  if(error){toast('Issue failed: '+error.message,'error');return;}
+  }).eq('id',id);
+  if(error){toast('Failed: '+error.message,'error');return;}
   toast('Marked as Issued','success');
-  await viewDetail(id);
+  await viewDetail(id,_detailFrom);
 }
 
-// ── Pending approvals ──────────────────────────────────
+// ── Pending approvals ───────────────────────────────────────
 async function loadPending(){
   const isBM=['branch_manager','zone_manager'].includes(userRole);
   const isIT=userRole==='super_admin';
   if(!isBM&&!isIT){document.getElementById('pending-tbody').innerHTML='<tr><td colspan="6" class="empty-state">No approval rights for your role.</td></tr>';return;}
-
-  let statusFilter=isBM?'Submitted':'Approved by Branch Manager';
-  // IT also sees all statuses for oversight
   let query=sb.from('it_requisitions').select('*').order('created_at',{ascending:false});
-
-  if(isIT){
-    query=query.in('status',['Submitted','Approved by Branch Manager','Approved by IT']);
-  } else {
-    query=query.eq('status',statusFilter);
-    // BM sees only their branch
-    if(currentUser.location_id){
-      query=query.eq('location_id',currentUser.location_id);
-    }
+  if(isIT) query=query.in('status',['Submitted','Approved by Branch Manager','Approved by IT']);
+  else{
+    query=query.eq('status','Submitted');
+    if(currentUser.location_id) query=query.eq('location_id',currentUser.location_id);
   }
-
   const{data,error}=await query;
   if(error){toast('Load error: '+error.message,'error');return;}
   const rows=data||[];
@@ -1036,14 +898,19 @@ async function loadPending(){
   if(!rows.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">No pending approvals.</td></tr>';return;}
   tb.innerHTML=rows.map(r=>{
     const periph=safeParse(r.peripherals)||[];
-    const summary=periph.slice(0,2).map(p=>p.qty+'× '+p.type).join(', ')+(periph.length>2?' +more':'');
+    const summary=periph.slice(0,2).map(p=>p.qty+'× '+p.type).join(', ')+(periph.length>2?' …':'');
+    const isSelf=!r.raised_by_name||r.raised_by_name===r.requester_name;
     return `<tr>
       <td><span style="font-family:var(--mono);font-size:11px;color:var(--accent)">${xe(r.req_number||'—')}</span></td>
-      <td style="font-size:12px">${xe(r.requester_name||'—')}<br><span style="color:var(--text3);font-size:11px;font-family:var(--mono)">${xe(r.submitted_by_userid||'')}</span></td>
+      <td style="font-size:12px;">
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);">REQUESTOR</div>
+        <div>${xe(r.raised_by_name||r.requester_name||'—')}</div>
+        ${!isSelf?`<div style="font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono);">FOR</div><div>${xe(r.requester_name||'')}</div>`:''}
+      </td>
       <td style="font-size:12px">${r.req_date||'—'}</td>
       <td style="font-size:12px">${xe(summary)}</td>
       <td>${statusPill(r.status)}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="viewDetail('${r.id}');setNav('nav-pending')">View &amp; Act</button></td>
+      <td><button class="btn btn-primary btn-sm" onclick="viewDetail('${r.id}','pending')">View &amp; Act</button></td>
     </tr>`;
   }).join('');
 }
@@ -1058,30 +925,10 @@ async function loadPendingCount(){
   const{count}=await query;
   const badge=document.getElementById('pending-badge');
   if(count>0){badge.textContent=count;badge.style.display='inline-block';}
-  else{badge.style.display='none';}
+  else badge.style.display='none';
 }
 
-// ── Helpers ────────────────────────────────────────────
-function statusPill(s){
-  const m={
-    'Draft':'p-draft','Submitted':'p-submitted',
-    'Approved by Branch Manager':'p-bm-approved',
-    'Approved by IT':'p-approved','Rejected':'p-rejected','Issued':'p-issued'
-  };
-  return `<span class="pill ${m[s]||'p-draft'}">${xe(s||'Draft')}</span>`;
-}
-function safeParse(s){try{return s?JSON.parse(s):null;}catch(e){return null;}}
-function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(msg,type='info'){
-  const wrap=document.getElementById('toast-wrap');
-  const t=document.createElement('div');
-  t.className=`toast ${type}`;t.textContent=msg;
-  wrap.appendChild(t);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
-  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3500);
-}
-
-// ── Print ─────────────────────────────────────────────
+// ── Print ───────────────────────────────────────────────────
 function printRequisition(){
   const req=window._currentReq;
   if(!req){toast('No requisition loaded.','error');return;}
@@ -1094,49 +941,60 @@ function printRequisition(){
       <td style="border:1px solid #000;padding:5px 8px;">${xe(p.spec||'')}</td>
     </tr>`).join('');
 
-  const bmLine=req.bm_name?`${xe(req.bm_name)} — ${req.bm_approved_at?new Date(req.bm_approved_at).toLocaleDateString('en-IN'):''}${req.bm_remark?' ('+xe(req.bm_remark)+')':''}`:' ';
-  const itLine=req.it_name?`${xe(req.it_name)} — ${req.it_approved_at?new Date(req.it_approved_at).toLocaleDateString('en-IN'):''}${req.it_remark?' ('+xe(req.it_remark)+')':''}`:' ';
+  // Requestor = raised_by_name; Request For = requester_name
+  const requestorName = req.raised_by_name||'';
+  const requestorId   = req.raised_by_userid||req.submitted_by_userid||'';
+  const requestForName= req.requester_name||'';
+  const isSelf        = !req.raised_by_name||req.raised_by_name===req.requester_name;
+
+  const bmLine=req.bm_name?`${xe(req.bm_name)}${req.bm_approved_at?' — '+new Date(req.bm_approved_at).toLocaleDateString('en-IN'):''}${req.bm_remark?' ('+xe(req.bm_remark)+')':''}`:' ';
+  const itLine=req.it_name?`${xe(req.it_name)}${req.it_approved_at?' — '+new Date(req.it_approved_at).toLocaleDateString('en-IN'):''}${req.it_remark?' ('+xe(req.it_remark)+')':''}`:' ';
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>IT Peripherals Requisition — ${xe(req.req_number||'')}</title>
   <style>
-    body{font-family:'Times New Roman',serif;font-size:12pt;margin:0;padding:0;color:#000;}
+    body{font-family:'Times New Roman',serif;font-size:12pt;color:#000;margin:0;}
     .page{width:190mm;margin:0 auto;padding:10mm;}
     h2{text-align:center;font-size:14pt;text-decoration:underline;margin-bottom:4px;}
-    .subhead{text-align:center;font-size:11pt;margin-bottom:16px;}
-    .to-line{margin-bottom:4px;}
-    .date-line{text-align:right;margin-bottom:12px;}
-    .intro{margin-bottom:12px;line-height:1.6;}
+    .sub{text-align:center;font-size:11pt;margin-bottom:16px;}
+    .date-line{display:flex;justify-content:space-between;margin-bottom:12px;font-size:11pt;}
+    .intro{margin-bottom:12px;line-height:1.6;font-size:11pt;}
     table.info{width:100%;border-collapse:collapse;margin-bottom:12px;}
     table.info td{padding:4px 6px;font-size:11pt;}
-    table.info td.lbl{font-weight:bold;width:38%;}
+    table.info td.lbl{font-weight:bold;width:30%;}
     table.periph{width:100%;border-collapse:collapse;margin-bottom:16px;}
     table.periph th{border:1px solid #000;padding:5px 8px;background:#f0f0f0;font-size:11pt;}
-    table.periph td{border:1px solid #000;padding:5px 8px;font-size:11pt;}
-    .sign-section{margin-top:24px;}
-    .sign-row{display:flex;justify-content:space-between;margin-bottom:20px;}
+    .sign-section{margin-top:28px;display:flex;justify-content:space-between;}
     .sign-block{width:45%;}
-    .sign-line{border-bottom:1px solid #000;margin-bottom:4px;height:20px;}
-    .sign-label{font-size:10pt;color:#333;}
-    .approval-section{border-top:1px solid #000;margin-top:16px;padding-top:10px;}
-    .issue-section{border-top:1px solid #000;margin-top:16px;padding-top:10px;}
-    .req-no{font-family:monospace;font-size:10pt;}
-    @media print{body{margin:0;}@page{margin:15mm;}}
+    .sign-line{border-bottom:1px solid #000;margin-bottom:5px;height:24px;}
+    .sign-label{font-size:10pt;}
+    .approval-box{border-top:1px solid #000;margin-top:16px;padding-top:10px;}
+    .issue-box{border-top:1px solid #000;margin-top:16px;padding-top:10px;}
+    @media print{@page{margin:15mm;}}
   </style></head><body>
   <div class="page">
     <h2>IT PERIPHERALS REQUISITION FORM</h2>
-    <div class="subhead">Duroply Industries Ltd.</div>
-
-    <div class="to-line"><strong>To,</strong></div>
-    <div class="to-line">IT Department, Kolkata</div>
-    <div class="date-line"><strong>Date:</strong> ${xe(req.req_date||'')} &nbsp;&nbsp; <span class="req-no"><strong>Req No:</strong> ${xe(req.req_number||'')}</span></div>
-
-    <div class="intro">We hereby request you to kindly arrange for the following IT peripheral(s) for use at our Branch/Department as per the details below:</div>
+    <div class="sub">Duroply Industries Ltd. — IT Department, Kolkata</div>
+    <div class="date-line">
+      <span><strong>To:</strong> IT Department, Kolkata</span>
+      <span><strong>Date:</strong> ${xe(req.req_date||'')} &nbsp; <strong>Req No:</strong> <span style="font-family:monospace">${xe(req.req_number||'')}</span></span>
+    </div>
+    <div class="intro">We hereby request you to kindly arrange for the following IT peripheral(s):</div>
 
     <table class="info">
-      <tr><td class="lbl">Requestor</td><td>: ${xe(req.raised_by_name||req.requester_name||'')}</td><td class="lbl">Request For</td><td>: ${xe(req.requester_name||'')}</td></tr>
-      <tr><td class="lbl">Department</td><td>: ${xe(req.requester_department||'')}</td><td class="lbl">Grade</td><td>: ${xe(req.requester_grade||'')}</td></tr>
-      <tr><td class="lbl">Branch / Location</td><td colspan="3">: ${xe(req.requester_branch||'')}</td></tr>
+      <tr>
+        <td class="lbl">Requestor</td>
+        <td>: ${xe(requestorName)} (${xe(requestorId)})</td>
+        ${!isSelf?`<td class="lbl" style="padding-left:20px;">Request For</td><td>: ${xe(requestForName)}</td>`:'<td></td><td></td>'}
+      </tr>
+      <tr>
+        <td class="lbl">Designation</td><td>: ${xe(req.requester_designation||'')}</td>
+        <td class="lbl" style="padding-left:20px;">Department</td><td>: ${xe(req.requester_department||'')}</td>
+      </tr>
+      <tr>
+        <td class="lbl">Grade</td><td>: ${xe(req.requester_grade||'')}</td>
+        <td class="lbl" style="padding-left:20px;">Branch / Location</td><td>: ${xe(req.requester_branch||'')}</td>
+      </tr>
       <tr><td class="lbl">Justification</td><td colspan="3">: ${xe(req.justification||'')}</td></tr>
     </table>
 
@@ -1146,20 +1004,19 @@ function printRequisition(){
     </table>
 
     <div class="sign-section">
-      <div class="sign-row">
-        <div class="sign-block">
-          <div class="sign-line"></div>
-          <div class="sign-label"><strong>Signature:</strong> ${xe(req.requester_name||'')}</div>
-          <div class="sign-label"><strong>User ID:</strong> ${xe(req.submitted_by_userid||'')}</div>
-        </div>
-        <div class="sign-block">
-          <div class="sign-line"></div>
-          <div class="sign-label"><strong>Branch/Location:</strong> ${xe(req.requester_branch||'')}</div>
-        </div>
+      <div class="sign-block">
+        <div class="sign-line"></div>
+        <div class="sign-label"><strong>Requestor Signature</strong></div>
+        <div class="sign-label">${xe(requestorName)} / ${xe(requestorId)}</div>
+      </div>
+      <div class="sign-block">
+        <div class="sign-line"></div>
+        <div class="sign-label"><strong>Branch / Location</strong></div>
+        <div class="sign-label">${xe(req.requester_branch||'')}</div>
       </div>
     </div>
 
-    ${req.bm_name||req.it_name?`<div class="approval-section">
+    ${req.bm_name||req.it_name?`<div class="approval-box">
       <strong>Approval Status</strong>
       <table class="info" style="margin-top:8px;">
         <tr><td class="lbl">Branch Manager</td><td>: ${bmLine}</td></tr>
@@ -1167,22 +1024,36 @@ function printRequisition(){
       </table>
     </div>`:''}
 
-    ${req.issued_at?`<div class="issue-section">
+    ${req.issued_at?`<div class="issue-box">
       <strong>Details of Peripheral Issued (IT Dept. use only)</strong>
       <table class="info" style="margin-top:8px;">
-        <tr><td class="lbl">Date of Issue</td><td>: ${xe(req.issued_at||'')}</td><td class="lbl">Model No.</td><td>: ${xe(req.model_no||'')}</td></tr>
-        <tr><td class="lbl">Previous User</td><td>: ${xe(req.prev_user||'')}</td><td class="lbl">Date of Purchase</td><td>: ${xe(req.purchase_date||'')}</td></tr>
-        <tr><td class="lbl">Issued by</td><td colspan="3">: ${xe(req.issued_by_name||'')}</td></tr>
+        <tr><td class="lbl">Date of Issue</td><td>: ${xe(String(req.issued_at||''))}</td><td class="lbl" style="padding-left:20px;">Model No.</td><td>: ${xe(req.model_no||'')}</td></tr>
+        <tr><td class="lbl">Previous User</td><td>: ${xe(req.prev_user||'')}</td><td class="lbl" style="padding-left:20px;">Date of Purchase</td><td>: ${xe(String(req.purchase_date||''))}</td></tr>
+        <tr><td class="lbl">Issued By</td><td colspan="3">: ${xe(req.issued_by_name||'')}</td></tr>
       </table>
     </div>`:''}
-
   </div>
   </body></html>`;
 
   const w=window.open('','_blank','width=900,height=700');
-  w.document.write(html);
-  w.document.close();
+  w.document.write(html);w.document.close();
   w.onload=()=>{w.focus();w.print();};
+}
+
+// ── Helpers ─────────────────────────────────────────────────
+function statusPill(s){
+  const m={'Draft':'p-draft','Submitted':'p-submitted','Approved by Branch Manager':'p-bm-approved','Approved by IT':'p-approved','Rejected':'p-rejected','Issued':'p-issued'};
+  return `<span class="pill ${m[s]||'p-draft'}">${xe(s||'Draft')}</span>`;
+}
+function safeParse(s){try{return s?JSON.parse(s):null;}catch(e){return null;}}
+function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg,type='info'){
+  const wrap=document.getElementById('toast-wrap');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;
+  wrap.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3500);
 }
 </script>
 </body>
