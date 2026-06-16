@@ -820,44 +820,65 @@ function renderApprovalActions(req, id, isReportingManager=false){
   const btns=document.getElementById('action-btns');
   div.style.display='none'; btns.innerHTML='';
 
-  const isIT=userRole==='super_admin';
-  const isOwner=parseInt(req.submitted_by)===parseInt(currentUser.id);
+  const isIT       = userRole==='super_admin';
+  const isOwner    = parseInt(req.submitted_by)===parseInt(currentUser.id);
+  const canMgrApprove = isReportingManager || ['branch_manager','zone_manager'].includes(userRole);
 
-  // Owner: edit draft or resubmit rejected
+  // ── Owner actions ──
   if(isOwner && (req.status==='Draft'||req.status==='Rejected')){
     div.style.display='block';
     btns.innerHTML+=`<button class="btn btn-primary" onclick="editFromDetail('${id}')">✎ Edit &amp; Resubmit</button>`;
   }
-
-  // Owner: submit draft
   if(isOwner && req.status==='Draft'){
     btns.innerHTML+=`<button class="btn btn-success" onclick="submitFromDetail('${id}')">↑ Submit for Approval</button>`;
   }
 
-  // Reporting manager (any role) OR branch_manager/zone_manager role —
-  // can approve/reject Submitted requests
-  const canApproveAsManager = isReportingManager ||
-    ['branch_manager','zone_manager'].includes(userRole);
-
-  if(canApproveAsManager && req.status==='Submitted'){
+  // ── Manager approval (Step 1) ──
+  // Shown when status = Submitted AND current user is in reporting chain
+  if(canMgrApprove && req.status==='Submitted'){
     div.style.display='block';
     btns.innerHTML+=`
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text3);align-self:center;margin-right:4px;">STEP 1 — MANAGER</span>
       <button class="btn btn-success" onclick="openRemarkModal('bm_approve','${id}','Approve','Optional remark')">✓ Approve</button>
       <button class="btn btn-danger"  onclick="openRemarkModal('bm_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
 
-  // IT Head: approve/reject after manager approval
+  // ── IT Head approval (Step 2) ──
+  // Shown when status = Approved by Branch Manager AND user is super_admin
   if(isIT && req.status==='Approved by Branch Manager'){
     div.style.display='block';
     btns.innerHTML+=`
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text3);align-self:center;margin-right:4px;">STEP 2 — IT HEAD</span>
       <button class="btn btn-success" onclick="openRemarkModal('it_approve','${id}','Approve','Optional remark')">✓ Approve &amp; Arrange</button>
       <button class="btn btn-danger"  onclick="openRemarkModal('it_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
 
-  // No action available
+  // ── Special case: D01998 is BOTH manager AND super_admin ──
+  // After D01998 approves as manager (status = Approved by Branch Manager),
+  // they must also approve as IT Head — show both steps clearly
+  if(isIT && canMgrApprove && req.status==='Submitted'){
+    // Already showing Step 1 above — also show a note about Step 2
+    btns.innerHTML+=`
+      <span style="font-size:11px;color:var(--text3);align-self:center;margin-left:8px;">
+        (Step 2 IT approval will appear after you approve as manager)
+      </span>`;
+  }
+
+  // ── No action ──
   if(!btns.innerHTML){
     div.style.display='block';
     btns.innerHTML=`<span style="font-size:13px;color:var(--text3);">No action required — current status: <strong>${xe(req.status)}</strong></span>`;
+  }
+
+  // ── Fixed policy note always shown in action panel ──
+  div.style.display='block';
+  const noteId='policy-note-'+id;
+  if(!document.getElementById(noteId)){
+    const note=document.createElement('div');
+    note.id=noteId;
+    note.style.cssText='margin-top:12px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;color:#1e40af;';
+    note.innerHTML='<strong>📋 Note:</strong> For Approval or Rejection please refer IT Policy existing in the portal.';
+    div.appendChild(note);
   }
 }
 
@@ -1070,6 +1091,10 @@ function printRequisition(){
         <div class="sign-label"><strong>Branch / Location</strong></div>
         <div class="sign-label">${xe(req.requester_branch||'')}</div>
       </div>
+    </div>
+
+    <div style="margin-top:18px;padding:10px 14px;border:1px solid #000;background:#f9f9f9;font-size:11pt;">
+      <strong>Note:</strong> For Approval or Rejection please refer IT Policy existing in the portal.
     </div>
 
     ${req.bm_name||req.it_name?`<div class="approval-box">
