@@ -567,41 +567,27 @@ async function prefillRequester(){
   document.getElementById('f-name').value=name;
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
 
-  // Fetch location from 'location' table
+  // Location — fetch name from 'location' table
   if(currentUser.location_id){
     const{data:loc}=await sb.from('location').select('name').eq('id',currentUser.location_id).maybeSingle();
     const bname=loc?.name||String(currentUser.location_id);
     document.getElementById('f-branch').value=bname;
     currentUser._branchName=bname;
   }
-  // Fetch designation — try 'designations' then 'designation_master'
+  // Designation — show raw designation_id from users table
   if(currentUser.designation_id){
-    let dname='';
-    const{data:d1}=await sb.from('designations').select('name').eq('id',currentUser.designation_id).maybeSingle();
-    if(d1?.name){dname=d1.name;}
-    else{
-      const{data:d2}=await sb.from('designation_master').select('name').eq('id',currentUser.designation_id).maybeSingle();
-      dname=d2?.name||'';
-    }
-    document.getElementById('f-designation').value=dname;
-    currentUser._designationName=dname;
+    document.getElementById('f-designation').value=currentUser.designation_id;
+    currentUser._designationName=String(currentUser.designation_id);
   }
-  // Show department_id directly from users table
+  // Department — show raw department_id from users table
   if(currentUser.department_id){
     document.getElementById('f-department').value=currentUser.department_id;
     currentUser._departmentName=String(currentUser.department_id);
   }
-  // Fetch grade — try 'grades' then 'grade_master'
+  // Grade — show raw grade_id from users table
   if(currentUser.grade_id){
-    let gname='';
-    const{data:g1}=await sb.from('grades').select('name').eq('id',currentUser.grade_id).maybeSingle();
-    if(g1?.name){gname=g1.name;}
-    else{
-      const{data:g2}=await sb.from('grade_master').select('name').eq('id',currentUser.grade_id).maybeSingle();
-      gname=g2?.name||'';
-    }
-    document.getElementById('f-grade').value=gname;
-    currentUser._gradeName=gname;
+    document.getElementById('f-grade').value=currentUser.grade_id;
+    currentUser._gradeName=String(currentUser.grade_id);
   }
   addPeriphRow();
 }
