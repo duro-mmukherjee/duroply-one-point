@@ -492,8 +492,8 @@ async function loadUserRole(){
   }catch(e){userRole='branch_staff_ops';}
   const badge=document.getElementById('role-badge');
   badge.textContent=userRole.replace(/_/g,' ');badge.style.display='block';
-  const canApprove=['super_admin','zone_manager','branch_manager'].includes(userRole);
-  document.getElementById('nav-pending').style.display=canApprove?'':'none';
+  // Show pending approvals for everyone — reportee check happens inside
+  document.getElementById('nav-pending').style.display='block';
 }
 
 // ── Navigation ──────────────────────────────────────────────
@@ -781,7 +781,9 @@ async function viewDetail(id, from='list'){
   ).join('');
 
   renderApprovalTrail(req);
-  renderApprovalActions(req,id);
+  // Check if current user is in the reporting chain above the submitter
+  const isDirectManager=await checkIsReportingManager(parseInt(req.submitted_by));
+  renderApprovalActions(req, id, isDirectManager);
 
   // IT Issue section
   const isIT=userRole==='super_admin';
@@ -813,24 +815,69 @@ function renderApprovalTrail(req){
     </div>`).join('');
 }
 
-function renderApprovalActions(req,id){
+function renderApprovalActions(req, id, isReportingManager=false){
   const div=document.getElementById('approval-actions');
   const btns=document.getElementById('action-btns');
-  div.style.display='none';btns.innerHTML='';
-  const isBM=['branch_manager','zone_manager'].includes(userRole);
+  div.style.display='none'; btns.innerHTML='';
+
   const isIT=userRole==='super_admin';
-  if(isBM&&req.status==='Submitted'){
+  const isOwner=parseInt(req.submitted_by)===parseInt(currentUser.id);
+
+  // Owner: edit draft or resubmit rejected
+  if(isOwner && (req.status==='Draft'||req.status==='Rejected')){
     div.style.display='block';
-    btns.innerHTML=`
+    btns.innerHTML+=`<button class="btn btn-primary" onclick="editFromDetail('${id}')">✎ Edit &amp; Resubmit</button>`;
+  }
+
+  // Owner: submit draft
+  if(isOwner && req.status==='Draft'){
+    btns.innerHTML+=`<button class="btn btn-success" onclick="submitFromDetail('${id}')">↑ Submit for Approval</button>`;
+  }
+
+  // Reporting manager (any role) OR branch_manager/zone_manager role —
+  // can approve/reject Submitted requests
+  const canApproveAsManager = isReportingManager ||
+    ['branch_manager','zone_manager'].includes(userRole);
+
+  if(canApproveAsManager && req.status==='Submitted'){
+    div.style.display='block';
+    btns.innerHTML+=`
       <button class="btn btn-success" onclick="openRemarkModal('bm_approve','${id}','Approve','Optional remark')">✓ Approve</button>
       <button class="btn btn-danger"  onclick="openRemarkModal('bm_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
-  if(isIT&&req.status==='Approved by Branch Manager'){
+
+  // IT Head: approve/reject after manager approval
+  if(isIT && req.status==='Approved by Branch Manager'){
     div.style.display='block';
-    btns.innerHTML=`
+    btns.innerHTML+=`
       <button class="btn btn-success" onclick="openRemarkModal('it_approve','${id}','Approve','Optional remark')">✓ Approve &amp; Arrange</button>
       <button class="btn btn-danger"  onclick="openRemarkModal('it_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
+
+  // No action available
+  if(!btns.innerHTML){
+    div.style.display='block';
+    btns.innerHTML=`<span style="font-size:13px;color:var(--text3);">No action required — current status: <strong>${xe(req.status)}</strong></span>`;
+  }
+}
+
+async function editFromDetail(id){
+  const req=allReqs.find(r=>String(r.id)===String(id));
+  if(req) editReq(id);
+  else{
+    // Fetch fresh if not in allReqs (viewing from pending)
+    const{data}=await sb.from('it_requisitions').select('*').eq('id',id).single();
+    if(data){ allReqs=[data,...allReqs]; editReq(id); }
+  }
+}
+
+async function submitFromDetail(id){
+  if(!confirm('Submit this requisition for approval?')) return;
+  const{error}=await sb.from('it_requisitions').update({status:'Submitted',updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast('Failed: '+error.message,'error');return;}
+  toast('Submitted for approval','success');
+  await viewDetail(id,_detailFrom);
+  await loadPendingCount();
 }
 
 // ── Remark modal ────────────────────────────────────────────
@@ -884,7 +931,8 @@ async function issuePeripheral(){
 async function loadPending(){
   const isBM=['branch_manager','zone_manager'].includes(userRole);
   const isIT=userRole==='super_admin';
-  if(!isBM&&!isIT){document.getElementById('pending-tbody').innerHTML='<tr><td colspan="6" class="empty-state">No approval rights for your role.</td></tr>';return;}
+  // Any user can have pending approvals if they are a reporting manager
+  // We show all submitted requests by their reportees regardless of role
   let query=sb.from('it_requisitions').select('*').order('created_at',{ascending:false});
   if(isIT){
     query=query.in('status',['Submitted','Approved by Branch Manager','Approved by IT']);
@@ -921,7 +969,7 @@ async function loadPending(){
 async function loadPendingCount(){
   const isBM=['branch_manager','zone_manager'].includes(userRole);
   const isIT=userRole==='super_admin';
-  if(!isBM&&!isIT) return;
+  // Count pending for all users who may be reporting managers
   let query=sb.from('it_requisitions').select('id',{count:'exact',head:true});
   if(isIT){
     query=query.in('status',['Submitted','Approved by Branch Manager']);
@@ -1046,6 +1094,24 @@ function printRequisition(){
   const w=window.open('','_blank','width=900,height=700');
   w.document.write(html);w.document.close();
   w.onload=()=>{w.focus();w.print();};
+}
+
+// ── Check if current user is a reporting manager of given user ──
+// Walks UP the cc_users chain from submitter to see if currentUser is in it
+async function checkIsReportingManager(submitterBigintId){
+  if(parseInt(currentUser.id)===submitterBigintId) return false; // own record
+  try{
+    let checkId=submitterBigintId;
+    const visited=new Set();
+    while(checkId && !visited.has(checkId)){
+      visited.add(checkId);
+      const{data:u}=await sb.from('users').select('cc_users').eq('id',checkId).maybeSingle();
+      if(!u||!u.cc_users) break;
+      if(parseInt(u.cc_users)===parseInt(currentUser.id)) return true;
+      checkId=parseInt(u.cc_users);
+    }
+  }catch(e){}
+  return false;
 }
 
 // ── Reportee tree (cc_users hierarchy) ──────────────────────
