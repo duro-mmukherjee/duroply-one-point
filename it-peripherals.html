@@ -886,10 +886,13 @@ async function loadPending(){
   const isIT=userRole==='super_admin';
   if(!isBM&&!isIT){document.getElementById('pending-tbody').innerHTML='<tr><td colspan="6" class="empty-state">No approval rights for your role.</td></tr>';return;}
   let query=sb.from('it_requisitions').select('*').order('created_at',{ascending:false});
-  if(isIT) query=query.in('status',['Submitted','Approved by Branch Manager','Approved by IT']);
-  else{
+  if(isIT){
+    query=query.in('status',['Submitted','Approved by Branch Manager','Approved by IT']);
+  } else {
+    // BM sees all requests submitted by their reportees (via cc_users hierarchy)
     query=query.eq('status','Submitted');
-    if(currentUser.location_id) query=query.eq('location_id',currentUser.location_id);
+    const reporteeIds=await getReporteeIds(parseInt(currentUser.id));
+    query=query.in('submitted_by', reporteeIds);
   }
   const{data,error}=await query;
   if(error){toast('Load error: '+error.message,'error');return;}
@@ -920,8 +923,13 @@ async function loadPendingCount(){
   const isIT=userRole==='super_admin';
   if(!isBM&&!isIT) return;
   let query=sb.from('it_requisitions').select('id',{count:'exact',head:true});
-  if(isIT) query=query.in('status',['Submitted','Approved by Branch Manager']);
-  else{ query=query.eq('status','Submitted'); if(currentUser.location_id) query=query.eq('location_id',currentUser.location_id); }
+  if(isIT){
+    query=query.in('status',['Submitted','Approved by Branch Manager']);
+  } else {
+    query=query.eq('status','Submitted');
+    const reporteeIds=await getReporteeIds(parseInt(currentUser.id));
+    query=query.in('submitted_by', reporteeIds);
+  }
   const{count}=await query;
   const badge=document.getElementById('pending-badge');
   if(count>0){badge.textContent=count;badge.style.display='inline-block';}
@@ -1038,6 +1046,27 @@ function printRequisition(){
   const w=window.open('','_blank','width=900,height=700');
   w.document.write(html);w.document.close();
   w.onload=()=>{w.focus();w.print();};
+}
+
+// ── Reportee tree (cc_users hierarchy) ──────────────────────
+async function getReporteeIds(managerBigintId){
+  const collected=[managerBigintId];
+  const toProcess=[managerBigintId];
+  try{
+    while(toProcess.length>0){
+      const batch=toProcess.splice(0,50);
+      const{data:reports,error}=await sb.from('users')
+        .select('id')
+        .in('cc_users',batch)
+        .eq('status',1);
+      if(error) break;
+      (reports||[]).forEach(r=>{
+        const rid=parseInt(r.id);
+        if(!collected.includes(rid)){collected.push(rid);toProcess.push(rid);}
+      });
+    }
+  }catch(e){}
+  return collected;
 }
 
 // ── Helpers ─────────────────────────────────────────────────
