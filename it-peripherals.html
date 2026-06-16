@@ -167,6 +167,15 @@ tbody tr:hover td{background:var(--surface2);}
 .modal textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 12px;border-radius:8px;outline:none;resize:vertical;min-height:90px;}
 .modal textarea:focus{border-color:var(--accent);}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+
+/* ── Print styles ── */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: fixed; left: 0; top: 0; width: 100%; }
+  @page { margin: 20mm; }
+}
+.print-doc { display: none; }
 </style>
 </head>
 <body>
@@ -295,6 +304,10 @@ tbody tr:hover td{background:var(--surface2);}
                   <input id="f-designation" readonly>
                 </div>
                 <div class="fld">
+                  <label>Department</label>
+                  <input id="f-department" readonly>
+                </div>
+                <div class="fld">
                   <label>Grade</label>
                   <input id="f-grade" readonly>
                 </div>
@@ -349,7 +362,10 @@ tbody tr:hover td{background:var(--surface2);}
               <div class="page-title" id="detail-title">Requisition Detail</div>
               <div class="page-sub" id="detail-sub"></div>
             </div>
+            <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="printRequisition()">🖨 Print</button>
             <button class="btn btn-ghost btn-sm" id="detail-back-btn" onclick="showList()">← Back</button>
+          </div>
           </div>
 
           <!-- Summary card -->
@@ -359,6 +375,7 @@ tbody tr:hover td{background:var(--surface2);}
               <div class="form-grid">
                 <div class="fld"><label>Name</label><input id="d-name" readonly></div>
                 <div class="fld"><label>Designation</label><input id="d-designation" readonly></div>
+                <div class="fld"><label>Department</label><input id="d-department" readonly></div>
                 <div class="fld"><label>Grade</label><input id="d-grade" readonly></div>
                 <div class="fld"><label>Branch / Location</label><input id="d-branch" readonly></div>
                 <div class="fld"><label>Date</label><input id="d-date" readonly></div>
@@ -479,7 +496,7 @@ async function doLogin(){
   try{
     sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
     const{data,error}=await sb.from('users')
-      .select('id,userid,fname,lname,status,pwd_old,location_id,designation_id,grade_id')
+      .select('id,userid,fname,lname,status,pwd_old,location_id,designation_id,grade_id,department_id')
       .eq('userid',uid).limit(1);
     if(error){showLE('DB error: '+error.message);sb=null;return;}
     if(!data||!data.length){showLE('User ID not found.');return;}
@@ -549,20 +566,54 @@ async function prefillRequester(){
   const name=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ');
   document.getElementById('f-name').value=name;
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
-  // Fetch branch name from branch_master
+
+  // Fetch branch — try 'branch' then 'branch_master'
   if(currentUser.location_id){
-    const{data:branch}=await sb.from('branch').select('name').eq('id',currentUser.location_id).maybeSingle();
-    document.getElementById('f-branch').value=branch?.name||currentUser.location_id;
+    let bname='';
+    const{data:b1}=await sb.from('branch').select('name').eq('id',currentUser.location_id).maybeSingle();
+    if(b1?.name){bname=b1.name;}
+    else{
+      const{data:b2}=await sb.from('branch_master').select('name').eq('id',currentUser.location_id).maybeSingle();
+      bname=b2?.name||String(currentUser.location_id);
+    }
+    document.getElementById('f-branch').value=bname;
+    currentUser._branchName=bname;
   }
-  // Fetch designation
+  // Fetch designation — try 'designations' then 'designation_master'
   if(currentUser.designation_id){
-    const{data:desig}=await sb.from('designations').select('name').eq('id',currentUser.designation_id).maybeSingle();
-    document.getElementById('f-designation').value=desig?.name||'';
+    let dname='';
+    const{data:d1}=await sb.from('designations').select('name').eq('id',currentUser.designation_id).maybeSingle();
+    if(d1?.name){dname=d1.name;}
+    else{
+      const{data:d2}=await sb.from('designation_master').select('name').eq('id',currentUser.designation_id).maybeSingle();
+      dname=d2?.name||'';
+    }
+    document.getElementById('f-designation').value=dname;
+    currentUser._designationName=dname;
   }
-  // Fetch grade
+  // Fetch department — try 'departments' then 'department_master'
+  if(currentUser.department_id){
+    let depname='';
+    const{data:dep1}=await sb.from('departments').select('name').eq('id',currentUser.department_id).maybeSingle();
+    if(dep1?.name){depname=dep1.name;}
+    else{
+      const{data:dep2}=await sb.from('department_master').select('name').eq('id',currentUser.department_id).maybeSingle();
+      depname=dep2?.name||'';
+    }
+    document.getElementById('f-department').value=depname;
+    currentUser._departmentName=depname;
+  }
+  // Fetch grade — try 'grades' then 'grade_master'
   if(currentUser.grade_id){
-    const{data:grade}=await sb.from('grades').select('name').eq('id',currentUser.grade_id).maybeSingle();
-    document.getElementById('f-grade').value=grade?.name||'';
+    let gname='';
+    const{data:g1}=await sb.from('grades').select('name').eq('id',currentUser.grade_id).maybeSingle();
+    if(g1?.name){gname=g1.name;}
+    else{
+      const{data:g2}=await sb.from('grade_master').select('name').eq('id',currentUser.grade_id).maybeSingle();
+      gname=g2?.name||'';
+    }
+    document.getElementById('f-grade').value=gname;
+    currentUser._gradeName=gname;
   }
   addPeriphRow();
 }
@@ -594,7 +645,7 @@ function collectPeriph(){
 
 // ── Reset form ─────────────────────────────────────────
 function resetForm(){
-  ['f-name','f-designation','f-grade','f-branch','f-date','f-justification'].forEach(id=>{
+  ['f-name','f-designation','f-department','f-grade','f-branch','f-date','f-justification'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('periph-tbody').innerHTML='';
@@ -611,6 +662,10 @@ async function saveRequisition(status){
     submitted_by:parseInt(currentUser.id),
     submitted_by_userid:currentUser.userid,
     requester_name:[currentUser.fname,currentUser.lname].filter(Boolean).join(' '),
+    requester_designation:currentUser._designationName||document.getElementById('f-designation').value||'',
+    requester_department:currentUser._departmentName||document.getElementById('f-department').value||'',
+    requester_grade:currentUser._gradeName||document.getElementById('f-grade').value||'',
+    requester_branch:currentUser._branchName||document.getElementById('f-branch').value||'',
     location_id:currentUser.location_id||null,
     req_date:document.getElementById('f-date').value,
     justification,
@@ -721,6 +776,7 @@ async function editReq(id){
 async function viewDetail(id){
   const{data:req,error}=await sb.from('it_requisitions').select('*').eq('id',id).single();
   if(error||!req){toast('Could not load requisition.','error');return;}
+  window._currentReq=req; // store for print
 
   setNav('nav-list');
   document.getElementById('view-detail').style.display='block';
@@ -728,15 +784,13 @@ async function viewDetail(id){
   document.getElementById('detail-sub').textContent=req.status;
 
   document.getElementById('d-name').value=req.requester_name||'';
+  document.getElementById('d-designation').value=req.requester_designation||'';
+  document.getElementById('d-department').value=req.requester_department||'';
+  document.getElementById('d-grade').value=req.requester_grade||'';
+  document.getElementById('d-branch').value=req.requester_branch||req.location_id||'';
   document.getElementById('d-date').value=req.req_date||'';
   document.getElementById('d-status').value=req.status||'';
   document.getElementById('d-justification').value=req.justification||'';
-
-  // Branch name
-  if(req.location_id){
-    const{data:branch}=await sb.from('branch').select('name').eq('id',req.location_id).maybeSingle();
-    document.getElementById('d-branch').value=branch?.name||req.location_id;
-  }
 
   // Peripherals table
   const periph=safeParse(req.peripherals)||[];
@@ -956,6 +1010,110 @@ function toast(msg,type='info'){
   wrap.appendChild(t);
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3500);
+}
+
+// ── Print ─────────────────────────────────────────────
+function printRequisition(){
+  const req=window._currentReq;
+  if(!req){toast('No requisition loaded.','error');return;}
+  const periph=safeParse(req.peripherals)||[];
+  const periphRows=periph.map((p,i)=>`
+    <tr>
+      <td style="border:1px solid #000;padding:5px 8px;text-align:center;">${i+1}</td>
+      <td style="border:1px solid #000;padding:5px 8px;">${xe(p.type)}</td>
+      <td style="border:1px solid #000;padding:5px 8px;text-align:center;">${p.qty}</td>
+      <td style="border:1px solid #000;padding:5px 8px;">${xe(p.spec||'')}</td>
+    </tr>`).join('');
+
+  const bmLine=req.bm_name?`${xe(req.bm_name)} — ${req.bm_approved_at?new Date(req.bm_approved_at).toLocaleDateString('en-IN'):''}${req.bm_remark?' ('+xe(req.bm_remark)+')':''}`:' ';
+  const itLine=req.it_name?`${xe(req.it_name)} — ${req.it_approved_at?new Date(req.it_approved_at).toLocaleDateString('en-IN'):''}${req.it_remark?' ('+xe(req.it_remark)+')':''}`:' ';
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>IT Peripherals Requisition — ${xe(req.req_number||'')}</title>
+  <style>
+    body{font-family:'Times New Roman',serif;font-size:12pt;margin:0;padding:0;color:#000;}
+    .page{width:190mm;margin:0 auto;padding:10mm;}
+    h2{text-align:center;font-size:14pt;text-decoration:underline;margin-bottom:4px;}
+    .subhead{text-align:center;font-size:11pt;margin-bottom:16px;}
+    .to-line{margin-bottom:4px;}
+    .date-line{text-align:right;margin-bottom:12px;}
+    .intro{margin-bottom:12px;line-height:1.6;}
+    table.info{width:100%;border-collapse:collapse;margin-bottom:12px;}
+    table.info td{padding:4px 6px;font-size:11pt;}
+    table.info td.lbl{font-weight:bold;width:38%;}
+    table.periph{width:100%;border-collapse:collapse;margin-bottom:16px;}
+    table.periph th{border:1px solid #000;padding:5px 8px;background:#f0f0f0;font-size:11pt;}
+    table.periph td{border:1px solid #000;padding:5px 8px;font-size:11pt;}
+    .sign-section{margin-top:24px;}
+    .sign-row{display:flex;justify-content:space-between;margin-bottom:20px;}
+    .sign-block{width:45%;}
+    .sign-line{border-bottom:1px solid #000;margin-bottom:4px;height:20px;}
+    .sign-label{font-size:10pt;color:#333;}
+    .approval-section{border-top:1px solid #000;margin-top:16px;padding-top:10px;}
+    .issue-section{border-top:1px solid #000;margin-top:16px;padding-top:10px;}
+    .req-no{font-family:monospace;font-size:10pt;}
+    @media print{body{margin:0;}@page{margin:15mm;}}
+  </style></head><body>
+  <div class="page">
+    <h2>IT PERIPHERALS REQUISITION FORM</h2>
+    <div class="subhead">Duroply Industries Ltd.</div>
+
+    <div class="to-line"><strong>To,</strong></div>
+    <div class="to-line">IT Department, Kolkata</div>
+    <div class="date-line"><strong>Date:</strong> ${xe(req.req_date||'')} &nbsp;&nbsp; <span class="req-no"><strong>Req No:</strong> ${xe(req.req_number||'')}</span></div>
+
+    <div class="intro">We hereby request you to kindly arrange for the following IT peripheral(s) for use at our Branch/Department as per the details below:</div>
+
+    <table class="info">
+      <tr><td class="lbl">Name</td><td>: ${xe(req.requester_name||'')}</td><td class="lbl">Designation</td><td>: ${xe(req.requester_designation||'')}</td></tr>
+      <tr><td class="lbl">Department</td><td>: ${xe(req.requester_department||'')}</td><td class="lbl">Grade</td><td>: ${xe(req.requester_grade||'')}</td></tr>
+      <tr><td class="lbl">Branch / Location</td><td colspan="3">: ${xe(req.requester_branch||'')}</td></tr>
+      <tr><td class="lbl">Justification</td><td colspan="3">: ${xe(req.justification||'')}</td></tr>
+    </table>
+
+    <table class="periph">
+      <thead><tr><th>#</th><th>Peripheral Name / Type</th><th>Qty</th><th>Specification / Model</th></tr></thead>
+      <tbody>${periphRows}</tbody>
+    </table>
+
+    <div class="sign-section">
+      <div class="sign-row">
+        <div class="sign-block">
+          <div class="sign-line"></div>
+          <div class="sign-label"><strong>Signature:</strong> ${xe(req.requester_name||'')}</div>
+          <div class="sign-label"><strong>User ID:</strong> ${xe(req.submitted_by_userid||'')}</div>
+        </div>
+        <div class="sign-block">
+          <div class="sign-line"></div>
+          <div class="sign-label"><strong>Branch/Location:</strong> ${xe(req.requester_branch||'')}</div>
+        </div>
+      </div>
+    </div>
+
+    ${req.bm_name||req.it_name?`<div class="approval-section">
+      <strong>Approval Status</strong>
+      <table class="info" style="margin-top:8px;">
+        <tr><td class="lbl">Branch Manager</td><td>: ${bmLine}</td></tr>
+        <tr><td class="lbl">IT Head</td><td>: ${itLine}</td></tr>
+      </table>
+    </div>`:''}
+
+    ${req.issued_at?`<div class="issue-section">
+      <strong>Details of Peripheral Issued (IT Dept. use only)</strong>
+      <table class="info" style="margin-top:8px;">
+        <tr><td class="lbl">Date of Issue</td><td>: ${xe(req.issued_at||'')}</td><td class="lbl">Model No.</td><td>: ${xe(req.model_no||'')}</td></tr>
+        <tr><td class="lbl">Previous User</td><td>: ${xe(req.prev_user||'')}</td><td class="lbl">Date of Purchase</td><td>: ${xe(req.purchase_date||'')}</td></tr>
+        <tr><td class="lbl">Issued by</td><td colspan="3">: ${xe(req.issued_by_name||'')}</td></tr>
+      </table>
+    </div>`:''}
+
+  </div>
+  </body></html>`;
+
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(html);
+  w.document.close();
+  w.onload=()=>{w.focus();w.print();};
 }
 </script>
 </body>
