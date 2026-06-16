@@ -557,21 +557,38 @@ async function loadBranchColleagues(){
   if(!sel) return;
   sel.innerHTML='<option value="self">— Self —</option>';
   if(!currentUser.location_id) return;
+
   const{data:colleagues}=await sb.from('users')
     .select('id,userid,fname,lname,designation_id,department_id,grade_id')
     .eq('location_id',currentUser.location_id)
     .eq('status',1)
     .order('fname');
-  (colleagues||[]).forEach(u=>{
+  if(!colleagues||!colleagues.length) return;
+
+  // Fetch all unique designation and grade names in one query each
+  const desigIds=[...new Set(colleagues.map(u=>u.designation_id).filter(Boolean))];
+  const gradeIds=[...new Set(colleagues.map(u=>u.grade_id).filter(Boolean))];
+
+  const desigMap={}, gradeMap={};
+  if(desigIds.length){
+    const{data:desigs}=await sb.from('designation').select('id,name').in('id',desigIds);
+    (desigs||[]).forEach(d=>{desigMap[d.id]=d.name;});
+  }
+  if(gradeIds.length){
+    const{data:grades}=await sb.from('grade').select('id,name').in('id',gradeIds);
+    (grades||[]).forEach(g=>{gradeMap[g.id]=g.name;});
+  }
+
+  colleagues.forEach(u=>{
     if(parseInt(u.id)===parseInt(currentUser.id)) return;
     const name=[u.fname,u.lname].filter(Boolean).join(' ')||u.userid;
     const opt=document.createElement('option');
     opt.value=u.id;
     opt.textContent=name+' ('+u.userid+')';
     opt.dataset.name=name;
-    opt.dataset.desig=u.designation_id||'';
+    opt.dataset.desig=desigMap[u.designation_id]||u.designation_id||'';
     opt.dataset.dept=u.department_id||'';
-    opt.dataset.grade=u.grade_id||'';
+    opt.dataset.grade=gradeMap[u.grade_id]||u.grade_id||'';
     sel.appendChild(opt);
   });
 }
