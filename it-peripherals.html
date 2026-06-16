@@ -528,20 +528,24 @@ async function prefillRequestor(){
     document.getElementById('f-branch').value=bname;
     currentUser._branchName=bname;
   }
-  // Designation — raw id
+  // Designation — fetch name from 'designation' table
   if(currentUser.designation_id){
-    document.getElementById('f-designation').value=currentUser.designation_id;
-    currentUser._designationName=String(currentUser.designation_id);
+    const{data:desig}=await sb.from('designation').select('name').eq('id',currentUser.designation_id).maybeSingle();
+    const dname=desig?.name||String(currentUser.designation_id);
+    document.getElementById('f-designation').value=dname;
+    currentUser._designationName=dname;
   }
-  // Department — raw id
+  // Department — raw id (no master table yet)
   if(currentUser.department_id){
     document.getElementById('f-department').value=currentUser.department_id;
     currentUser._departmentName=String(currentUser.department_id);
   }
-  // Grade — raw id
+  // Grade — fetch name from 'grade' table
   if(currentUser.grade_id){
-    document.getElementById('f-grade').value=currentUser.grade_id;
-    currentUser._gradeName=String(currentUser.grade_id);
+    const{data:grade}=await sb.from('grade').select('name').eq('id',currentUser.grade_id).maybeSingle();
+    const gname=grade?.name||String(currentUser.grade_id);
+    document.getElementById('f-grade').value=gname;
+    currentUser._gradeName=gname;
   }
   addPeriphRow();
   await loadBranchColleagues();
@@ -870,16 +874,6 @@ function renderApprovalActions(req, id, isReportingManager=false){
     btns.innerHTML=`<span style="font-size:13px;color:var(--text3);">No action required — current status: <strong>${xe(req.status)}</strong></span>`;
   }
 
-  // ── Fixed policy note always shown in action panel ──
-  div.style.display='block';
-  const noteId='policy-note-'+id;
-  if(!document.getElementById(noteId)){
-    const note=document.createElement('div');
-    note.id=noteId;
-    note.style.cssText='margin-top:12px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;color:#1e40af;';
-    note.innerHTML='<strong>📋 Note:</strong> For Approval or Rejection please refer IT Policy existing in the portal.';
-    div.appendChild(note);
-  }
 }
 
 async function editFromDetail(id){
