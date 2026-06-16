@@ -291,9 +291,9 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
 
           <div class="form-wrap">
-            <!-- Raised By -->
+            <!-- Requestor -->
             <div class="form-section">
-              <div class="form-section-title">Raised By</div>
+              <div class="form-section-title">Requestor</div>
               <div class="form-grid">
                 <div class="fld">
                   <label>Name</label>
@@ -401,9 +401,9 @@ tbody tr:hover td{background:var(--surface2);}
           <!-- Summary card -->
           <div class="form-wrap" style="margin-bottom:16px;">
             <div class="form-section">
-              <div class="form-section-title">Requester Details</div>
+              <div class="form-section-title">Requestor &amp; Request For</div>
               <div class="form-grid">
-                <div class="fld"><label>Raised By</label><input id="d-raised-by" readonly></div>
+                <div class="fld"><label>Requestor</label><input id="d-raised-by" readonly></div>
                 <div class="fld"><label>Request For</label><input id="d-name" readonly></div>
                 <div class="fld"><label>Designation</label><input id="d-designation" readonly></div>
                 <div class="fld"><label>Department</label><input id="d-department" readonly></div>
@@ -1134,7 +1134,7 @@ function printRequisition(){
     <div class="intro">We hereby request you to kindly arrange for the following IT peripheral(s) for use at our Branch/Department as per the details below:</div>
 
     <table class="info">
-      <tr><td class="lbl">Name</td><td>: ${xe(req.requester_name||'')}</td><td class="lbl">Designation</td><td>: ${xe(req.requester_designation||'')}</td></tr>
+      <tr><td class="lbl">Requestor</td><td>: ${xe(req.raised_by_name||req.requester_name||'')}</td><td class="lbl">Request For</td><td>: ${xe(req.requester_name||'')}</td></tr>
       <tr><td class="lbl">Department</td><td>: ${xe(req.requester_department||'')}</td><td class="lbl">Grade</td><td>: ${xe(req.requester_grade||'')}</td></tr>
       <tr><td class="lbl">Branch / Location</td><td colspan="3">: ${xe(req.requester_branch||'')}</td></tr>
       <tr><td class="lbl">Justification</td><td colspan="3">: ${xe(req.justification||'')}</td></tr>
