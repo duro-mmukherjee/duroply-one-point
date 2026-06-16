@@ -567,15 +567,10 @@ async function prefillRequester(){
   document.getElementById('f-name').value=name;
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
 
-  // Fetch branch — try 'branch' then 'branch_master'
+  // Fetch location from 'location' table
   if(currentUser.location_id){
-    let bname='';
-    const{data:b1}=await sb.from('branch').select('name').eq('id',currentUser.location_id).maybeSingle();
-    if(b1?.name){bname=b1.name;}
-    else{
-      const{data:b2}=await sb.from('branch_master').select('name').eq('id',currentUser.location_id).maybeSingle();
-      bname=b2?.name||String(currentUser.location_id);
-    }
+    const{data:loc}=await sb.from('location').select('name').eq('id',currentUser.location_id).maybeSingle();
+    const bname=loc?.name||String(currentUser.location_id);
     document.getElementById('f-branch').value=bname;
     currentUser._branchName=bname;
   }
@@ -591,17 +586,10 @@ async function prefillRequester(){
     document.getElementById('f-designation').value=dname;
     currentUser._designationName=dname;
   }
-  // Fetch department — try 'departments' then 'department_master'
+  // Show department_id directly from users table
   if(currentUser.department_id){
-    let depname='';
-    const{data:dep1}=await sb.from('departments').select('name').eq('id',currentUser.department_id).maybeSingle();
-    if(dep1?.name){depname=dep1.name;}
-    else{
-      const{data:dep2}=await sb.from('department_master').select('name').eq('id',currentUser.department_id).maybeSingle();
-      depname=dep2?.name||'';
-    }
-    document.getElementById('f-department').value=depname;
-    currentUser._departmentName=depname;
+    document.getElementById('f-department').value=currentUser.department_id;
+    currentUser._departmentName=String(currentUser.department_id);
   }
   // Fetch grade — try 'grades' then 'grade_master'
   if(currentUser.grade_id){
