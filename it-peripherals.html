@@ -799,7 +799,7 @@ function renderList(rows){
       <td>${statusPill(r.status)}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          ${['Draft','Submitted','Approved by Branch Manager'].includes(r.status)?`<button class="btn btn-ghost btn-sm" onclick="editReq('${r.id}')">✎ Edit</button>`:''}
+          ${['Draft','Submitted'].includes(r.status)?`<button class="btn btn-ghost btn-sm" onclick="editReq('${r.id}')">✎ Edit</button>`:''}
           ${r.status==='Draft'?`<button class="btn btn-danger btn-sm" onclick="delReq('${r.id}')">✕</button>`:''}
         </div>
       </td>
@@ -832,7 +832,7 @@ async function editReq(id){
     req=data; allReqs=[data,...allReqs];
   }
   // Track if the record was already submitted so we can warn/resubmit
-  _editWasSubmitted = ['Submitted','Approved by Branch Manager'].includes(req.status);
+  _editWasSubmitted = req.status==='Submitted';
   editId=id;
   // Show warning note + restore attachments after form renders
   setTimeout(()=>{
@@ -953,7 +953,7 @@ function renderApprovalActions(req, id, isReportingManager=false){
   const canMgrApprove = isReportingManager || ['branch_manager','zone_manager'].includes(userRole);
 
   // ── Owner actions ──
-  if(isOwner && ['Draft','Submitted','Approved by Branch Manager','Rejected'].includes(req.status)){
+  if(isOwner && ['Draft','Submitted','Rejected'].includes(req.status)){
     div.style.display='block';
     const editLabel = req.status==='Draft' ? '✎ Edit' : '✎ Edit &amp; Resubmit';
     btns.innerHTML+=`<button class="btn btn-primary" onclick="editFromDetail('${id}')">${editLabel}</button>`;
