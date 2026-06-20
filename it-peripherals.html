@@ -159,6 +159,22 @@ tbody tr:hover td{background:var(--surface2);}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* ── Document upload ── */
+.upload-zone{border:1.5px dashed var(--border);border-radius:8px;padding:14px 16px;background:var(--bg);cursor:pointer;transition:border-color .15s;}
+.upload-zone:hover{border-color:var(--accent);background:#eff6ff;}
+.upload-zone input[type=file]{display:none;}
+.upload-zone-label{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.upload-zone-icon{font-size:20px;}
+.upload-zone-text{font-size:12px;color:var(--text3);line-height:1.4;}
+.upload-zone-text b{display:block;font-size:13px;color:var(--text2);}
+.attached-files{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.attached-file{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;}
+.attached-file-icon{font-size:14px;flex-shrink:0;}
+.attached-file-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);}
+.attached-file-size{font-size:11px;color:var(--text3);font-family:var(--mono);flex-shrink:0;}
+.attached-file-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 3px;flex-shrink:0;}
+.attached-file-view{background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;font-family:var(--mono);text-decoration:underline;padding:0 3px;flex-shrink:0;}
+
 /* ── Print ── */
 @media print{body *{visibility:hidden;}#print-area,#print-area *{visibility:visible;}#print-area{position:fixed;left:0;top:0;width:100%;}@page{margin:20mm;}}
 </style>
@@ -316,10 +332,26 @@ tbody tr:hover td{background:var(--surface2);}
               <button class="add-row-btn" onclick="addPeriphRow()">+ Add Item</button>
             </div>
 
+            <!-- Document Upload -->
+            <div class="form-section">
+              <div class="form-section-title">Supporting Documents <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0;">(optional)</span></div>
+              <div class="upload-zone" onclick="document.getElementById('form-file-input').click()">
+                <input type="file" id="form-file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" onchange="onFormFilesSelected(this)">
+                <label class="upload-zone-label" style="cursor:pointer;">
+                  <span class="upload-zone-icon">📎</span>
+                  <div class="upload-zone-text"><b>Click to attach documents</b>PDF, Word, Excel, Images — multiple files allowed</div>
+                </label>
+              </div>
+              <div class="attached-files" id="form-attached-files"></div>
+            </div>
+
             <div class="form-actions">
               <button class="btn btn-primary" onclick="saveRequisition('Draft')">Save as Draft</button>
               <button class="btn btn-success" id="submit-btn" onclick="saveRequisition('Submitted')">Submit for Approval</button>
               <button class="btn btn-ghost" onclick="showList()">Cancel</button>
+            </div>
+            <div id="resubmit-note" style="display:none;margin-top:10px;padding:9px 14px;background:#fef9c3;border:1px solid #fde047;border-radius:8px;font-size:12px;color:#854d0e;">
+              ⚠ This request was already submitted. Editing and saving will reset it to <strong>Draft</strong> — you must resubmit for approval.
             </div>
           </div>
         </div>
@@ -365,6 +397,11 @@ tbody tr:hover td{background:var(--surface2);}
                 </table>
               </div>
             </div>
+            <!-- Attached documents display -->
+            <div id="detail-docs-section" style="display:none;margin-top:16px;">
+              <div class="form-section-title" style="margin-bottom:10px;">Attached Documents</div>
+              <div class="attached-files" id="detail-docs-list"></div>
+            </div>
           </div>
 
           <!-- Approval trail -->
@@ -381,6 +418,18 @@ tbody tr:hover td{background:var(--surface2);}
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;">
               <div class="form-section-title" style="margin-bottom:12px;">Your Action</div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;" id="action-btns"></div>
+              <!-- Document upload during approval -->
+              <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+                <div style="font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Attach Documents</div>
+                <div class="upload-zone" onclick="document.getElementById('action-file-input').click()">
+                  <input type="file" id="action-file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls" onchange="onActionFilesSelected(this)">
+                  <label class="upload-zone-label" style="cursor:pointer;">
+                    <span class="upload-zone-icon">📎</span>
+                    <div class="upload-zone-text"><b>Attach supporting documents</b>Optional — PDF, Word, Excel, Images</div>
+                  </label>
+                </div>
+                <div class="attached-files" id="action-attached-files"></div>
+              </div>
             </div>
           </div>
 
@@ -507,9 +556,10 @@ function showPending(){setNav('nav-pending');document.getElementById('view-pendi
 function showNewForm(){
   setNav('nav-new');
   document.getElementById('view-form').style.display='block';
-  editId=null;resetForm();prefillRequestor();
+  editId=null;_editWasSubmitted=false;resetForm();prefillRequestor();
   document.getElementById('form-title').textContent='New Requisition';
   document.getElementById('req-no-disp').style.display='none';
+  document.getElementById('resubmit-note').style.display='none';
 }
 function goBackFromDetail(){
   if(_detailFrom==='pending') showPending(); else showList();
@@ -535,10 +585,12 @@ async function prefillRequestor(){
     document.getElementById('f-designation').value=dname;
     currentUser._designationName=dname;
   }
-  // Department — raw id (no master table yet)
+  // Department — fetch name from 'department' table
   if(currentUser.department_id){
-    document.getElementById('f-department').value=currentUser.department_id;
-    currentUser._departmentName=String(currentUser.department_id);
+    const{data:dept}=await sb.from('department').select('name').eq('id',currentUser.department_id).maybeSingle();
+    const depname=dept?.name||String(currentUser.department_id);
+    document.getElementById('f-department').value=depname;
+    currentUser._departmentName=depname;
   }
   // Grade — fetch name from 'grade' table
   if(currentUser.grade_id){
@@ -568,8 +620,9 @@ async function loadBranchColleagues(){
   // Fetch all unique designation and grade names in one query each
   const desigIds=[...new Set(colleagues.map(u=>u.designation_id).filter(Boolean))];
   const gradeIds=[...new Set(colleagues.map(u=>u.grade_id).filter(Boolean))];
+  const deptIds =[...new Set(colleagues.map(u=>u.department_id).filter(Boolean))];
 
-  const desigMap={}, gradeMap={};
+  const desigMap={}, gradeMap={}, deptMap={};
   if(desigIds.length){
     const{data:desigs}=await sb.from('designation').select('id,name').in('id',desigIds);
     (desigs||[]).forEach(d=>{desigMap[d.id]=d.name;});
@@ -577,6 +630,10 @@ async function loadBranchColleagues(){
   if(gradeIds.length){
     const{data:grades}=await sb.from('grade').select('id,name').in('id',gradeIds);
     (grades||[]).forEach(g=>{gradeMap[g.id]=g.name;});
+  }
+  if(deptIds.length){
+    const{data:depts}=await sb.from('department').select('id,name').in('id',deptIds);
+    (depts||[]).forEach(d=>{deptMap[d.id]=d.name;});
   }
 
   colleagues.forEach(u=>{
@@ -587,7 +644,7 @@ async function loadBranchColleagues(){
     opt.textContent=name+' ('+u.userid+')';
     opt.dataset.name=name;
     opt.dataset.desig=desigMap[u.designation_id]||u.designation_id||'';
-    opt.dataset.dept=u.department_id||'';
+    opt.dataset.dept=deptMap[u.department_id]||u.department_id||'';
     opt.dataset.grade=gradeMap[u.grade_id]||u.grade_id||'';
     sel.appendChild(opt);
   });
@@ -633,6 +690,10 @@ function collectPeriph(){
 
 // ── Reset form ──────────────────────────────────────────────
 function resetForm(){
+  window._formDocs=[];
+  window._actionDocs=[];
+  renderAttachedFiles('form-attached-files', window._formDocs, true);
+  renderAttachedFiles('action-attached-files', window._actionDocs, true);
   ['f-name','f-designation','f-department','f-grade','f-branch','f-date','f-justification'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
@@ -647,6 +708,9 @@ function resetForm(){
 }
 
 // ── Save requisition ────────────────────────────────────────
+// Track if edit came from an already-submitted record
+let _editWasSubmitted = false;
+
 async function saveRequisition(status){
   const justification=document.getElementById('f-justification').value.trim();
   const periph=collectPeriph();
@@ -681,11 +745,18 @@ async function saveRequisition(status){
     req_date:          document.getElementById('f-date').value,
     justification,
     peripherals:       JSON.stringify(periph),
+    attachments:       JSON.stringify(window._formDocs||[]),
     status,
     updated_at:        new Date().toISOString(),
   };
   if(!editId){ data.req_number=genReqNo(); data.created_at=new Date().toISOString(); }
 
+  // If editing a previously submitted record, reset approval fields
+  if(editId && _editWasSubmitted && status==='Draft'){
+    data.bm_name=null; data.bm_approved_at=null; data.bm_remark=null;
+    data.it_name=null; data.it_approved_at=null; data.it_remark=null;
+    data.rejected_by_role=null;
+  }
   let error;
   if(editId){({error}=await sb.from('it_requisitions').update(data).eq('id',editId));}
   else{({error}=await sb.from('it_requisitions').insert(data));}
@@ -728,7 +799,7 @@ function renderList(rows){
       <td>${statusPill(r.status)}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          ${r.status==='Draft'?`<button class="btn btn-ghost btn-sm" onclick="editReq('${r.id}')">✎ Edit</button>`:''}
+          ${['Draft','Submitted','Approved by Branch Manager'].includes(r.status)?`<button class="btn btn-ghost btn-sm" onclick="editReq('${r.id}')">✎ Edit</button>`:''}
           ${r.status==='Draft'?`<button class="btn btn-danger btn-sm" onclick="delReq('${r.id}')">✕</button>`:''}
         </div>
       </td>
@@ -753,8 +824,22 @@ async function delReq(id){
 }
 
 async function editReq(id){
-  const req=allReqs.find(r=>String(r.id)===String(id));if(!req)return;
+  let req=allReqs.find(r=>String(r.id)===String(id));
+  if(!req){
+    // fetch fresh if not in allReqs (e.g. opened from detail)
+    const{data}=await sb.from('it_requisitions').select('*').eq('id',id).single();
+    if(!data) return;
+    req=data; allReqs=[data,...allReqs];
+  }
+  // Track if the record was already submitted so we can warn/resubmit
+  _editWasSubmitted = ['Submitted','Approved by Branch Manager'].includes(req.status);
   editId=id;
+  // Show warning note + restore attachments after form renders
+  setTimeout(()=>{
+    const note=document.getElementById('resubmit-note');
+    if(note) note.style.display=_editWasSubmitted?'block':'none';
+    restoreFormDocs(req);
+  },200);
   setNav('nav-new');document.getElementById('view-form').style.display='block';
   document.getElementById('form-title').textContent='Edit Requisition';
   document.getElementById('req-no-disp').textContent=req.req_number||'';
@@ -795,6 +880,28 @@ async function viewDetail(id, from='list'){
   document.getElementById('d-date').value=req.req_date||'';
   document.getElementById('d-status').value=req.status||'';
   document.getElementById('d-justification').value=req.justification||'';
+
+  // Show all attached documents
+  const allDocs=[
+    ...(safeParse(req.attachments)||[]).map(d=>({...d,stage:'Requestor'})),
+    ...(safeParse(req.bm_attachments)||[]).map(d=>({...d,stage:'Branch Manager'})),
+    ...(safeParse(req.it_attachments)||[]).map(d=>({...d,stage:'IT Head'})),
+  ];
+  const docsSection=document.getElementById('detail-docs-section');
+  const docsList=document.getElementById('detail-docs-list');
+  if(allDocs.length){
+    docsSection.style.display='block';
+    docsList.innerHTML=allDocs.map(d=>`
+      <div class="attached-file">
+        <span class="attached-file-icon">${fileIcon(d.name)}</span>
+        <span class="attached-file-name">${xe(d.name)}</span>
+        <span class="attached-file-size">${xe(d.stage)}</span>
+        <span class="attached-file-size">${xe(d.size||'')}</span>
+        <button class="attached-file-view" onclick="openDoc('${encodeURIComponent(d.b64)}','${encodeURIComponent(d.name)}')">View</button>
+      </div>`).join('');
+  } else {
+    docsSection.style.display='none';
+  }
 
   const periph=safeParse(req.peripherals)||[];
   document.getElementById('d-periph-tbody').innerHTML=periph.map((p,i)=>
@@ -846,9 +953,10 @@ function renderApprovalActions(req, id, isReportingManager=false){
   const canMgrApprove = isReportingManager || ['branch_manager','zone_manager'].includes(userRole);
 
   // ── Owner actions ──
-  if(isOwner && (req.status==='Draft'||req.status==='Rejected')){
+  if(isOwner && ['Draft','Submitted','Approved by Branch Manager','Rejected'].includes(req.status)){
     div.style.display='block';
-    btns.innerHTML+=`<button class="btn btn-primary" onclick="editFromDetail('${id}')">✎ Edit &amp; Resubmit</button>`;
+    const editLabel = req.status==='Draft' ? '✎ Edit' : '✎ Edit &amp; Resubmit';
+    btns.innerHTML+=`<button class="btn btn-primary" onclick="editFromDetail('${id}')">${editLabel}</button>`;
   }
   if(isOwner && req.status==='Draft'){
     btns.innerHTML+=`<button class="btn btn-success" onclick="submitFromDetail('${id}')">↑ Submit for Approval</button>`;
@@ -930,10 +1038,13 @@ async function confirmAction(){
   closeRemarkModal();
   const name=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
   let update={updated_at:new Date().toISOString()};
-  if(_pendingActionType==='bm_approve') update={...update,status:'Approved by Branch Manager',bm_name:name,bm_approved_at:new Date().toISOString(),bm_remark:remark};
-  else if(_pendingActionType==='bm_reject')  update={...update,status:'Rejected',bm_name:name,bm_remark:remark,rejected_by_role:'branch_manager'};
-  else if(_pendingActionType==='it_approve') update={...update,status:'Approved by IT',it_name:name,it_approved_at:new Date().toISOString(),it_remark:remark};
-  else if(_pendingActionType==='it_reject')  update={...update,status:'Rejected',it_name:name,it_remark:remark,rejected_by_role:'it_head'};
+  const actionDocs=window._actionDocs||[];
+  if(_pendingActionType==='bm_approve') update={...update,status:'Approved by Branch Manager',bm_name:name,bm_approved_at:new Date().toISOString(),bm_remark:remark,bm_attachments:JSON.stringify(actionDocs)};
+  else if(_pendingActionType==='bm_reject')  update={...update,status:'Rejected',bm_name:name,bm_remark:remark,rejected_by_role:'branch_manager',bm_attachments:JSON.stringify(actionDocs)};
+  else if(_pendingActionType==='it_approve') update={...update,status:'Approved by IT',it_name:name,it_approved_at:new Date().toISOString(),it_remark:remark,it_attachments:JSON.stringify(actionDocs)};
+  else if(_pendingActionType==='it_reject')  update={...update,status:'Rejected',it_name:name,it_remark:remark,rejected_by_role:'it_head',it_attachments:JSON.stringify(actionDocs)};
+  window._actionDocs=[];
+  renderAttachedFiles('action-attached-files',[],true);
   const{error}=await sb.from('it_requisitions').update(update).eq('id',_pendingReqId);
   if(error){toast('Action failed: '+error.message,'error');return;}
   toast('Done','success');
@@ -1185,6 +1296,90 @@ function toast(msg,type='info'){
   wrap.appendChild(t);
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3500);
+}
+
+// ── Document upload helpers ──────────────────────────────────
+window._formDocs   = [];   // docs attached at creation
+window._actionDocs = [];   // docs attached during approval action
+
+function fileIcon(name){
+  const ext=(name||'').split('.').pop().toLowerCase();
+  if(['jpg','jpeg','png','gif','webp'].includes(ext)) return '🖼';
+  if(ext==='pdf') return '📄';
+  if(['doc','docx'].includes(ext)) return '📝';
+  if(['xls','xlsx'].includes(ext)) return '📊';
+  return '📎';
+}
+
+function formatSize(bytes){
+  if(bytes<1024) return bytes+'B';
+  if(bytes<1024*1024) return (bytes/1024).toFixed(1)+'KB';
+  return (bytes/(1024*1024)).toFixed(1)+'MB';
+}
+
+function readFileAsB64(file){
+  return new Promise(resolve=>{
+    const r=new FileReader();
+    r.onload=e=>resolve(e.target.result);
+    r.readAsDataURL(file);
+  });
+}
+
+async function onFormFilesSelected(input){
+  for(const file of Array.from(input.files)){
+    const b64=await readFileAsB64(file);
+    window._formDocs.push({name:file.name,size:formatSize(file.size),b64});
+  }
+  input.value='';
+  renderAttachedFiles('form-attached-files', window._formDocs, true);
+}
+
+async function onActionFilesSelected(input){
+  for(const file of Array.from(input.files)){
+    const b64=await readFileAsB64(file);
+    window._actionDocs.push({name:file.name,size:formatSize(file.size),b64});
+  }
+  input.value='';
+  renderAttachedFiles('action-attached-files', window._actionDocs, true);
+}
+
+function renderAttachedFiles(containerId, docs, canDelete=false){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  if(!docs||!docs.length){el.innerHTML='';return;}
+  el.innerHTML=docs.map((d,i)=>`
+    <div class="attached-file">
+      <span class="attached-file-icon">${fileIcon(d.name)}</span>
+      <span class="attached-file-name">${xe(d.name)}</span>
+      <span class="attached-file-size">${xe(d.size||'')}</span>
+      <button class="attached-file-view" onclick="openDoc('${encodeURIComponent(d.b64)}','${encodeURIComponent(d.name)}')">View</button>
+      ${canDelete?`<button class="attached-file-del" onclick="removeDoc('${containerId}',${i})" title="Remove">✕</button>`:''}
+    </div>`).join('');
+}
+
+function removeDoc(containerId, idx){
+  if(containerId==='form-attached-files') window._formDocs.splice(idx,1), renderAttachedFiles(containerId, window._formDocs, true);
+  else window._actionDocs.splice(idx,1), renderAttachedFiles(containerId, window._actionDocs, true);
+}
+
+function openDoc(encodedB64, encodedName){
+  try{
+    const b64=decodeURIComponent(encodedB64);
+    const name=decodeURIComponent(encodedName);
+    const arr=b64.split(',');
+    const mime=arr[0].match(/:(.*?);/)[1];
+    const bstr=atob(arr[1]);
+    let n=bstr.length; const u8=new Uint8Array(n);
+    while(n--) u8[n]=bstr.charCodeAt(n);
+    const url=URL.createObjectURL(new Blob([u8],{type:mime}));
+    window.open(url,'_blank');
+  }catch(e){toast('Could not open file','error');}
+}
+
+// Restore form docs when editing an existing record
+function restoreFormDocs(req){
+  window._formDocs=safeParse(req.attachments)||[];
+  renderAttachedFiles('form-attached-files', window._formDocs, true);
 }
 </script>
 </body>
