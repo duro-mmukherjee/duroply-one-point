@@ -799,8 +799,8 @@ function renderList(rows){
       <td>${statusPill(r.status)}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          ${['Draft','Submitted'].includes(r.status)?`<button class="btn btn-ghost btn-sm" onclick="editReq('${r.id}')">✎ Edit</button>`:''}
-          ${r.status==='Draft'?`<button class="btn btn-danger btn-sm" onclick="delReq('${r.id}')">✕</button>`:''}
+          ${['Draft','Submitted'].includes(r.status)&&parseInt(r.submitted_by)===parseInt(currentUser?.id)?`<button class="btn btn-ghost btn-sm" onclick="editReq('${r.id}')">✎ Edit</button>`:''}
+          ${r.status==='Draft'&&parseInt(r.submitted_by)===parseInt(currentUser?.id)?`<button class="btn btn-danger btn-sm" onclick="delReq('${r.id}')">✕</button>`:''}
         </div>
       </td>
     </tr>`;
@@ -948,32 +948,43 @@ function renderApprovalActions(req, id, isReportingManager=false){
   const btns=document.getElementById('action-btns');
   div.style.display='none'; btns.innerHTML='';
 
-  const isIT       = userRole==='super_admin';
-  const isOwner    = parseInt(req.submitted_by)===parseInt(currentUser.id);
+  const isIT          = userRole==='super_admin';
+  const isOwner       = parseInt(req.submitted_by)===parseInt(currentUser.id);
   const canMgrApprove = isReportingManager || ['branch_manager','zone_manager'].includes(userRole);
+  const bmActed       = !!(req.bm_approved_at || (req.status==='Rejected'&&req.rejected_by_role==='branch_manager'));
+  const itActed       = !!(req.it_approved_at || (req.status==='Rejected'&&req.rejected_by_role==='it_head'));
 
-  // ── Owner actions ──
-  if(isOwner && ['Draft','Submitted','Rejected'].includes(req.status)){
+  // ── Requestor: edit form (Draft/Submitted only, before BM acts) ──
+  const canEdit = isOwner && ['Draft','Submitted'].includes(req.status) && !bmActed;
+  if(canEdit){
     div.style.display='block';
     const editLabel = req.status==='Draft' ? '✎ Edit' : '✎ Edit &amp; Resubmit';
     btns.innerHTML+=`<button class="btn btn-primary" onclick="editFromDetail('${id}')">${editLabel}</button>`;
   }
   if(isOwner && req.status==='Draft'){
+    div.style.display='block';
     btns.innerHTML+=`<button class="btn btn-success" onclick="submitFromDetail('${id}')">↑ Submit for Approval</button>`;
   }
 
-  // ── Manager approval (Step 1) ──
-  // Shown when status = Submitted AND current user is in reporting chain
+  // ── Branch Manager: approve/reject when Submitted ──
   if(canMgrApprove && req.status==='Submitted'){
     div.style.display='block';
     btns.innerHTML+=`
       <span style="font-size:11px;font-family:var(--mono);color:var(--text3);align-self:center;margin-right:4px;">STEP 1 — MANAGER</span>
       <button class="btn btn-success" onclick="openRemarkModal('bm_approve','${id}','Approve','Optional remark')">✓ Approve</button>
       <button class="btn btn-danger"  onclick="openRemarkModal('bm_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
+    if(isIT) btns.innerHTML+=`<span style="font-size:11px;color:var(--text3);align-self:center;margin-left:8px;">(Step 2 IT approval appears after)</span>`;
   }
 
-  // ── IT Head approval (Step 2) ──
-  // Shown when status = Approved by Branch Manager AND user is super_admin
+  // ── Branch Manager: edit remark when already acted ──
+  if(canMgrApprove && bmActed && !['Submitted'].includes(req.status)){
+    div.style.display='block';
+    btns.innerHTML+=`
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text3);align-self:center;margin-right:4px;">MANAGER REMARK</span>
+      <button class="btn btn-ghost" onclick="openEditRemarkModal('bm_remark','${id}','Edit Manager Remark',${JSON.stringify(req.bm_remark||'')})">✎ Edit Remark</button>`;
+  }
+
+  // ── IT Head: approve/reject when Approved by BM ──
   if(isIT && req.status==='Approved by Branch Manager'){
     div.style.display='block';
     btns.innerHTML+=`
@@ -982,15 +993,12 @@ function renderApprovalActions(req, id, isReportingManager=false){
       <button class="btn btn-danger"  onclick="openRemarkModal('it_reject','${id}','Reject','Reason for rejection (required)',true)">✕ Reject</button>`;
   }
 
-  // ── Special case: D01998 is BOTH manager AND super_admin ──
-  // After D01998 approves as manager (status = Approved by Branch Manager),
-  // they must also approve as IT Head — show both steps clearly
-  if(isIT && canMgrApprove && req.status==='Submitted'){
-    // Already showing Step 1 above — also show a note about Step 2
+  // ── IT Head: edit remark when already acted ──
+  if(isIT && itActed){
+    div.style.display='block';
     btns.innerHTML+=`
-      <span style="font-size:11px;color:var(--text3);align-self:center;margin-left:8px;">
-        (Step 2 IT approval will appear after you approve as manager)
-      </span>`;
+      <span style="font-size:11px;font-family:var(--mono);color:var(--text3);align-self:center;margin-right:4px;">IT HEAD REMARK</span>
+      <button class="btn btn-ghost" onclick="openEditRemarkModal('it_remark','${id}','Edit IT Head Remark',${JSON.stringify(req.it_remark||'')})">✎ Edit Remark</button>`;
   }
 
   // ── No action ──
@@ -998,7 +1006,20 @@ function renderApprovalActions(req, id, isReportingManager=false){
     div.style.display='block';
     btns.innerHTML=`<span style="font-size:13px;color:var(--text3);">No action required — current status: <strong>${xe(req.status)}</strong></span>`;
   }
+}
 
+// ── Edit remark modal ────────────────────────────────────────
+function openEditRemarkModal(field, reqId, title, currentRemark){
+  _pendingActionType='edit_remark';
+  _pendingReqId=reqId;
+  _requireRemark=false;
+  window._editRemarkField=field;
+  document.getElementById('remark-modal-title').textContent=title;
+  document.getElementById('remark-modal-sub').textContent='Update your remark for this requisition';
+  document.getElementById('remark-text').value=currentRemark||'';
+  document.getElementById('remark-confirm-btn').textContent='Save Remark';
+  document.getElementById('remark-confirm-btn').className='btn btn-primary';
+  document.getElementById('remark-modal').classList.add('open');
 }
 
 async function editFromDetail(id){
@@ -1036,6 +1057,17 @@ async function confirmAction(){
   const remark=document.getElementById('remark-text').value.trim();
   if(_requireRemark&&!remark){toast('Please enter a reason.','error');return;}
   closeRemarkModal();
+
+  // Handle remark-only edit
+  if(_pendingActionType==='edit_remark'){
+    const field=window._editRemarkField;
+    const{error}=await sb.from('it_requisitions').update({[field]:remark,updated_at:new Date().toISOString()}).eq('id',_pendingReqId);
+    if(error){toast('Save failed: '+error.message,'error');return;}
+    toast('Remark updated','success');
+    await viewDetail(_pendingReqId,_detailFrom);
+    return;
+  }
+
   const name=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
   let update={updated_at:new Date().toISOString()};
   const actionDocs=window._actionDocs||[];
