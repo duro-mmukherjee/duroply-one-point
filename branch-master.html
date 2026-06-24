@@ -370,6 +370,28 @@ let allRows = [];
 let editingId = null;
 let currentUser = null;
 
+// ── Auto-init from index.html session ────────────────────────
+async function autoInitFromSession(){
+  const sess=window._sessionUser;
+  if(!sess) return;
+  sb=supabase.createClient(
+    'https://fplmoyrqmhoaanvfsoni.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js',
+    {auth:{persistSession:false}}
+  );
+  currentUser=sess;
+  const fullName=[sess.fname,sess.lname].filter(Boolean).join(' ')||sess.userid;
+  document.getElementById('user-fullname').textContent=fullName;
+  document.getElementById('user-id-display').textContent=sess.userid;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  await loadUserSession();
+  loadBranches();
+}
+if(window._sessionUser){
+  document.addEventListener('DOMContentLoaded', autoInitFromSession);
+}
+
 // ─────────────────────────────────────────────
 // LOGIN
 // ─────────────────────────────────────────────
@@ -464,6 +486,11 @@ function showLoginErr(msg) {
 }
 
 function doLogout() {
+  sessionStorage.removeItem('duroply_session');
+  if(window.parent&&window.parent!==window){
+    try{window.parent.postMessage('logout','*');}catch(e){}
+    return;
+  }
   if (!confirm('Sign out?')) return;
   sb = null;
   currentUser = null;
