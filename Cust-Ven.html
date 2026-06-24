@@ -795,6 +795,30 @@ const MARKETS = {
 // ── State ──────────────────────────────────────────────
 let sb=null, currentUser=null, apps=[], editId=null;
 
+// ── Auto-init from index.html session ────────────────────────
+async function autoInitFromSession(){
+  const sess=window._sessionUser;
+  if(!sess) return;
+  sb=supabase.createClient(
+    'https://fplmoyrqmhoaanvfsoni.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js',
+    {auth:{persistSession:false}}
+  );
+  currentUser=sess;
+  document.getElementById('u-name').textContent=[sess.fname,sess.lname].filter(Boolean).join(' ')||sess.userid;
+  document.getElementById('u-id').textContent=sess.userid;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  populateStatic();
+  await loadUserSession();
+  await loadSalesPersons();
+  await loadApps();
+}
+// Check session on load (before DOMContentLoaded fires in some browsers)
+if(window._sessionUser){
+  document.addEventListener('DOMContentLoaded', autoInitFromSession);
+}
+
 // ── Populate static dropdowns ──
 function populateStatic(){
   const fill=(id,arr)=>{const s=document.getElementById(id);s.innerHTML='<option value="">— Select —</option>';arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});};
@@ -840,7 +864,18 @@ async function doLogin(){
   finally{btn.disabled=false;btn.textContent='Sign In';}
 }
 function showLE(m){const e=document.getElementById('lerr');e.textContent=m;e.className='lerr show';document.getElementById('login-btn').disabled=false;document.getElementById('login-btn').textContent='Sign In';}
-function doLogout(){if(!confirm('Sign out?'))return;sb=null;currentUser=null;document.getElementById('l-pwd').value='';document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';}
+function doLogout(){
+  if(!confirm('Sign out?'))return;
+  sb=null;currentUser=null;
+  sessionStorage.removeItem('duroply_session');
+  document.getElementById('l-pwd').value='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  // If running inside index.html iframe, redirect parent to home
+  if(window.parent&&window.parent!==window){
+    try{window.parent.postMessage('logout','*');}catch(e){}
+  }
+}
 ['l-uid','l-pwd'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
 
 async function loadSalesPersons(){
