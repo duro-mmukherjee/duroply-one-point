@@ -19,11 +19,16 @@ html, body { height: 100%; overflow: hidden; }
 body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); display: flex; flex-direction: column; }
 
 /* ══ LOGIN ══ */
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;position:fixed;inset:0;background:linear-gradient(135deg,#e0e7ff,#f0f4f8,#dbeafe);z-index:999;}
-.lcard{background:#fff;border:1px solid rgba(15,17,23,.1);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(37,99,235,.1);}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;position:fixed;inset:0;
+  background:
+    linear-gradient(135deg,rgba(5,50,25,.70) 0%,rgba(15,100,50,.55) 50%,rgba(8,70,35,.68) 100%),
+    url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80') center/cover no-repeat;
+  z-index:999;}
+.lcard{background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.6);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.2);backdrop-filter:blur(12px);}
 .llogo{text-align:center;margin-bottom:28px;}
-.llogo-mark{width:52px;height:52px;background:linear-gradient(135deg,#c4952a,#2563eb);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin-bottom:10px;}
-.ltitle{font-size:20px;font-weight:600;font-family:'Fraunces',serif;letter-spacing:-.4px;}
+.llogo-mark{display:inline-block;background:#fff;border:2px solid #dc2626;border-radius:7px;padding:3px 10px;margin-bottom:12px;}
+.llogo-mark span{font-family:'DM Mono',monospace;font-size:21px;font-weight:700;color:#dc2626;letter-spacing:1px;text-transform:uppercase;}
+.ltitle{font-size:20px;font-weight:600;font-family:'Fraunces',serif;letter-spacing:-.4px;color:#1a202c;}
 .lsub{font-size:10px;color:#8896a8;font-family:'DM Mono',monospace;margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
 .lsec{margin-bottom:14px;}
 .lsec label{display:block;font-size:11px;color:#8896a8;font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
@@ -231,8 +236,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 <div id="login-screen">
   <div class="lcard">
     <div class="llogo">
-      <div class="llogo-mark">D</div>
-      <div class="ltitle">Duroply Industries</div>
+      <div class="llogo-mark"><span>DUROPLY</span></div>
+      <div class="ltitle">Duroply Industries Limited</div>
       <div class="lsub">Operations Portal</div>
     </div>
     <div class="lsec">
@@ -258,7 +263,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
       </svg>
     </div>
     <div>
-      <div class="brand-name">Duroply Industries</div>
+      <div class="brand-name">Duroply Industries Limited</div>
       <div class="brand-sub">Operations Portal</div>
     </div>
   </div>
