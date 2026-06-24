@@ -139,7 +139,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
   background: var(--cream);
 }
 #home-screen::before {
-  content: ''; position: fixed; inset: 0;
+  content: ''; position: absolute; inset: 0;
   background-image:
     radial-gradient(ellipse 80% 50% at 10% 20%, rgba(196,149,42,0.07) 0%, transparent 60%),
     radial-gradient(ellipse 60% 60% at 90% 80%, rgba(26,107,110,0.06) 0%, transparent 60%);
@@ -355,8 +355,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
             </div>
           </div>
         </div>
-	
-	<div class="apps-grid">
+
         <div class="app-card" id="card-5" onclick="loadApp('it-peripherals.html','IT Peripherals Requisition',5)">
           <div class="card-top"></div>
           <div class="card-body">
@@ -600,6 +599,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
     if (navEl) navEl.classList.add('active');
     document.getElementById('home-screen').style.display = 'none';
     const frame = document.getElementById('app-frame');
+    if(!frame) return;
     frame.style.display = 'flex';
     frame.style.flex = '1';
     frame.style.height = '100%';
