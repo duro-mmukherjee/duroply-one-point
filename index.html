@@ -357,7 +357,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
         </div>
 	
 	<div class="apps-grid">
-        <div class="app-card" id="card-0" onclick="loadApp('it-peripherals.html','IT Peripherals Requisition',0)">
+        <div class="app-card" id="card-5" onclick="loadApp('it-peripherals.html','IT Peripherals Requisition',5)">
           <div class="card-top"></div>
           <div class="card-body">
             <div class="card-icon">📋</div>
@@ -531,14 +531,21 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
     // Fetch accessible apps from app_permissions
     let accessibleKeys = new Set();
     if(userRole === 'super_admin'){
-      // Super admin sees all registered apps
       APP_REGISTRY.forEach(a => accessibleKeys.add(a.key));
     } else {
       try{
         const{data:perms} = await sb.from('app_permissions')
           .select('app_key').eq('role',userRole).eq('can_access',true);
-        (perms||[]).forEach(p => accessibleKeys.add(p.app_key));
-      }catch(e){}
+        if(perms && perms.length > 0){
+          perms.forEach(p => accessibleKeys.add(p.app_key));
+        } else {
+          // No permission rows found — show all apps as fallback
+          APP_REGISTRY.forEach(a => accessibleKeys.add(a.key));
+        }
+      }catch(e){
+        // On error — show all apps
+        APP_REGISTRY.forEach(a => accessibleKeys.add(a.key));
+      }
     }
 
     // Show portal, hide login
