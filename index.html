@@ -606,13 +606,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
     frame.src = file;
     frame.onload = () => {
       document.getElementById('frame-loader').classList.remove('show');
-      // Inject session into iframe so it auto-inits
+      // Session is already in sessionStorage — apps read it on DOMContentLoaded
+      // Also try direct injection as backup
       try{
-        frame.contentWindow._sessionUser = portalUser;
-        if(frame.contentWindow.autoInitFromSession){
+        if(frame.contentWindow && frame.contentWindow.autoInitFromSession){
+          frame.contentWindow._sessionUser = portalUser;
           frame.contentWindow.autoInitFromSession();
         }
-      }catch(e){}
+      }catch(e){
+        // Cross-origin or timing issue — sessionStorage fallback handles it
+      }
     };
   }
 
