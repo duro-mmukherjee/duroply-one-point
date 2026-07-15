@@ -814,6 +814,10 @@ async function saveRequisition(status){
   else{({error}=await sb.from('it_requisitions').insert(data));}
   if(error){toast('Save failed: '+error.message,'error');return;}
   toast(status==='Draft'?'Draft saved.':'Submitted for approval.','success');
+  if(status==='Submitted'){
+    const{data:_nr}=await sb.from('it_requisitions').select('*').order('created_at',{ascending:false}).eq('submitted_by',parseInt(currentUser.id)).limit(1).single();
+    if(_nr) emailOnSubmit(_nr).catch(()=>{});
+  }
   await loadMyReqs();
   showList();
 }
@@ -1089,6 +1093,8 @@ async function submitFromDetail(id){
   const{error}=await sb.from('it_requisitions').update({status:'Submitted',updated_at:new Date().toISOString()}).eq('id',id);
   if(error){toast('Failed: '+error.message,'error');return;}
   toast('Submitted for approval','success');
+  const{data:_sd}=await sb.from('it_requisitions').select('*').eq('id',id).single();
+  if(_sd) emailOnSubmit(_sd).catch(()=>{});
   await viewDetail(id,_detailFrom);
   await loadPendingCount();
 }
@@ -1132,6 +1138,13 @@ async function confirmAction(){
   const{error}=await sb.from('it_requisitions').update(update).eq('id',_pendingReqId);
   if(error){toast('Action failed: '+error.message,'error');return;}
   toast('Done','success');
+  const{data:_ca}=await sb.from('it_requisitions').select('*').eq('id',_pendingReqId).single();
+  if(_ca){
+    if(_pendingActionType==='bm_approve')      emailOnBMApprove(_ca,remark).catch(()=>{});
+    else if(_pendingActionType==='bm_reject')  emailOnReject(_ca,remark,'Branch Manager').catch(()=>{});
+    else if(_pendingActionType==='it_approve') emailOnITApprove(_ca,remark).catch(()=>{});
+    else if(_pendingActionType==='it_reject')  emailOnReject(_ca,remark,'IT Head').catch(()=>{});
+  }
   await loadPendingCount();
   await viewDetail(_pendingReqId,_detailFrom);
 }
@@ -1151,6 +1164,8 @@ async function issuePeripheral(){
   }).eq('id',id);
   if(error){toast('Failed: '+error.message,'error');return;}
   toast('Marked as Issued','success');
+  const{data:_is}=await sb.from('it_requisitions').select('*').eq('id',id).single();
+  if(_is) emailOnIssued(_is).catch(()=>{});
   await viewDetail(id,_detailFrom);
 }
 
@@ -1460,6 +1475,168 @@ function openDoc(encodedB64, encodedName){
   }catch(e){toast('Could not open file','error');}
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+// EMAIL NOTIFICATIONS — Supabase Edge Function
+// ══════════════════════════════════════════════════════════════════
+// Fill in your Supabase project URL below (same one used for login)
+const EDGE_FN_URL = 'https://fplmoyrqmhoaanvfsoni.supabase.co/functions/v1/send-email';
+// The anon key is used to authenticate the edge function call
+const EDGE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js';
+
+// ── Core send — calls the edge function ──────────────────────────
+async function sendEmail(toEmails, subject, body, reqNumber=''){
+  if(!toEmails||!toEmails.length) return;
+  const unique=[...new Set(toEmails.filter(Boolean))];
+  if(!unique.length) return;
+  try{
+    await fetch(EDGE_FN_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+EDGE_ANON_KEY},
+      body:JSON.stringify({to:unique, subject, body, req_number:reqNumber})
+    });
+  }catch(e){ console.warn('Email send failed:',e); }
+}
+
+// ── Fetch submitter email from users table ───────────────────────
+async function getSubmitterEmail(req){
+  if(!req.submitted_by) return [];
+  const{data}=await sb.from('users').select('email').eq('id',req.submitted_by).maybeSingle();
+  return data?.email?[data.email]:[];
+}
+
+// ── Walk cc_users chain upward to get manager email(s) ──────────
+async function getManagerEmails(submitterDbId){
+  const emails=[];
+  let checkId=submitterDbId;
+  const visited=new Set();
+  try{
+    while(checkId&&!visited.has(checkId)){
+      visited.add(checkId);
+      const{data:u}=await sb.from('users').select('cc_users').eq('id',checkId).maybeSingle();
+      if(!u||!u.cc_users) break;
+      const{data:mgr}=await sb.from('users').select('id,email').eq('id',u.cc_users).maybeSingle();
+      if(mgr?.email) emails.push(mgr.email);
+      checkId=parseInt(u.cc_users);
+    }
+  }catch(e){}
+  return emails;
+}
+
+// ── Get IT Head emails (super_admin role) ────────────────────────
+async function getITHeadEmails(){
+  const{data}=await sb.from('users').select('email').eq('role','super_admin').eq('status',1);
+  return (data||[]).map(u=>u.email).filter(Boolean);
+}
+
+// ══ TRIGGER 1: Submitted → email manager ════════════════════════
+async function emailOnSubmit(req){
+  const mgrEmails=await getManagerEmails(parseInt(req.submitted_by||currentUser.id));
+  if(!mgrEmails.length) return;
+  const requester=req.raised_by_name||currentUser.userid;
+  const forWhom=req.requester_name&&req.requester_name!==req.raised_by_name?` (for ${req.requester_name})`:'';
+  await sendEmail(
+    mgrEmails,
+    `[Action Required] IT Requisition ${req.req_number} pending your approval`,
+    `Dear Manager,
+
+${requester}${forWhom} has submitted IT Peripherals Requisition ${req.req_number} and it is awaiting your approval.
+
+Justification: ${req.justification||'—'}
+
+Please log in to the portal to review and act.
+Portal: ${window.location.href}
+
+— Duroply IT Portal`,
+    req.req_number
+  );
+}
+
+// ══ TRIGGER 2: BM Approved → email submitter + IT Head ══════════
+async function emailOnBMApprove(req, remark){
+  const submitterEmail=await getSubmitterEmail(req);
+  const itHeadEmails=await getITHeadEmails();
+  const approver=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+
+  await sendEmail(submitterEmail,
+    `[Update] IT Requisition ${req.req_number} approved by Branch Manager`,
+    `Dear ${req.raised_by_name||'Team'},
+
+Your IT Peripherals Requisition ${req.req_number} has been approved by Branch Manager (${approver}).
+Remark: ${remark||'None'}
+
+It is now pending IT Head approval. You will be notified once a final decision is made.
+
+— Duroply IT Portal`,
+    req.req_number);
+
+  await sendEmail(itHeadEmails,
+    `[Action Required] IT Requisition ${req.req_number} awaiting IT Head approval`,
+    `Dear IT Head,
+
+Requisition ${req.req_number} submitted by ${req.raised_by_name||'—'} has been approved by the Branch Manager and is now pending your approval.
+
+Justification: ${req.justification||'—'}
+
+Please log in to the portal to act.
+Portal: ${window.location.href}
+
+— Duroply IT Portal`,
+    req.req_number);
+}
+
+// ══ TRIGGER 3: IT Approved → email submitter + manager ══════════
+async function emailOnITApprove(req, remark){
+  const submitterEmail=await getSubmitterEmail(req);
+  const mgrEmails=await getManagerEmails(parseInt(req.submitted_by));
+  const approver=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+  const all=[...new Set([...submitterEmail,...mgrEmails])];
+  await sendEmail(all,
+    `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
+    `Dear Team,
+
+IT Peripherals Requisition ${req.req_number} has been fully approved by IT Head (${approver}).
+Remark: ${remark||'None'}
+
+The IT team will arrange the peripheral shortly. You will be notified once issued.
+
+— Duroply IT Portal`,
+    req.req_number);
+}
+
+// ══ TRIGGER 4: Rejected → email submitter ═══════════════════════
+async function emailOnReject(req, remark, rejectedBy){
+  const submitterEmail=await getSubmitterEmail(req);
+  const rejecter=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+  await sendEmail(submitterEmail,
+    `[Rejected] IT Requisition ${req.req_number} has been rejected`,
+    `Dear ${req.raised_by_name||'Team'},
+
+Your IT Peripherals Requisition ${req.req_number} has been rejected by ${rejectedBy} (${rejecter}).
+Reason: ${remark||'—'}
+
+You may edit and resubmit the requisition if needed.
+Portal: ${window.location.href}
+
+— Duroply IT Portal`,
+    req.req_number);
+}
+
+// ══ TRIGGER 5: Issued → email submitter ═════════════════════════
+async function emailOnIssued(req){
+  const submitterEmail=await getSubmitterEmail(req);
+  const issuer=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+  await sendEmail(submitterEmail,
+    `[Issued] IT Peripheral for Requisition ${req.req_number} has been issued`,
+    `Dear ${req.raised_by_name||'Team'},
+
+The IT peripheral for your Requisition ${req.req_number} has been issued by ${issuer}.
+
+Please collect it from the IT Department, Kolkata.
+
+— Duroply IT Portal`,
+    req.req_number);
+}
 // Restore form docs when editing an existing record
 function restoreFormDocs(req){
   window._formDocs=safeParse(req.attachments)||[];
