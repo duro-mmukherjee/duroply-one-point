@@ -1541,21 +1541,12 @@ async function sendEmail(toEmails, subject, body, reqNumber=''){
   }catch(e){ console.warn('Email send failed:',e); }
 }
 
-// ── Fetch submitter email with 3 fallback methods ───────────────
+// ── Fetch submitter email directly by submitted_by id ───────────
 async function getSubmitterEmail(req){
-  if(req.submitted_by){
-    const{data}=await sb.from('users').select('email').eq('id',parseInt(req.submitted_by)).maybeSingle();
-    if(data?.email) return [data.email];
-  }
-  if(req.submitted_by_userid){
-    const{data}=await sb.from('users').select('email').eq('userid',req.submitted_by_userid).maybeSingle();
-    if(data?.email) return [data.email];
-  }
-  if(req.raised_by_userid){
-    const{data}=await sb.from('users').select('email').eq('userid',req.raised_by_userid).maybeSingle();
-    if(data?.email) return [data.email];
-  }
-  return [];
+  const sid = parseInt(req.submitted_by||0);
+  if(!sid) return [];
+  const{data}=await sb.from('users').select('email').eq('id',sid).maybeSingle();
+  return data?.email ? [data.email] : [];
 }
 
 // ── Walk cc_users chain upward to get manager email(s) ──────────
@@ -1612,13 +1603,29 @@ Portal: ${window.location.href}
 
 // ══ TRIGGER 2: BM Approved → email submitter + IT Head ══════════
 async function emailOnBMApprove(req, remark){
-  const submitterEmail=await getSubmitterEmail(req);
-  const itHeadEmails=await getITHeadEmails();
-  const approver=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+  const approver = [currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
 
-  await sendEmail(submitterEmail,
-    `[Update] IT Requisition ${req.req_number} approved by Branch Manager`,
-    `Dear ${req.raised_by_name||'Team'},
+  // ── Get submitter email directly from submitted_by id ──
+  const sid = parseInt(req.submitted_by||0);
+  const{data:submitter} = sid
+    ? await sb.from('users').select('email,fname,lname').eq('id',sid).maybeSingle()
+    : {data:null};
+  const submitterEmail = submitter?.email ? [submitter.email] : [];
+
+  // ── Get IT Head emails from users_roles ──
+  const{data:roles}=await sb.from('users_roles').select('id').eq('role','super_admin');
+  const itIds=(roles||[]).map(r=>r.id);
+  let itHeadEmails=[];
+  if(itIds.length){
+    const{data:itUsers}=await sb.from('users').select('email').in('id',itIds);
+    itHeadEmails=(itUsers||[]).map(u=>u.email).filter(Boolean);
+  }
+
+  // ── Email 1: Submitter (D10400) — BM has approved ──
+  if(submitterEmail.length){
+    await sendEmail(submitterEmail,
+      `[Update] IT Requisition ${req.req_number} approved by Branch Manager`,
+      `Dear ${req.raised_by_name||'Team'},
 
 Your IT Peripherals Requisition ${req.req_number} has been approved by Branch Manager (${approver}).
 Remark: ${remark||'None'}
@@ -1626,11 +1633,14 @@ Remark: ${remark||'None'}
 It is now pending IT Head approval. You will be notified once a final decision is made.
 
 — Duroply IT Portal`,
-    req.req_number);
+      req.req_number);
+  }
 
-  await sendEmail(itHeadEmails,
-    `[Action Required] IT Requisition ${req.req_number} awaiting IT Head approval`,
-    `Dear IT Head,
+  // ── Email 2: IT Head (D01998) — action required ──
+  if(itHeadEmails.length){
+    await sendEmail(itHeadEmails,
+      `[Action Required] IT Requisition ${req.req_number} awaiting IT Head approval`,
+      `Dear IT Head,
 
 Requisition ${req.req_number} submitted by ${req.raised_by_name||'—'} has been approved by the Branch Manager and is now pending your approval.
 
@@ -1640,17 +1650,26 @@ Please log in to the portal to act.
 Portal: ${window.location.href}
 
 — Duroply IT Portal`,
-    req.req_number);
+      req.req_number);
+  }
 }
 
-// ══ TRIGGER 3: IT Approved → email submitter only ══════════════
+// ══ TRIGGER 3: IT Approved → email submitter ═══════════════════
 async function emailOnITApprove(req, remark){
-  const approver=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
-  const submitterEmail=await getSubmitterEmail(req);
-  if(!submitterEmail.length){ console.warn('emailOnITApprove: no email found',req); return; }
-  await sendEmail(submitterEmail,
-    `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
-    `Dear ${req.raised_by_name||'Team'},
+  const approver = [currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
+
+  // ── Get submitter email directly from submitted_by id ──
+  const sid = parseInt(req.submitted_by||0);
+  const{data:submitter} = sid
+    ? await sb.from('users').select('email,fname,lname').eq('id',sid).maybeSingle()
+    : {data:null};
+  const submitterEmail = submitter?.email ? [submitter.email] : [];
+
+  // ── Email: Submitter (D10400) — fully approved ──
+  if(submitterEmail.length){
+    await sendEmail(submitterEmail,
+      `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
+      `Dear ${req.raised_by_name||'Team'},
 
 Your IT Peripherals Requisition ${req.req_number} has been fully approved by IT Head (${approver}).
 Remark: ${remark||'None'}
@@ -1658,7 +1677,8 @@ Remark: ${remark||'None'}
 The IT team will arrange the peripheral shortly. You will be notified once issued.
 
 — Duroply IT Portal`,
-    req.req_number);
+      req.req_number);
+  }
 }
 
 // ══ TRIGGER 4: Rejected → email submitter ═══════════════════════
