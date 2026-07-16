@@ -150,12 +150,31 @@ tbody tr:hover td{background:var(--surface2);}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
 
 /* ── Toast ── */
-.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;}
-.toast{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;color:#fff;opacity:0;transform:translateY(8px);transition:all .25s;max-width:320px;}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{background:var(--success);}
-.toast.error{background:var(--danger);}
-.toast.info{background:var(--accent);}
+.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none;}
+.toast{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border-radius:12px;font-size:13px;color:#fff;
+  opacity:0;transform:translateX(40px);
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  max-width:360px;min-width:260px;pointer-events:all;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+  border:1px solid rgba(255,255,255,.15);
+}
+.toast.show{opacity:1;transform:translateX(0);}
+.toast.success{background:linear-gradient(135deg,#15803d,#16a34a);}
+.toast.error{background:linear-gradient(135deg,#b91c1c,#dc2626);}
+.toast.info{background:linear-gradient(135deg,#1d4ed8,#2563eb);}
+.toast.warn{background:linear-gradient(135deg,#b45309,#d97706);}
+.toast-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.toast-body{flex:1;min-width:0;}
+.toast-title{font-weight:600;font-size:13px;line-height:1.3;margin-bottom:3px;}
+.toast-sub{font-size:11px;opacity:.85;line-height:1.4;}
+.toast-close{
+  background:none;border:none;color:rgba(255,255,255,.7);
+  font-size:16px;cursor:pointer;padding:0;line-height:1;
+  flex-shrink:0;pointer-events:all;margin-top:-2px;
+}
+.toast-close:hover{color:#fff;}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -813,7 +832,11 @@ async function saveRequisition(status){
   if(editId){({error}=await sb.from('it_requisitions').update(data).eq('id',editId));}
   else{({error}=await sb.from('it_requisitions').insert(data));}
   if(error){toast('Save failed: '+error.message,'error');return;}
-  toast(status==='Draft'?'Draft saved.':'Submitted for approval.','success');
+  if(status==='Draft'){
+    toast('Draft Saved', 'info', 'Your requisition has been saved as a draft.', 4000);
+  } else {
+    toast('Requisition Submitted', 'success', 'Your manager has been notified and will review shortly.', 6000);
+  }
   if(status==='Submitted'){
     const{data:_nr}=await sb.from('it_requisitions').select('*').order('created_at',{ascending:false}).eq('submitted_by',parseInt(currentUser.id)).limit(1).single();
     if(_nr) emailOnSubmit(_nr).catch(()=>{});
@@ -1092,7 +1115,7 @@ async function submitFromDetail(id){
   if(!confirm('Submit this requisition for approval?')) return;
   const{error}=await sb.from('it_requisitions').update({status:'Submitted',updated_at:new Date().toISOString()}).eq('id',id);
   if(error){toast('Failed: '+error.message,'error');return;}
-  toast('Submitted for approval','success');
+  toast('Requisition Submitted','success','Your manager has been notified and will review shortly.',6000);
   const{data:_sd}=await sb.from('it_requisitions').select('*').eq('id',id).single();
   if(_sd) emailOnSubmit(_sd).catch(()=>{});
   await viewDetail(id,_detailFrom);
@@ -1137,7 +1160,15 @@ async function confirmAction(){
   renderAttachedFiles('action-attached-files',[],true);
   const{error}=await sb.from('it_requisitions').update(update).eq('id',_pendingReqId);
   if(error){toast('Action failed: '+error.message,'error');return;}
-  toast('Done','success');
+  // Rich notification per action type
+  const _actionLabels={
+    bm_approve:  {title:'Approved as Branch Manager',     sub:'Submitter & IT Head have been notified by email.',  type:'success'},
+    bm_reject:   {title:'Rejected by Branch Manager',     sub:'Submitter has been notified by email.',             type:'error'},
+    it_approve:  {title:'Approved as IT Head',            sub:'Submitter has been notified — arrangement will begin.', type:'success'},
+    it_reject:   {title:'Rejected by IT Head',            sub:'Submitter has been notified by email.',             type:'error'},
+  };
+  const _lbl=_actionLabels[_pendingActionType]||{title:'Action completed',sub:'',type:'success'};
+  toast(_lbl.title, _lbl.type, _lbl.sub, 6000);
   const{data:_ca}=await sb.from('it_requisitions').select('*').eq('id',_pendingReqId).single();
   if(_ca){
     if(_pendingActionType==='bm_approve')      emailOnBMApprove(_ca,remark).catch(()=>{});
@@ -1163,7 +1194,7 @@ async function issuePeripheral(){
     updated_at:new Date().toISOString()
   }).eq('id',id);
   if(error){toast('Failed: '+error.message,'error');return;}
-  toast('Marked as Issued','success');
+  toast('Peripheral Issued','success','Submitter has been notified to collect the peripheral.',6000);
   const{data:_is}=await sb.from('it_requisitions').select('*').eq('id',id).single();
   if(_is) emailOnIssued(_is).catch(()=>{});
   await viewDetail(id,_detailFrom);
@@ -1388,13 +1419,25 @@ function statusPill(s){
 }
 function safeParse(s){try{return s?JSON.parse(s):null;}catch(e){return null;}}
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(msg,type='info'){
+// ── Rich notification system ────────────────────────────────────
+const TOAST_ICONS={success:'✅',error:'❌',info:'ℹ️',warn:'⚠️'};
+
+function toast(msg, type='info', subtitle='', duration=4000){
   const wrap=document.getElementById('toast-wrap');
   const t=document.createElement('div');
-  t.className=`toast ${type}`;t.textContent=msg;
+  const icon=TOAST_ICONS[type]||'ℹ️';
+  t.className=`toast ${type}`;
+  t.innerHTML=`
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${msg}</div>
+      ${subtitle?`<div class="toast-sub">${subtitle}</div>`:''}
+    </div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
+  `;
   wrap.appendChild(t);
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
-  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3500);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},duration);
 }
 
 // ── Document upload helpers ──────────────────────────────────
@@ -1498,11 +1541,21 @@ async function sendEmail(toEmails, subject, body, reqNumber=''){
   }catch(e){ console.warn('Email send failed:',e); }
 }
 
-// ── Fetch submitter email from users table ───────────────────────
+// ── Fetch submitter email with 3 fallback methods ───────────────
 async function getSubmitterEmail(req){
-  if(!req.submitted_by) return [];
-  const{data}=await sb.from('users').select('email').eq('id',req.submitted_by).maybeSingle();
-  return data?.email?[data.email]:[];
+  if(req.submitted_by){
+    const{data}=await sb.from('users').select('email').eq('id',parseInt(req.submitted_by)).maybeSingle();
+    if(data?.email) return [data.email];
+  }
+  if(req.submitted_by_userid){
+    const{data}=await sb.from('users').select('email').eq('userid',req.submitted_by_userid).maybeSingle();
+    if(data?.email) return [data.email];
+  }
+  if(req.raised_by_userid){
+    const{data}=await sb.from('users').select('email').eq('userid',req.raised_by_userid).maybeSingle();
+    if(data?.email) return [data.email];
+  }
+  return [];
 }
 
 // ── Walk cc_users chain upward to get manager email(s) ──────────
@@ -1590,47 +1643,16 @@ Portal: ${window.location.href}
     req.req_number);
 }
 
-// ══ TRIGGER 3: IT Approved → email submitter ═══════════════════
+// ══ TRIGGER 3: IT Approved → email submitter only ══════════════
 async function emailOnITApprove(req, remark){
-  // Get submitter email directly from it_requisitions.submitted_by
-  let submitterEmail=await getSubmitterEmail(req);
-
-  // Fallback: if submitted_by is null, try to find by raised_by_name userid
-  if(!submitterEmail.length && req.raised_by_name){
-    const{data:u}=await sb.from('users').select('email').eq('userid',req.raised_by_name).maybeSingle();
-    if(u?.email) submitterEmail=[u.email];
-  }
-
-  // Also get manager emails (excluding IT Head who is approving)
-  const mgrEmails=await getManagerEmails(parseInt(req.submitted_by||0));
   const approver=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
-
-  // Combine submitter + manager but exclude current approver's email
-  const approverEmail=(currentUser.email||'').toLowerCase();
-  const all=[...new Set([...submitterEmail,...mgrEmails])]
-    .filter(e=>e.toLowerCase()!==approverEmail);
-
-  if(!all.length){
-    // Last resort — send to submitter email directly if we have it
-    if(submitterEmail.length) await sendEmail(submitterEmail,
-      `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
-      `Dear ${req.raised_by_name||'Team'},
+  const submitterEmail=await getSubmitterEmail(req);
+  if(!submitterEmail.length){ console.warn('emailOnITApprove: no email found',req); return; }
+  await sendEmail(submitterEmail,
+    `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
+    `Dear ${req.raised_by_name||'Team'},
 
 Your IT Peripherals Requisition ${req.req_number} has been fully approved by IT Head (${approver}).
-Remark: ${remark||'None'}
-
-The IT team will arrange the peripheral shortly. You will be notified once issued.
-
-— Duroply IT Portal`,
-      req.req_number);
-    return;
-  }
-
-  await sendEmail(all,
-    `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
-    `Dear Team,
-
-IT Peripherals Requisition ${req.req_number} has been fully approved by IT Head (${approver}).
 Remark: ${remark||'None'}
 
 The IT team will arrange the peripheral shortly. You will be notified once issued.
