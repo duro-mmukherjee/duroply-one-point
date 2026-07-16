@@ -554,7 +554,7 @@ async function doLogin(){
   try{
     sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
     const{data,error}=await sb.from('users')
-      .select('id,userid,fname,lname,status,pwd_old,location_id,designation_id,grade_id,department_id')
+      .select('id,userid,fname,lname,email,status,pwd_old,location_id,designation_id,grade_id,department_id,cc_users')
       .eq('userid',uid).limit(1);
     if(error){showLE('DB error: '+error.message);sb=null;return;}
     if(!data||!data.length){showLE('User ID not found.');return;}
@@ -1590,12 +1590,42 @@ Portal: ${window.location.href}
     req.req_number);
 }
 
-// ══ TRIGGER 3: IT Approved → email submitter + manager ══════════
+// ══ TRIGGER 3: IT Approved → email submitter ═══════════════════
 async function emailOnITApprove(req, remark){
-  const submitterEmail=await getSubmitterEmail(req);
-  const mgrEmails=await getManagerEmails(parseInt(req.submitted_by));
+  // Get submitter email directly from it_requisitions.submitted_by
+  let submitterEmail=await getSubmitterEmail(req);
+
+  // Fallback: if submitted_by is null, try to find by raised_by_name userid
+  if(!submitterEmail.length && req.raised_by_name){
+    const{data:u}=await sb.from('users').select('email').eq('userid',req.raised_by_name).maybeSingle();
+    if(u?.email) submitterEmail=[u.email];
+  }
+
+  // Also get manager emails (excluding IT Head who is approving)
+  const mgrEmails=await getManagerEmails(parseInt(req.submitted_by||0));
   const approver=[currentUser.fname,currentUser.lname].filter(Boolean).join(' ')||currentUser.userid;
-  const all=[...new Set([...submitterEmail,...mgrEmails])];
+
+  // Combine submitter + manager but exclude current approver's email
+  const approverEmail=(currentUser.email||'').toLowerCase();
+  const all=[...new Set([...submitterEmail,...mgrEmails])]
+    .filter(e=>e.toLowerCase()!==approverEmail);
+
+  if(!all.length){
+    // Last resort — send to submitter email directly if we have it
+    if(submitterEmail.length) await sendEmail(submitterEmail,
+      `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
+      `Dear ${req.raised_by_name||'Team'},
+
+Your IT Peripherals Requisition ${req.req_number} has been fully approved by IT Head (${approver}).
+Remark: ${remark||'None'}
+
+The IT team will arrange the peripheral shortly. You will be notified once issued.
+
+— Duroply IT Portal`,
+      req.req_number);
+    return;
+  }
+
   await sendEmail(all,
     `[Approved] IT Requisition ${req.req_number} fully approved — arrangement in progress`,
     `Dear Team,
