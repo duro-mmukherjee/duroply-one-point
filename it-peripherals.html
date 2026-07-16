@@ -1492,7 +1492,7 @@ async function sendEmail(toEmails, subject, body, reqNumber=''){
   try{
     await fetch(EDGE_FN_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+EDGE_ANON_KEY},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({to:unique, subject, body, req_number:reqNumber})
     });
   }catch(e){ console.warn('Email send failed:',e); }
@@ -1523,9 +1523,14 @@ async function getManagerEmails(submitterDbId){
   return emails;
 }
 
-// ── Get IT Head emails (super_admin role) ────────────────────────
+// ── Get IT Head emails (super_admin from users_roles) ───────────
 async function getITHeadEmails(){
-  const{data}=await sb.from('users').select('email').eq('role','super_admin').eq('status',1);
+  // Get IDs of super_admin from users_roles table
+  const{data:roles}=await sb.from('users_roles').select('id').eq('role','super_admin');
+  if(!roles||!roles.length) return [];
+  const ids=roles.map(r=>r.id);
+  // Fetch emails from users table using those IDs
+  const{data}=await sb.from('users').select('email').in('id',ids);
   return (data||[]).map(u=>u.email).filter(Boolean);
 }
 
