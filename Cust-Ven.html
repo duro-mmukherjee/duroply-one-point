@@ -1929,107 +1929,114 @@ function generateExcel(app){
   const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
   const fname = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
 
-  const THIN={style:'thin',color:{rgb:'000000'}};
-  const MED ={style:'medium',color:{rgb:'1E3A8A'}};
-  const AB  ={top:THIN,bottom:THIN,left:THIN,right:THIN};
-  const MB  ={top:MED, bottom:MED, left:MED, right:MED};
-  const WA  ={wrapText:true,vertical:'center'};
-  const ST  ={
-    TTL:{font:{bold:true,name:'Arial',sz:13,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center',vertical:'center'}},
-    SUB:{font:{name:'Arial',sz:10},alignment:{horizontal:'center',vertical:'center'}},
-    APN:{font:{bold:true,name:'Arial',sz:10,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center'}},
-    DTE:{font:{name:'Arial',sz:9},alignment:{horizontal:'right',vertical:'center'}},
-    SEC:{font:{bold:true,name:'Arial',sz:10,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'1E3A8A'}},border:MB,alignment:{...WA,horizontal:'left'}},
-    LBL:{font:{name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'D9E1F2'}},border:AB,alignment:WA},
-    VAL:{font:{name:'Arial',sz:9},border:AB,alignment:WA},
-    HDR:{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:AB,alignment:{...WA,horizontal:'center'}},
-    SHP:{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'E2EFDA'}},border:AB,alignment:WA},
-    NOT:{font:{name:'Arial',sz:8,italic:true,color:{rgb:'666666'}},alignment:{wrapText:true}},
+  // ── Styles ─────────────────────────────────────────────────
+  const THIN = {style:'thin',color:{rgb:'000000'}};
+  const MED  = {style:'medium',color:{rgb:'1E3A8A'}};
+  const AB   = {top:THIN,bottom:THIN,left:THIN,right:THIN};
+  const MB   = {top:MED,bottom:MED,left:MED,right:MED};
+  const WA   = {wrapText:true,vertical:'center'};
+
+  const ST = {
+    TTL: {font:{bold:true,name:'Arial',sz:13,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center',vertical:'center'}},
+    SUB: {font:{name:'Arial',sz:10},alignment:{horizontal:'center',vertical:'center'}},
+    APN: {font:{bold:true,name:'Arial',sz:10,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center',vertical:'center'}},
+    DTE: {font:{name:'Arial',sz:9},alignment:{horizontal:'right',vertical:'center'}},
+    SEC: {font:{bold:true,name:'Arial',sz:10,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'1E3A8A'}},border:MB,alignment:{horizontal:'left',vertical:'center',wrapText:true}},
+    LBL: {font:{name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'D9E1F2'}},border:AB,alignment:WA},
+    VAL: {font:{name:'Arial',sz:9},border:AB,alignment:WA},
+    HDR: {font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:AB,alignment:{horizontal:'center',vertical:'center',wrapText:true}},
+    SHP: {font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'E2EFDA'}},border:AB,alignment:WA},
+    NOT: {font:{name:'Arial',sz:8,italic:true,color:{rgb:'666666'}},alignment:{wrapText:true}},
   };
 
-  const ws={};
-  const merges=[];
-  let R=0;
-  const MAXC=7;
+  // ── Sheet state ────────────────────────────────────────────
+  // Layout: 8 cols (0-7)
+  // Two-block: col 0=L-label(1), col 1-2=L-value(2), col 3=M-label(1), col 4-5=M-value(2), col 6=R-label(1), col 7=R-value(1)
+  // Simplified to 4 logical columns: [LBL|VAL|LBL|VAL] each 2 wide = 8 cols total
+  // LBL at 0, VAL at 1-3, LBL at 4, VAL at 5-7
+  const ws     = {};
+  const merges = [];
+  let R        = 0;
+  const MAXC   = 7; // cols 0-7
 
-  // Set one cell
-  const sc=(r,c,v,s)=>{
-    ws[XLSX.utils.encode_cell({r,c})]={v:v==null?'':v,t:typeof v==='number'?'n':'s',s:s||ST.VAL};
-  };
+  const enc = (r,c) => XLSX.utils.encode_cell({r,c});
 
-  // Fill a range with same style (for merges)
-  const fill=(r,c1,c2,s)=>{
-    for(let c=c1;c<=c2;c++) sc(r,c,'',s);
-    if(c2>c1) merges.push({s:{r,c:c1},e:{r,c:c2}});
-  };
+  function sc(r,c,v,s){
+    ws[enc(r,c)] = {v: v==null?'':v, t: typeof v==='number'?'n':'s', s: s||ST.VAL};
+  }
 
-  // Merged cell: set value at c1, fill rest
-  const mc=(r,c1,c2,v,s)=>{
+  // Merge cols c1→c2 at row r, set value+style at c1, fill rest
+  function mc(r,c1,c2,v,s){
     sc(r,c1,v,s);
-    fill(r,c1+1,c2,s);
+    for(let c=c1+1;c<=c2;c++) sc(r,c,'',s);
     if(c2>c1) merges.push({s:{r,c:c1},e:{r,c:c2}});
-  };
+  }
 
-  // Section header spanning full width
-  const secRow=(t)=>{ mc(R,0,MAXC,t,ST.SEC); R++; };
+  // Section header — full width
+  function secRow(title){
+    mc(R,0,MAXC,title,ST.SEC);
+    R++;
+  }
 
-  // Blank row
-  const blank=()=>{ R++; };
-
-  // Full-width label+value
-  const fullRow=(lbl,val)=>{
+  // Full-width label (col 0) + value (cols 1-7)
+  function fullRow(lbl,val){
     sc(R,0,lbl,ST.LBL);
     mc(R,1,MAXC,val,ST.VAL);
     R++;
-  };
+  }
 
-  // Two pairs per row: [lbl,val,vSpan, lbl,val,vSpan]
-  const pairRow=(l1,v1,s1,l2,v2,s2)=>{
-    sc(R,0,l1,ST.LBL);
-    const e1=s1; mc(R,1,e1,v1,ST.VAL);
-    const lc2=e1+1; sc(R,lc2,l2,ST.LBL);
-    const vc2=lc2+1; mc(R,vc2,MAXC,v2,ST.VAL);
+  // Two-block: [LBL|VAL VAL] [LBL|VAL VAL]
+  // Left:  label col0, value col1-3
+  // Right: label col4, value col5-7
+  function twoRow(l1,v1,l2,v2){
+    sc(R,0,l1,ST.LBL); mc(R,1,3,v1,ST.VAL);
+    sc(R,4,l2,ST.LBL); mc(R,5,7,v2,ST.VAL);
     R++;
-  };
+  }
 
-  // Three pairs: lbl at 0,3,6; val at 1-2, 4-5, 7
-  const triRow=(l1,v1,l2,v2,l3,v3)=>{
-    sc(R,0,l1,ST.LBL); mc(R,1,2,v1,ST.VAL);
-    sc(R,3,l2,ST.LBL); mc(R,4,5,v2,ST.VAL);
-    sc(R,6,l3,ST.LBL); sc(R,7,v3,ST.VAL);
+  // Three-block: label+val | label+val | label+val  (cols 0-1 | 2-3-4 | 5-6-7) - for short values
+  function triRow(l1,v1,l2,v2,l3,v3){
+    sc(R,0,l1,ST.LBL); sc(R,1,v1,ST.VAL);
+    sc(R,2,l2,ST.LBL); mc(R,3,4,v2,ST.VAL);
+    sc(R,5,l3,ST.LBL); mc(R,6,7,v3,ST.VAL);
     R++;
-  };
+  }
 
-  // ── TITLE ──────────────────────────────────────────────
+  // Blank row
+  function blank(){ R++; }
+
+  // ── TITLE ──────────────────────────────────────────────────
   mc(R,0,MAXC,'DUROPLY INDUSTRIES LIMITED',ST.TTL); R++;
   mc(R,0,MAXC,'Customer / Vendor Requisition Form',ST.SUB); R++;
   mc(R,0,3,app.app_number||'',ST.APN);
   mc(R,4,MAXC,'Date: '+today,ST.DTE); R++;
   blank();
 
-  // ── 1. Party & Basic ───────────────────────────────────
+  // ── 1. Party & Basic ───────────────────────────────────────
   secRow('1.  PARTY & BASIC INFORMATION');
-  pairRow('Party Type',app.party_type||'',3,'Enterprise Type',app.enterprise_type||'',MAXC);
-  pairRow('Category',app.category||'',3,'Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''),MAXC);
+  twoRow('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
+  twoRow('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
   fullRow('Party / Firm Name', app.party_name||'');
-  pairRow('Selling Branch',app.selling_branch_id||'',3,'Type of City',app.type_of_city||'',MAXC);
+  twoRow('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
   blank();
 
-  // ── 1b. Area ───────────────────────────────────────────
+  // ── 1b. Area ───────────────────────────────────────────────
   if(app.dealership_area||app.dealership_state){
     secRow('1b. AREA / DISTRICT DETAILS');
     sc(R,0,'Area / District for Dealership',ST.LBL);
     mc(R,1,5,app.dealership_area||'',ST.VAL);
-    sc(R,6,'State',ST.LBL); sc(R,7,app.dealership_state||'',ST.VAL); R++;
+    sc(R,6,'State',ST.LBL); sc(R,7,app.dealership_state||'',ST.VAL);
+    R++;
     blank();
   }
 
-  // ── 2. Zone ────────────────────────────────────────────
+  // ── 2. Zone ────────────────────────────────────────────────
   secRow('2.  ZONE, MARKET & TERRITORY');
-  triRow('Zone',app.zone||'','Market Name',app.market_name||'','Cluster Name',app.cluster_name||'');
+  twoRow('Zone',app.zone||'','Market Name',app.market_name||'');
+  twoRow('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
   blank();
 
-  // ── 3. Billing ─────────────────────────────────────────
+  // ── 3. Billing Address ─────────────────────────────────────
   secRow('3.  BILLING ADDRESS');
   fullRow('Address Line 1', app.billing_addr1||'');
   fullRow('Address Line 2', app.billing_addr2||'');
@@ -2037,39 +2044,42 @@ function generateExcel(app){
   triRow('City',app.billing_city||'','State',app.billing_state||'','Pincode',app.billing_pin||'');
   blank();
 
-  // ── 4. Contact ─────────────────────────────────────────
+  // ── 4. Contact ─────────────────────────────────────────────
   secRow('4.  CONTACT DETAILS');
-  pairRow('Contact Person',app.contact_person||'',3,'Mobile No.',app.mobile||'',MAXC);
-  triRow('Email ID',app.email||'','Alt. Mobile',app.alt_mobile||'','WhatsApp',app.whatsapp||'');
+  twoRow('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
+  twoRow('Email ID',app.email||'','Alt. Mobile / WhatsApp',(app.alt_mobile||'')+(app.whatsapp?' / '+app.whatsapp:''));
   blank();
 
-  // ── 5. Tax ─────────────────────────────────────────────
+  // ── 5. Tax & Compliance ────────────────────────────────────
   secRow('5.  TAX & COMPLIANCE');
-  triRow('GST Type',app.gst_type||'','GST Status',app.gst_status||'','GST No.',app.gst_no||'');
-  triRow('GST State',app.gst_state||'','PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
-  sc(R,0,'TDS Section',ST.LBL); mc(R,1,5,app.tds_section||'',ST.VAL);
-  sc(R,6,'Vendor GST Category',ST.LBL); sc(R,7,app.vendor_gst_category||'',ST.VAL); R++;
+  twoRow('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
+  twoRow('GST No.',app.gst_no||'','GST State',app.gst_state||'');
+  twoRow('PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
+  fullRow('TDS Section', app.tds_section||'');
+  twoRow('Vendor GST Category',app.vendor_gst_category||'','','');
   blank();
 
-  // ── 6. Customer Details ────────────────────────────────
+  // ── 6. Customer / Vendor Details ───────────────────────────
   secRow('6.  CUSTOMER / VENDOR DETAILS');
-  pairRow('Credit Limit',app.credit_limit||'',3,'Credit Days',app.credit_days||'',MAXC);
-  pairRow('Sales Person',fname,3,'Employee Code',currentUser?.userid||'',MAXC);
+  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
+  twoRow('Sales Person',fname,'Employee Code',currentUser?.userid||'');
   blank();
 
-  // ── 7. Proprietors ─────────────────────────────────────
+  // ── 7. Proprietors ─────────────────────────────────────────
   if(props.length){
     secRow('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
-    ['#','Full Name','Son of/Wife of','Age','Designation','DIN/PAN','Share%','Specimen Sig.'].forEach((h,c)=>sc(R,c,h,ST.HDR));
+    const ph=['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.'];
+    ph.forEach((h,c)=>{ if(c<=MAXC) sc(R,c,h,ST.HDR); });
     R++;
     props.forEach((p,i)=>{
-      [i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''].forEach((v,c)=>sc(R,c,v,ST.VAL));
+      const vals=[i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''];
+      vals.forEach((v,c)=>{ if(c<=MAXC) sc(R,c,v,ST.VAL); });
       R++;
     });
     blank();
   }
 
-  // ── 8. Signatories ─────────────────────────────────────
+  // ── 8. Signatories ─────────────────────────────────────────
   if(sigs.length){
     secRow('8.  AUTHORIZED SIGNATORIES');
     sc(R,0,'#',ST.HDR); sc(R,1,'Full Name',ST.HDR); sc(R,2,'Capacity / Role',ST.HDR);
@@ -2081,7 +2091,7 @@ function generateExcel(app){
     blank();
   }
 
-  // ── 9. Shipping ────────────────────────────────────────
+  // ── 9. Shipping ────────────────────────────────────────────
   if(ships.length){
     secRow('9.  SHIPPING ADDRESS (Customer Only)');
     ships.forEach((s,idx)=>{
@@ -2089,47 +2099,50 @@ function generateExcel(app){
       fullRow('Address Line 1', s.addr1||'');
       fullRow('Address Line 2', s.addr2||'');
       triRow('City',s.city||'','Pincode',s.pin||'','GST No.',s.gst||'');
+      twoRow('Email',s.email||'','Mobile',s.mobile||'');
     });
     blank();
   }
 
-  // ── 10. Bank ───────────────────────────────────────────
+  // ── 10. Bank Details ───────────────────────────────────────
   if(banks.length){
     secRow('10. BANK DETAILS');
-    sc(R,0,'#',ST.HDR); sc(R,1,'Bank Name',ST.HDR); sc(R,2,'Account No.',ST.HDR);
-    sc(R,3,'IFSC',ST.HDR); sc(R,4,'Type',ST.HDR); sc(R,5,'Acc. Name',ST.HDR);
+    sc(R,0,'#',ST.HDR); sc(R,1,'Bank Name',ST.HDR);
+    sc(R,2,'Account No.',ST.HDR); sc(R,3,'IFSC',ST.HDR);
+    sc(R,4,'Type',ST.HDR); sc(R,5,'Account Name',ST.HDR);
     mc(R,6,MAXC,'Branch Address',ST.HDR); R++;
     banks.forEach((b,i)=>{
-      sc(R,0,i+1,ST.VAL); sc(R,1,b.bank_name||'',ST.VAL); sc(R,2,b.account_no||'',ST.VAL);
-      sc(R,3,b.ifsc||'',ST.VAL); sc(R,4,b.account_type||'',ST.VAL); sc(R,5,b.account_name||'',ST.VAL);
+      sc(R,0,i+1,ST.VAL); sc(R,1,b.bank_name||'',ST.VAL);
+      sc(R,2,b.account_no||'',ST.VAL); sc(R,3,b.ifsc||'',ST.VAL);
+      sc(R,4,b.account_type||'',ST.VAL); sc(R,5,b.account_name||'',ST.VAL);
       mc(R,6,MAXC,b.address||'',ST.VAL); R++;
     });
     blank();
   }
 
-  // ── 11. MSME ───────────────────────────────────────────
+  // ── 11. MSME ───────────────────────────────────────────────
   if(app.msme_registered){
     secRow('11. MSME DETAILS');
-    triRow('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'','Udyam No.',app.udyam_no||'');
-    sc(R,0,'Udyam Reg. Date',ST.LBL); mc(R,1,MAXC,app.udyam_date||'',ST.VAL); R++;
+    twoRow('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
+    twoRow('Udyam Registration No.',app.udyam_no||'','Udyam Reg. Date',app.udyam_date||'');
     blank();
   }
 
-  // ── 12. Existing Business ──────────────────────────────
+  // ── 12. Existing Business ──────────────────────────────────
   secRow('12. DETAILS OF EXISTING BUSINESS');
   fullRow('Nature of Business', app.biz_nature||'');
   triRow('Date of Starting',app.biz_date||'','Year',app.biz_year||'','Godown Area (sq.ft)',app.godown_area||'');
   triRow('Shop',app.shop_type||'','Godown',app.godown_type||'','Residence',app.residence_type||'');
   blank();
 
-  // ── 15. Additional ─────────────────────────────────────
+  // ── 15. Additional Info ────────────────────────────────────
   secRow('15. ADDITIONAL INFORMATION');
-  pairRow('Expected Business (Rs.)',app.expected_business||'',3,'Payment Terms',app.payment_terms||'',MAXC);
-  triRow('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'','Convicted/Insolvent',app.convicted||'');
+  twoRow('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
+  triRow('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'','Convicted / Insolvent',app.convicted||'');
   if(app.remarks) fullRow('Remarks', app.remarks||'');
   blank();
 
-  // ── 16. Cheques ────────────────────────────────────────
+  // ── 16. Cheques ────────────────────────────────────────────
   if(cheqs.length){
     secRow('16. CHEQUES ENCLOSED');
     sc(R,0,'#',ST.HDR); sc(R,1,'Cheque No.',ST.HDR);
@@ -2141,25 +2154,27 @@ function generateExcel(app){
     blank();
   }
 
-  // ── 17. References ─────────────────────────────────────
+  // ── 17. References ─────────────────────────────────────────
   if(refs.length){
     secRow('17. REFERENCES');
     sc(R,0,'#',ST.HDR); sc(R,1,'Name',ST.HDR);
-    mc(R,2,5,'Address',ST.HDR); mc(R,6,MAXC,'Relationship',ST.HDR); R++;
+    mc(R,2,5,'Address',ST.HDR);
+    mc(R,6,MAXC,'Relationship',ST.HDR); R++;
     refs.forEach((rf,i)=>{
       sc(R,0,i+1,ST.VAL); sc(R,1,rf.name||'',ST.VAL);
-      mc(R,2,5,rf.address||'',ST.VAL); mc(R,6,MAXC,rf.relationship||'',ST.VAL); R++;
+      mc(R,2,5,rf.address||'',ST.VAL);
+      mc(R,6,MAXC,rf.relationship||'',ST.VAL); R++;
     });
     blank();
   }
 
-  // ── Declaration ────────────────────────────────────────
+  // ── Declaration ────────────────────────────────────────────
   secRow('DECLARATION & SIGNATURE');
   sc(R,0,'DATE',ST.LBL); mc(R,1,3,today,ST.VAL);
   sc(R,4,'Requisition By',ST.LBL); mc(R,5,MAXC,fname,ST.VAL); R++;
   blank();
 
-  // ── Notes ──────────────────────────────────────────────
+  // ── Notes ──────────────────────────────────────────────────
   ['Note:',
    '1) Selling Branch to be chosen from the List provided, if Party type is Customer.',
    '2) Scanned copies of GST, PAN and Service tax registration to be given along with requisition.',
@@ -2171,26 +2186,28 @@ function generateExcel(app){
    '8) Sales Person name is with whom customer is to be mapped.',
   ].forEach(n=>{ mc(R,0,MAXC,n,ST.NOT); R++; });
 
-  // ── Sheet config ───────────────────────────────────────
+  // ── Sheet config ───────────────────────────────────────────
   ws['!ref']    = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:R,c:MAXC}});
   ws['!merges'] = merges;
-  ws['!cols']   = [{wch:22},{wch:18},{wch:13},{wch:11},{wch:13},{wch:13},{wch:13},{wch:11}];
+  // 8 cols: LBL|VAL VAL VAL | LBL|VAL VAL VAL
+  ws['!cols']   = [{wch:20},{wch:16},{wch:14},{wch:12},{wch:20},{wch:16},{wch:14},{wch:12}];
   ws['!rows']   = Array(R+1).fill(null).map(()=>({hpt:16}));
-  if(ws['!rows'][0]) ws['!rows'][0]={hpt:26};
-  if(ws['!rows'][1]) ws['!rows'][1]={hpt:15};
+  ws['!rows'][0]= {hpt:26};
+  ws['!rows'][1]= {hpt:15};
 
-  // ── Fit to 1 page wide, unlimited height ───────────────
-  ws['!pageSetup']={
+  // Fit to 1 page wide, unlimited pages tall
+  ws['!pageSetup'] = {
     paperSize:9, orientation:'portrait',
     fitToPage:true, fitToWidth:1, fitToHeight:0,
     left:0.4, right:0.4, top:0.6, bottom:0.6, header:0.2, footer:0.2
   };
-  ws['!printOptions']={gridLines:false};
+  ws['!printOptions'] = {gridLines:false};
 
-  const wb=XLSX.utils.book_new();
+  const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'MASTER');
 
-  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()+'-'+(app.app_number||'REQ')+'.xlsx';
+  const filename = (app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()
+    +'-'+(app.app_number||'REQ')+'.xlsx';
   XLSX.writeFile(wb, filename);
   toast('Excel downloaded: '+filename,'success');
 }
