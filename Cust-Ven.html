@@ -1891,7 +1891,12 @@ function downloadExcel(id){const app=apps.find(a=>String(a.id)===String(id));if(
 function downloadExcelCurrent(){if(!editId){toast('Save first','error');return;}downloadExcel(editId);}
 
 function generateExcel(app){
-  if(typeof XLSX==='undefined'){toast('Excel library not loaded. Check internet connection.','error');return;}
+  if(typeof XLSX==='undefined'){
+    toast('Excel library not loaded. Please wait and try again.','error');
+    console.error('XLSX not defined - SheetJS CDN may have failed to load');
+    return;
+  }
+  console.log('generateExcel called for:', app.party_name, app.id);
 
   const cheqs = safeParseJSON(app.cheques)||[];
   const ships = safeParseJSON(app.shipping_addresses)||[];
@@ -2251,8 +2256,26 @@ function generateExcel(app){
   XLSX.utils.book_append_sheet(wb, ws, 'MASTER');
 
   const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()+'-'+(app.app_number||'REQ')+'.xlsx';
-  XLSX.writeFile(wb, filename);
-  toast('Excel downloaded: '+filename,'success');
+  try{
+    // Method 1: XLSX.writeFile (works in most browsers)
+    XLSX.writeFile(wb, filename);
+    toast('Excel downloaded: '+filename,'success');
+  }catch(e1){
+    try{
+      // Method 2: manual blob download fallback
+      const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+      const blob = new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();}, 1000);
+      toast('Excel downloaded: '+filename,'success');
+    }catch(e2){
+      toast('Download failed: '+e2.message,'error');
+      console.error('Excel download error:', e1, e2);
+    }
+  }
 }
 // ════════════════════════════════════════════════════════════
 </script>
