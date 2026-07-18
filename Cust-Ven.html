@@ -175,13 +175,38 @@ tbody tr:hover td{background:var(--surface2);}
 .img-preview-clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 3px;line-height:1;}
 .img-upload-inline{display:flex;flex-direction:column;gap:4px;}
 
-/* ── Print styles ── */
+/* ── Print / PDF styles ── */
 @media print{
-  body *{visibility:hidden!important;}
-  #print-area,#print-area *{visibility:visible!important;}
-  #print-area{position:fixed;inset:0;z-index:99999;background:#fff;padding:0;overflow:visible;}
+  body>*:not(#print-modal){display:none!important;}
+  #print-modal{
+    display:block!important;position:static!important;
+    background:none!important;padding:0!important;margin:0!important;
+    width:100%!important;height:auto!important;
+  }
+  #print-area{
+    width:100%!important;max-height:none!important;
+    overflow:visible!important;box-shadow:none!important;
+    border-radius:0!important;height:auto!important;
+  }
+  #print-content{padding:8mm 10mm!important;}
   .pm-toolbar{display:none!important;}
+  .pr-section{page-break-inside:avoid;break-inside:avoid;margin-bottom:6px!important;}
+  .pr-table{page-break-inside:auto;width:100%!important;}
+  .pr-table tr{page-break-inside:avoid;break-inside:avoid;}
 }
+
+/* Print preview modal */
+#print-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;overflow-y:auto;}
+#print-modal.open{display:flex;}
+#print-area{background:#fff;width:210mm;max-height:88vh;overflow-y:auto;border-radius:8px;box-shadow:0 24px 80px rgba(0,0,0,.35);font-family:Arial,sans-serif;font-size:12px;color:#111;margin:auto;}
+.pm-toolbar{position:sticky;top:0;background:#1e40af;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:8px 8px 0 0;z-index:10;gap:10px;}
+.pm-title{color:#fff;font-weight:600;font-size:13px;}
+.pm-btn{padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;}
+.pm-btn-print{background:#fff;color:#1e40af;}
+.pm-btn-close{background:rgba(255,255,255,.2);color:#fff;}
+.pm-btn:hover{opacity:.85;}
+
+/* Print content styles */
 .pr-header{text-align:center;margin-bottom:14px;border-bottom:2px solid #1e40af;padding-bottom:10px;}
 .pr-company{font-size:17px;font-weight:700;color:#1e40af;letter-spacing:1px;}
 .pr-subtitle{font-size:11px;color:#555;margin-top:2px;}
@@ -190,7 +215,6 @@ tbody tr:hover td{background:var(--surface2);}
 .pr-sec-hd{background:#f1f5f9;padding:5px 10px;font-size:10px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #ddd;}
 .pr-sec-body{padding:8px 10px;}
 .pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px 14px;}
-.pr-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 14px;}
 .pr-field{margin-bottom:3px;}
 .pr-label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
 .pr-value{font-size:11px;color:#111;font-weight:500;border-bottom:1px dotted #ccc;padding-bottom:1px;min-height:15px;}
@@ -297,7 +321,7 @@ tbody tr:hover td{background:var(--surface2);}
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Save Draft</button>
-          <button class="btn btn-ghost btn-sm" id="btn-print-form" onclick="printCurrentForm()" title="Print / PDF" style="display:none">⎙ Print</button>
+          <button class="btn btn-ghost btn-sm" id="btn-print-form" onclick="printCurrentForm()" title="Print/PDF" style="display:none">⎙ Print</button>
           <button class="btn btn-success btn-sm" onclick="submitForm()">Submit Application</button>
         </div>
       </div>
@@ -821,14 +845,13 @@ tbody tr:hover td{background:var(--surface2);}
 </div>
 </div>
 
-<!-- ── Print / PDF Modal ── -->
-<div id="print-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
-  <div id="print-area" style="background:#fff;width:210mm;max-height:92vh;overflow-y:auto;border-radius:8px;box-shadow:0 24px 80px rgba(0,0,0,0.35);font-family:Arial,sans-serif;font-size:12px;color:#111;">
-    <div class="pm-toolbar" style="position:sticky;top:0;background:#1e40af;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:8px 8px 0 0;z-index:10;gap:10px;">
-      <div style="color:#fff;font-weight:600;font-size:13px;">📄 Preview — Customer / Vendor Requisition</div>
+<div id="print-modal">
+  <div id="print-area">
+    <div class="pm-toolbar">
+      <span class="pm-title">📄 Preview — Customer / Vendor Requisition</span>
       <div style="display:flex;gap:8px;">
-        <button onclick="window.print()" style="padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1e40af;">🖨️ Print / Save PDF</button>
-        <button onclick="closePrint()" style="padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;">✕ Close</button>
+        <button class="pm-btn pm-btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
+        <button class="pm-btn pm-btn-close" onclick="closePrint()">✕ Close</button>
       </div>
     </div>
     <div id="print-content" style="padding:16mm 18mm 14mm;"></div>
@@ -1015,7 +1038,7 @@ function renderList(rows){
       <td>${statusPill(r.status||'Draft')}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          <button class="btn btn-ghost btn-sm" onclick="printApp('${r.id}')" title="Print / PDF">⎙</button>
+          <button class="btn btn-ghost btn-sm" onclick="printApp('${r.id}')" title="Print/PDF">⎙</button>
           ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>`:''}
           ${canDel?`<button class="btn btn-danger btn-sm" onclick="delApp('${r.id}')">✕</button>`:''}
         </div>
@@ -1762,8 +1785,7 @@ function printApp(id){
   const app=apps.find(a=>String(a.id)===String(id));
   if(!app){toast('Record not found','error');return;}
   buildPrintContent(app);
-  const m=document.getElementById('print-modal');
-  m.style.display='flex';
+  document.getElementById('print-modal').classList.add('open');
 }
 
 function printCurrentForm(){
@@ -1772,7 +1794,7 @@ function printCurrentForm(){
 }
 
 function closePrint(){
-  document.getElementById('print-modal').style.display='none';
+  document.getElementById('print-modal').classList.remove('open');
 }
 
 function buildPrintContent(app){
@@ -1787,7 +1809,7 @@ function buildPrintContent(app){
   const sc={Draft:'pr-badge-draft',New:'pr-badge-new','Approved By LAO':'pr-badge-approved','Approved By Management':'pr-badge-approved','Disapproved By LAO':'pr-badge-dis','Disapproved By Management':'pr-badge-dis','Sent To HO':'pr-badge-new','Certificate Issued':'pr-badge-approved'};
   const dateStr=app.created_at?new Date(app.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
 
-  let html=`<div class="pr-header">
+  const html=`<div class="pr-header">
     <div class="pr-company">DUROPLY INDUSTRIES LIMITED</div>
     <div class="pr-subtitle">Customer / Vendor Requisition Form</div>
     <div style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
@@ -1803,14 +1825,15 @@ function buildPrintContent(app){
     ${pf('Selling Branch',app.selling_branch_id)}
   </div></div></div>
 
-  ${(app.dealership_area||app.dealership_state)?`<div class="pr-section"><div class="pr-sec-hd">1b. Area / District Details</div><div class="pr-sec-body"><div class="pr-grid">${pf('Area / District for Dealership',app.dealership_area,2)}${pf('State',app.dealership_state)}</div></div></div>`:''}
+  ${(app.dealership_area||app.dealership_state)?`<div class="pr-section"><div class="pr-sec-hd">1b. Area / District Details</div><div class="pr-sec-body"><div class="pr-grid">${pf('Area / District',app.dealership_area,2)}${pf('State',app.dealership_state)}</div></div></div>`:''}
 
   <div class="pr-section"><div class="pr-sec-hd">2. Zone, Market & Territory</div><div class="pr-sec-body"><div class="pr-grid">
     ${pf('Zone',app.zone)}${pf('Market',app.market_name)}${pf('Cluster',app.cluster_name)}${pf('Type of City',app.type_of_city)}
   </div></div></div>
 
   <div class="pr-section"><div class="pr-sec-hd">3. Billing Address</div><div class="pr-sec-body"><div class="pr-grid">
-    ${pf('Address Line 1',app.billing_addr1,3)}${pf('Address Line 2',app.billing_addr2,3)}${pf('City',app.billing_city)}${pf('State',app.billing_state)}${pf('PIN',app.billing_pin)}
+    ${pf('Address Line 1',app.billing_addr1,3)}${pf('Address Line 2',app.billing_addr2,3)}
+    ${pf('City',app.billing_city)}${pf('State',app.billing_state)}${pf('PIN',app.billing_pin)}
   </div></div></div>
 
   <div class="pr-section"><div class="pr-sec-hd">4. Contact Details</div><div class="pr-sec-body"><div class="pr-grid">
@@ -1824,17 +1847,17 @@ function buildPrintContent(app){
   </div></div></div>
 
   ${props.length?`<div class="pr-section"><div class="pr-sec-hd">7. Proprietor / Partner / Karta / Member / Director</div><div class="pr-sec-body">
-    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of / Wife of</th><th>Age</th><th>Designation</th><th>DIN / PAN</th><th>Share %</th><th>Specimen Signature</th></tr></thead>
+    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of/Wife of</th><th>Age</th><th>Designation</th><th>DIN/PAN</th><th>Share%</th><th>Specimen Sig.</th></tr></thead>
     <tbody>${props.map((p,i)=>`<tr><td>${i+1}</td><td>${pv(p.name)}</td><td>${pv(p.son_wife_of)}</td><td>${pv(p.age)}</td><td>${pv(p.designation)}</td><td>${pv(p.din_pan)}</td><td>${pv(p.share)}</td><td>${pv(p.specimen_signature)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
 
   ${sigs.length?`<div class="pr-section"><div class="pr-sec-hd">8. Authorized Signatories</div><div class="pr-sec-body">
-    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Capacity / Role</th><th>Signature Reference</th></tr></thead>
+    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Capacity/Role</th><th>Signature Reference</th></tr></thead>
     <tbody>${sigs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.capacity)}</td><td>${pv(r.signature)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
 
   ${ships.length?`<div class="pr-section"><div class="pr-sec-hd">9. Shipping Addresses</div><div class="pr-sec-body">
-    ${ships.map((s,i)=>`<div style="margin-bottom:6px;padding:5px 7px;border:1px solid #eee;border-radius:4px;"><b style="font-size:10px;">Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
+    ${ships.map((s,i)=>`<div style="margin-bottom:5px;padding:4px 7px;border:1px solid #eee;border-radius:4px;font-size:10.5px;"><b>Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
   </div></div>`:''}
 
   ${banks.length?`<div class="pr-section"><div class="pr-sec-hd">10. Bank Details</div><div class="pr-sec-body">
@@ -1847,8 +1870,8 @@ function buildPrintContent(app){
   </div></div></div>`:''}
 
   <div class="pr-section"><div class="pr-sec-hd">12. Details of Existing Business</div><div class="pr-sec-body"><div class="pr-grid">
-    ${pf('Nature of Business',app.biz_nature,3)}${pf('Since Date',app.biz_date)}${pf('Year',app.biz_year)}${pf('Godown Area (sq.ft)',app.godown_area)}
-    ${pf('Shop Type',app.shop_type)}${pf('Godown Type',app.godown_type)}${pf('Residence Type',app.residence_type)}
+    ${pf('Nature of Business',app.biz_nature,3)}${pf('Since Date',app.biz_date)}${pf('Year',app.biz_year)}${pf('Godown Area sq.ft',app.godown_area)}
+    ${pf('Shop',app.shop_type)}${pf('Godown',app.godown_type)}${pf('Residence',app.residence_type)}
   </div></div></div>
 
   ${brands.length?`<div class="pr-section"><div class="pr-sec-hd">13. Other Plywood Brands</div><div class="pr-sec-body">
@@ -1856,14 +1879,14 @@ function buildPrintContent(app){
     <tbody>${brands.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.brand)}</td><td>${pv(r.since_when)}</td><td>${pv(r.monthly_sale)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
 
-  ${stocks.length?`<div class="pr-section"><div class="pr-sec-hd">14. Other Stockists / Dealers in Area</div><div class="pr-sec-body">
+  ${stocks.length?`<div class="pr-section"><div class="pr-sec-hd">14. Other Stockists / Dealers</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Firm Name</th><th>Address</th><th>Brand</th><th>Monthly Sale</th></tr></thead>
     <tbody>${stocks.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.firm_name)}</td><td>${pv(r.address)}</td><td>${pv(r.brand)}</td><td>${pv(r.monthly_sale)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
 
   <div class="pr-section"><div class="pr-sec-hd">15. Additional Information</div><div class="pr-sec-body"><div class="pr-grid">
-    ${pf('Expected Business (₹)',app.expected_business)}${pf('Payment Terms',app.payment_terms)}${pf('Capacity to Invest (Lacs)',app.capacity_invest)}
-    ${pf('Total Investment (Lacs)',app.total_invest)}${pf('Convicted / Insolvent',app.convicted)}
+    ${pf('Expected Business ₹',app.expected_business)}${pf('Payment Terms',app.payment_terms)}${pf('Capacity to Invest Lacs',app.capacity_invest)}
+    ${pf('Total Investment Lacs',app.total_invest)}${pf('Convicted/Insolvent',app.convicted)}
   </div></div></div>
 
   ${cheqs.length?`<div class="pr-section"><div class="pr-sec-hd">16. Cheques Enclosed</div><div class="pr-sec-body">
