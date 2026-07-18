@@ -1920,102 +1920,279 @@ function downloadExcelCurrent(){
 }
 
 function generateExcel(app){
-  const cheqs  = safeParseJSON(app.cheques)||[];
-  const ships  = safeParseJSON(app.shipping_addresses)||[];
-  const banks  = safeParseJSON(app.bank_details)||[];
-  const today  = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const fname  = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
+  const cheqs = safeParseJSON(app.cheques)||[];
+  const ships = safeParseJSON(app.shipping_addresses)||[];
+  const banks = safeParseJSON(app.bank_details)||[];
+  const props = safeParseJSON(app.proprietors)||[];
+  const sigs  = safeParseJSON(app.signatories)||[];
+  const refs  = safeParseJSON(app.ref_details)||[];
+  const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fname = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
 
-  // ── Build worksheet data matching the template layout ──
-  const rows = [
-    ['DUROPLY INDUSTRIES LIMITED'],
-    [],
-    ['Party Type', app.party_type||'', 'Type of Enterprises', '', '', '', '', '', '', '', '', 'Fields are Mandatory for both Customer & Vendor'],
-    [],
-    ['Party Name', app.party_name||'', '', '', '', '', '', '', '', '', '', 'Fields are Mandatory for Customer'],
-    ['', 'Billing Address -'],
-    ['Address 1', app.billing_addr1||'', '', '', '', '', '', '', '', '', '', 'Fields are Mandatory for Vendor'],
-    [],
-    ['Address 2', app.billing_addr2||''],
-    [],
-    ['Address 3', app.billing_addr3||''],
-    [],
-    ['City', app.billing_city||'', '', 'Pincode', app.billing_pin||''],
-    [],
-    ['State', app.billing_state||'', '', 'Selling Branch', app.selling_branch_id||''],
-    [],
-    ['Email-ID', app.email||'', '', 'Zone', app.zone||''],
-    [],
-    ['Market Name', app.market_name||'', '', 'Cluster Name', app.cluster_name||''],
-    [],
-    ['Contact Person', app.contact_person||'', '', 'Type of City', app.type_of_city||''],
-    [],
-    ['Vendor TDS Type', app.tds_type||'', '', 'Mobile No.', app.mobile||''],
-    [],
-    ['GST Type', app.gst_type||'', '', 'PAN No.', app.pan||''],
-    [],
-    ['GST Status', app.gst_status||'', '', 'Vendor GST Category', app.vendor_gst_category||''],
-    [],
-    ['GST No.', app.gst_no||'', '', 'GST State', app.gst_state||''],
-    [],
-    ['Customer/Vendor Category', app.category||'', '', 'Credit Limit', app.credit_limit||''],
-    [],
-    ['TDS Section', app.tds_section||'', '', 'Credit Days', app.credit_days||''],
-    [],
-    ['Registered under MSME?', app.msme_registered||'', '', 'MSME Category', app.msme_category||''],
-    [],
-    ['UDYAM Registration Number', app.udyam_no||'', '', 'Udyam Registration Date', app.udyam_date||''],
-    [],
-    ['Dealer Blank Chq Nos.', cheqs.map(c=>c.cheque_no).filter(Boolean).join(' & ')||'', '', 'Name of Bank', cheqs.map(c=>c.bank_name).filter(Boolean).join(' / ')||''],
-    [],
-    ['Sales Person Name', fname, '', 'Employee Code', currentUser?.userid||''],
-    [],
-    ['', 'Shipping Address - (Only for Customer type Party)'],
-    ['', 'Need to be fill-up if Shipping Address is different from Billing Address'],
-    ['Address 1', ships[0]?.addr1||''],
-    [],
-    ['Address 2', ships[0]?.addr2||''],
-    [],
-    ['Address 3', ships[0]?.addr3||''],
-    [],
-    ['City', ships[0]?.city||'', '', 'Pincode', ships[0]?.pin||''],
-    [],
-    ['State', ships[0]?.state||'', '', 'GST No.', ships[0]?.gst||''],
-    [],
-    ['Email-ID', ships[0]?.email||'', '', 'Mobile No.', ships[0]?.mobile||''],
-    [],
-    [],
-    ['DATE', today, '', 'Requisition By …         '+fname],
-    [],
-    [],
-    ['Note: - 1) Selling Branch to be choosed from List provided, if Party type is Customer'],
-    ['2) Scanned copies of the GST,PAN and Service tax registration to be given along with requisition.'],
-    ['3) Category code to be select for the parties from the list provided with GL Code'],
-    ['4) While creating party code for sub delear please provide respective delear code also.'],
-    ['5) Credit limit and Credit days is mandatory in case party type is Customer.'],
-    ['6) Name of the Employee who introduced this customer needed to be filled up.'],
-    ['7) Party Code will be alloted only after online verification of applicable registrations.'],
-    ['8) Sales Person name is with whom customer is to be mapped'],
+  // ── Style helpers ──────────────────────────────────────────
+  const THIN = {style:'thin',color:{rgb:'000000'}};
+  const MED  = {style:'medium',color:{rgb:'1E3A8A'}};
+  const allBorders = {top:THIN,bottom:THIN,left:THIN,right:THIN};
+  const medBorders = {top:MED,bottom:MED,left:MED,right:MED};
+
+  // Section header: dark navy bg, white bold text, medium border
+  function secStyle(){return {font:{bold:true,name:'Arial',sz:10,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'1E3A8A'}},border:medBorders,alignment:{horizontal:'left',vertical:'center',wrapText:true}};}
+  // Label cell: light grey bg, thin border
+  function lblStyle(){return {font:{name:'Arial',sz:9,bold:false},fill:{patternType:'solid',fgColor:{rgb:'D9E1F2'}},border:allBorders,alignment:{horizontal:'left',vertical:'center',wrapText:true}};}
+  // Value cell: white bg, thin border
+  function valStyle(){return {font:{name:'Arial',sz:10},border:allBorders,alignment:{horizontal:'left',vertical:'center',wrapText:true}};}
+  // Title style
+  function ttlStyle(){return {font:{bold:true,name:'Arial',sz:14,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center',vertical:'center'}};}
+  // Note style
+  function noteStyle(){return {font:{name:'Arial',sz:9,italic:true,color:{rgb:'555555'}},alignment:{wrapText:true}};}
+
+  const ws = {};
+  const merges = [];
+  let R = 0;
+
+  const enc = (r,c) => XLSX.utils.encode_cell({r,c});
+  const set = (r,c,v,s) => { ws[enc(r,c)] = {v:v==null?'':v, t:typeof v==='number'?'n':'s', s:s||{font:{name:'Arial',sz:10}}}; };
+
+  // Set a section header spanning cols 0..maxC
+  function secRow(title, maxC){
+    set(R,0,title,secStyle());
+    for(let c=1;c<=maxC;c++) set(R,c,'',secStyle());
+    merges.push({s:{r:R,c:0},e:{r:R,c:maxC}});
+    R++;
+  }
+
+  // Set label+value pair: label at lc, value at vc spanning to endC
+  function lv(lc,label,vc,value,endC){
+    set(R,lc,label,lblStyle());
+    set(R,vc,value,valStyle());
+    if(endC>vc) for(let c=vc+1;c<=endC;c++) set(R,c,'',valStyle());
+    if(endC>vc) merges.push({s:{r:R,c:vc},e:{r:R,c:endC}});
+  }
+
+  // Blank row (no border)
+  function blank(){ R++; }
+
+  const MAXC = 7; // 8 columns (0-7)
+
+  // ── TITLE ──────────────────────────────────────────────────
+  set(R,0,'DUROPLY INDUSTRIES LIMITED',ttlStyle());
+  for(let c=1;c<=MAXC;c++) set(R,c,'',ttlStyle());
+  merges.push({s:{r:R,c:0},e:{r:R,c:MAXC}});
+  R++;
+
+  set(R,0,'Customer / Vendor Requisition Form',{font:{name:'Arial',sz:11,bold:false},alignment:{horizontal:'center'}});
+  merges.push({s:{r:R,c:0},e:{r:R,c:MAXC}});
+  R++;
+
+  set(R,0,(app.app_number||''),{font:{bold:true,name:'Arial',sz:10,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center'}});
+  merges.push({s:{r:R,c:0},e:{r:R,c:3}});
+  set(R,4,'Date: '+today,{font:{name:'Arial',sz:10},alignment:{horizontal:'right'}});
+  merges.push({s:{r:R,c:4},e:{r:R,c:MAXC}});
+  R++;
+  blank();
+
+  // ── SECTION 1: Party & Basic ────────────────────────────────
+  secRow('1. PARTY & BASIC INFORMATION', MAXC);
+  lv(0,'Party Type',1,app.party_type||'',3); lv(4,'Enterprise Type',5,app.enterprise_type||'',MAXC); R++;
+  lv(0,'Category',1,app.category||'',3); lv(4,'Constitution',5,app.constitution||'',MAXC); R++;
+  set(R,0,'Party / Firm Name',lblStyle()); merges.push({s:{r:R,c:0},e:{r:R,c:0}});
+  set(R,1,app.party_name||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}});
+  R++;
+  lv(0,'Selling Branch',1,app.selling_branch_id||'',3); lv(4,'Type of City',5,app.type_of_city||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 1b: Area/District ───────────────────────────────
+  if(app.dealership_area||app.dealership_state){
+    secRow('1b. AREA / DISTRICT DETAILS', MAXC);
+    set(R,0,'Area / District for Dealership',lblStyle()); merges.push({s:{r:R,c:0},e:{r:R,c:0}});
+    set(R,1,app.dealership_area||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:5}});
+    lv(6,'State',7,app.dealership_state||'',MAXC); R++;
+    blank();
+  }
+
+  // ── SECTION 2: Zone ─────────────────────────────────────────
+  secRow('2. ZONE, MARKET & TERRITORY', MAXC);
+  lv(0,'Zone',1,app.zone||'',1); lv(2,'Market Name',3,app.market_name||'',4); lv(5,'Cluster Name',6,app.cluster_name||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 3: Billing Address ──────────────────────────────
+  secRow('3. BILLING ADDRESS', MAXC);
+  set(R,0,'Address Line 1',lblStyle());
+  set(R,1,app.billing_addr1||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+  set(R,0,'Address Line 2',lblStyle());
+  set(R,1,app.billing_addr2||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+  set(R,0,'Address Line 3',lblStyle());
+  set(R,1,app.billing_addr3||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+  lv(0,'City',1,app.billing_city||'',2); lv(3,'State',4,app.billing_state||'',5); lv(6,'Pincode',7,app.billing_pin||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 4: Contact ──────────────────────────────────────
+  secRow('4. CONTACT DETAILS', MAXC);
+  lv(0,'Contact Person',1,app.contact_person||'',3); lv(4,'Mobile No.',5,app.mobile||'',MAXC); R++;
+  lv(0,'Email ID',1,app.email||'',3); lv(4,'Alt. Mobile',5,app.alt_mobile||'',5); lv(6,'WhatsApp',7,app.whatsapp||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 5: Tax & Compliance ─────────────────────────────
+  secRow('5. TAX & COMPLIANCE', MAXC);
+  lv(0,'GST Type',1,app.gst_type||'',1); lv(2,'GST Status',3,app.gst_status||'',3); lv(4,'GST No.',5,app.gst_no||'',MAXC); R++;
+  lv(0,'GST State',1,app.gst_state||'',1); lv(2,'PAN No.',3,app.pan||'',3); lv(4,'Vendor TDS Type',5,app.tds_type||'',MAXC); R++;
+  set(R,0,'TDS Section',lblStyle());
+  set(R,1,app.tds_section||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:5}});
+  lv(6,'Vendor GST Category',7,app.vendor_gst_category||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 6: Customer Details ─────────────────────────────
+  secRow('6. CUSTOMER / VENDOR DETAILS', MAXC);
+  lv(0,'Customer/Vendor Category',1,app.category||'',3); lv(4,'Credit Limit',5,app.credit_limit||'',5); lv(6,'Credit Days',7,app.credit_days||'',MAXC); R++;
+  lv(0,'Sales Person',1,fname,3); lv(4,'Employee Code',5,currentUser?.userid||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 7: Proprietors ──────────────────────────────────
+  if(props.length){
+    secRow('7. PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR', MAXC);
+    const ph=['#','Full Name','Son of/Wife of','Age','Designation','DIN/PAN','Share%','Specimen Sig.'];
+    ph.forEach((h,c)=>{if(c<=MAXC)set(R,c,h,{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:allBorders,alignment:{horizontal:'center'}});});
+    R++;
+    props.forEach((p,i)=>{
+      const vals=[i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''];
+      vals.forEach((v,c)=>{if(c<=MAXC)set(R,c,v,valStyle());});
+      R++;
+    });
+    blank();
+  }
+
+  // ── SECTION 8: Signatories ──────────────────────────────────
+  if(sigs.length){
+    secRow('8. AUTHORIZED SIGNATORIES', MAXC);
+    ['#','Full Name','Capacity / Role','Signature Reference'].forEach((h,c)=>{
+      set(R,c,h,{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:allBorders});
+    });
+    merges.push({s:{r:R,c:3},e:{r:R,c:MAXC}}); R++;
+    sigs.forEach((s,i)=>{
+      set(R,0,i+1,valStyle());set(R,1,s.name||'',valStyle());set(R,2,s.capacity||'',valStyle());
+      set(R,3,s.signature||'',valStyle()); merges.push({s:{r:R,c:3},e:{r:R,c:MAXC}}); R++;
+    });
+    blank();
+  }
+
+  // ── SECTION 9: Shipping ─────────────────────────────────────
+  if(ships.length){
+    secRow('9. SHIPPING ADDRESS (Customer Only)', MAXC);
+    ships.forEach((s,i)=>{
+      set(R,0,'Shipping Address '+(i+1),{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'E2EFDA'}},border:allBorders});
+      merges.push({s:{r:R,c:0},e:{r:R,c:MAXC}}); R++;
+      set(R,0,'Address Line 1',lblStyle()); set(R,1,s.addr1||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+      set(R,0,'Address Line 2',lblStyle()); set(R,1,s.addr2||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+      lv(0,'City',1,s.city||'',2); lv(3,'Pincode',4,s.pin||'',4); lv(5,'GST No.',6,s.gst||'',MAXC); R++;
+    });
+    blank();
+  }
+
+  // ── SECTION 10: Bank Details ────────────────────────────────
+  if(banks.length){
+    secRow('10. BANK DETAILS', MAXC);
+    ['#','Bank Name','Account No.','IFSC','Type','Account Name','Branch Address'].forEach((h,c)=>{
+      set(R,c,h,{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:allBorders});
+    });
+    merges.push({s:{r:R,c:6},e:{r:R,c:MAXC}}); R++;
+    banks.forEach((b,i)=>{
+      [i+1,b.bank_name||'',b.account_no||'',b.ifsc||'',b.account_type||'',b.account_name||'',b.address||''].forEach((v,c)=>{
+        set(R,c,v,valStyle());
+      });
+      merges.push({s:{r:R,c:6},e:{r:R,c:MAXC}}); R++;
+    });
+    blank();
+  }
+
+  // ── SECTION 11: MSME ────────────────────────────────────────
+  if(app.msme_registered){
+    secRow('11. MSME DETAILS', MAXC);
+    lv(0,'Registered under MSME?',1,app.msme_registered||'',1); lv(2,'MSME Category',3,app.msme_category||'',3); lv(4,'Udyam No.',5,app.udyam_no||'',MAXC); R++;
+    lv(0,'Udyam Registration Date',1,app.udyam_date||'',MAXC); R++;
+    blank();
+  }
+
+  // ── SECTION 12: Existing Business ──────────────────────────
+  secRow('12. DETAILS OF EXISTING BUSINESS', MAXC);
+  set(R,0,'Nature of Business',lblStyle());
+  set(R,1,app.biz_nature||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+  lv(0,'Date of Starting',1,app.biz_date||'',2); lv(3,'Year',4,app.biz_year||'',4); lv(5,'Godown Area (sq.ft)',6,app.godown_area||'',MAXC); R++;
+  lv(0,'Shop',1,app.shop_type||'',2); lv(3,'Godown',4,app.godown_type||'',4); lv(5,'Residence',6,app.residence_type||'',MAXC); R++;
+  blank();
+
+  // ── SECTION 15: Additional Info ─────────────────────────────
+  secRow('15. ADDITIONAL INFORMATION', MAXC);
+  lv(0,'Expected Business (₹)',1,app.expected_business||'',3); lv(4,'Payment Terms',5,app.payment_terms||'',MAXC); R++;
+  lv(0,'Capacity to Invest (Lacs)',1,app.capacity_invest||'',3); lv(4,'Total Investment (Lacs)',5,app.total_invest||'',5); lv(6,'Convicted/Insolvent',7,app.convicted||'',MAXC); R++;
+  if(app.remarks){
+    set(R,0,'Remarks',lblStyle());
+    set(R,1,app.remarks||'',valStyle()); merges.push({s:{r:R,c:1},e:{r:R,c:MAXC}}); R++;
+  }
+  blank();
+
+  // ── SECTION 16: Cheques ─────────────────────────────────────
+  if(cheqs.length){
+    secRow('16. CHEQUES ENCLOSED', MAXC);
+    ['#','Cheque No.','Name of Bank'].forEach((h,c)=>{
+      set(R,c,h,{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:allBorders});
+    });
+    merges.push({s:{r:R,c:2},e:{r:R,c:MAXC}}); R++;
+    cheqs.forEach((c,i)=>{
+      set(R,0,i+1,valStyle()); set(R,1,c.cheque_no||'',valStyle());
+      set(R,2,c.bank_name||'',valStyle()); merges.push({s:{r:R,c:2},e:{r:R,c:MAXC}}); R++;
+    });
+    blank();
+  }
+
+  // ── SECTION 17: References ──────────────────────────────────
+  if(refs.length){
+    secRow('17. REFERENCES', MAXC);
+    ['#','Name','Address','Relationship'].forEach((h,c)=>{
+      set(R,c,h,{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:allBorders});
+    });
+    merges.push({s:{r:R,c:2},e:{r:R,c:5}}); R++;
+    refs.forEach((rf,i)=>{
+      set(R,0,i+1,valStyle()); set(R,1,rf.name||'',valStyle());
+      set(R,2,rf.address||'',valStyle()); merges.push({s:{r:R,c:2},e:{r:R,c:5}});
+      set(R,6,rf.relationship||'',valStyle()); merges.push({s:{r:R,c:6},e:{r:R,c:MAXC}}); R++;
+    });
+    blank();
+  }
+
+  // ── DECLARATION ─────────────────────────────────────────────
+  secRow('DECLARATION & SIGNATURE', MAXC);
+  lv(0,'DATE',1,today,3);
+  set(R,4,'Requisition By',lblStyle()); merges.push({s:{r:R,c:4},e:{r:R,c:4}});
+  set(R,5,fname,valStyle()); merges.push({s:{r:R,c:5},e:{r:R,c:MAXC}}); R++;
+  blank();
+
+  // ── NOTES ────────────────────────────────────────────────────
+  const notes=[
+    'Note:',
+    '1) Selling Branch to be chosen from List provided, if Party type is Customer.',
+    '2) Scanned copies of GST, PAN and Service tax registration to be given along with requisition.',
+    '3) Category code to be selected from the list provided with GL Code.',
+    '4) While creating party code for sub dealer, please provide respective dealer code also.',
+    '5) Credit limit and Credit days is mandatory in case party type is Customer.',
+    '6) Name of the Employee who introduced this customer needed to be filled up.',
+    '7) Party Code will be allotted only after online verification of applicable registrations.',
+    '8) Sales Person name is with whom customer is to be mapped.',
   ];
+  notes.forEach(n=>{
+    set(R,0,n,noteStyle()); merges.push({s:{r:R,c:0},e:{r:R,c:MAXC}}); R++;
+  });
+
+  // ── Sheet setup ──────────────────────────────────────────────
+  ws['!ref']    = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:R,c:MAXC}});
+  ws['!merges'] = merges;
+  ws['!cols']   = [{wch:22},{wch:20},{wch:16},{wch:14},{wch:16},{wch:16},{wch:16},{wch:16}];
+  ws['!rows']   = Array(R+1).fill(null).map(()=>({hpt:18}));
+  ws['!rows'][0]= {hpt:28};
 
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-
-  // ── Column widths matching the template ──
-  ws['!cols'] = [
-    {wch:28},{wch:35},{wch:2},{wch:22},{wch:30},
-    {wch:5},{wch:5},{wch:5},{wch:5},{wch:5},
-    {wch:5},{wch:40}
-  ];
-
-  // ── Row heights ──
-  ws['!rows'] = rows.map(()=>({hpt:15}));
-
   XLSX.utils.book_append_sheet(wb, ws, 'MASTER');
 
-  // ── Download ──
-  const filename = (app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()
-    + '-' + (app.app_number||'REQ') + '.xlsx';
+  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()+'-'+(app.app_number||'REQ')+'.xlsx';
   XLSX.writeFile(wb, filename);
   toast('Excel downloaded: '+filename,'success');
 }
