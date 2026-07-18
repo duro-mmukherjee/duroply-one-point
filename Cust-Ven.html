@@ -779,7 +779,83 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+        <!-- ⑳ Documents & Declaration -->
+        <div class="fc" style="margin-top:8px;">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">20</span> Enclose Following Documents</div>
+          </div>
+          <div class="fc-body">
+
+            <!-- Checklist -->
+            <div style="border:1px solid var(--border);border-radius:8px;padding:16px 18px;background:var(--bg);margin-bottom:16px;">
+              <div style="font-weight:600;font-size:11px;color:var(--text);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;">Required Documents</div>
+              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
+                <input type="checkbox" id="doc-a" style="margin-top:3px;flex-shrink:0;">
+                <span><b>(a)</b> Photocopy of GST Registration Certificate — Form GST REG-06 — with all annexures (A &amp; B) attested by one of the signatories.</span>
+              </label>
+              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
+                <input type="checkbox" id="doc-b" style="margin-top:3px;flex-shrink:0;">
+                <span><b>(b)</b> In case of Partnership Firm, copy of partnership deed duly attested by the partners along with a Letter of Authority in favor of the Authorized Partner / Person.</span>
+              </label>
+              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
+                <input type="checkbox" id="doc-c" style="margin-top:3px;flex-shrink:0;">
+                <span><b>(c)</b> List of partners along with their addresses in case Dealer / Distributor is part of a firm associated with the Person.</span>
+              </label>
+              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
+                <input type="checkbox" id="doc-d" style="margin-top:3px;flex-shrink:0;">
+                <span><b>(d)</b> Copy of list of Directors along with their addresses in case Dealer / Distributor is a Company.</span>
+              </label>
+              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
+                <input type="checkbox" id="doc-e" style="margin-top:3px;flex-shrink:0;">
+                <span><b>(e)</b> Photocopy of PAN of the Firm duly attested by the Partners / Proprietor / Director.</span>
+              </label>
+              <div style="padding:10px 12px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;font-size:12px;color:#92400e;font-weight:500;">
+                ⚠️ All documents are mandatory for considering the application, otherwise it shall be rejected.
+              </div>
+            </div>
+
+            <!-- Declaration -->
+            <div style="border:1px solid var(--border);border-radius:8px;padding:20px;background:var(--bg);font-size:13px;color:var(--text2);line-height:1.9;">
+              <div style="font-weight:600;font-size:11px;color:var(--text);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;">Declaration</div>
+
+              <p style="margin-bottom:12px;">Kindly consider favorably my / our request to become an Authorized Dealer of <strong>Duroply Industries Limited</strong>.</p>
+
+              <p style="margin-bottom:12px;">I / We <span style="display:inline-block;min-width:180px;border-bottom:1px solid var(--text3);color:var(--text3);font-size:12px;">&nbsp;(Name of the Applicant)&nbsp;</span> certify that the above mentioned particulars are correct and true to the best of my / our knowledge. In case of any change in above details, particularly, in respect of constitution of firm, partners of the firm or change in address etc. during continuity of dealership, I / We <span style="display:inline-block;min-width:180px;border-bottom:1px solid var(--text3);color:var(--text3);font-size:12px;">&nbsp;(Name of the Applicant Firm)&nbsp;</span> undertake to inform you, and also hold ourselves responsible for any liability of this firm.</p>
+
+              <p style="margin-bottom:24px;">I / We <span style="display:inline-block;min-width:180px;border-bottom:1px solid var(--text3);color:var(--text3);font-size:12px;">&nbsp;(Name of the Applicant Firm)&nbsp;</span> further confirm that I / We shall be solely responsible for collection of payment for sale made from our shop / godown / business place etc.</p>
+
+              <!-- Signature Row -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:24px;padding-top:8px;">
+                <div>
+                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Date</div>
+                  <div style="border-bottom:1px solid var(--text3);min-width:180px;padding-bottom:4px;color:var(--text3);">___________________</div>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Yours faithfully</div>
+                  <div style="border-bottom:1px solid var(--border);min-width:220px;padding-bottom:4px;margin-bottom:10px;color:var(--text3);font-size:12px;">For THE —&nbsp;<span style="display:inline-block;min-width:140px;border-bottom:1px solid var(--text3);">&nbsp;</span></div>
+                  <div style="border-bottom:1px solid var(--border);min-width:220px;padding-bottom:4px;margin-bottom:10px;">&nbsp;</div>
+                  <div style="font-size:13px;color:var(--text2);">Proprietor / Karta / Partner / Director</div>
+                  <div style="font-size:12px;color:var(--text3);font-style:italic;margin-top:3px;">Signature with Seal</div>
+                </div>
+              </div>
+
+              <!-- Please Note -->
+              <div style="border-top:1px solid var(--border);padding-top:16px;">
+                <div style="font-weight:600;font-size:11px;color:var(--text);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Please Note</div>
+                <ol style="padding-left:20px;font-size:12.5px;color:var(--text2);line-height:2.2;margin:0;">
+                  <li>We encourage our Dealers / Distributors to use digital payments only.</li>
+                  <li>Dealership of given territory may be revoked if the performance is found to be unsatisfactory.</li>
+                  <li>Goods once sold by Duroply Industries Ltd. will not be taken back.</li>
+                  <li>Duroply Industries Ltd. reserves the right to revise the policies from time to time without prior notification.</li>
+                  <li>All disputes are subject to <strong>Kolkata Jurisdiction</strong> only.</li>
+                </ol>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
           <button class="btn btn-ghost" onclick="showList()">Cancel</button>
           <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
           <button class="btn btn-success" onclick="submitForm()">Submit Application</button>
@@ -1254,18 +1330,7 @@ function collect(){
     proprietors:JSON.stringify(dyn('tb-prop',['name','son_wife_of','age','designation','din_pan','share','specimen_signature'])),
     signatories:JSON.stringify(dyn('tb-sig',['name','capacity','signature'])),
     bank_details:JSON.stringify(dyn('tb-bank',['bank_name','account_no','ifsc','account_type','account_name','address'])),
-    shipping_addresses:JSON.stringify(
-      Array.from(document.getElementById('ship-body').querySelectorAll('.ship-block')).map(b=>{
-        const inputs=b.querySelectorAll('input');
-        const sel=b.querySelector('select');
-        return {
-          addr1:inputs[0]?.value||'',addr2:inputs[1]?.value||'',addr3:inputs[2]?.value||'',
-          city:inputs[3]?.value||'',pin:inputs[4]?.value||'',
-          state:sel?.value||'',
-          gst:inputs[5]?.value||'',email:inputs[6]?.value||'',mobile:inputs[7]?.value||''
-        };
-      })
-    ),
+    shipping_addresses:JSON.stringify(Array.from(document.getElementById('ship-body').querySelectorAll('.ship-block')).map(b=>{const inp=b.querySelectorAll('input');return {addr1:inp[0]?.value||'',addr2:inp[1]?.value||'',addr3:inp[2]?.value||'',city:inp[3]?.value||'',pin:inp[4]?.value||'',gst:inp[5]?.value||'',email:inp[6]?.value||'',mobile:inp[7]?.value||''};})),
     other_brands:JSON.stringify(dyn('tb-brands',['brand','since_when','monthly_sale'])),
     stockists:JSON.stringify(dyn('tb-stock',['firm_name','address','brand','monthly_sale'])),
     cheques:JSON.stringify(
@@ -1396,131 +1461,31 @@ function fillForm(app){
 
   // ── Block 7: Proprietors ──────────────────────────────
   const propTb=document.getElementById('tb-prop');
-  if(propTb){
-    propTb.innerHTML='';
-    (safeParseJSON(app.proprietors)||[]).forEach((p,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="text" value="${(p.name||'').replace(/"/g,'&quot;')}"></td>
-        <td><input type="text" value="${(p.son_wife_of||'').replace(/"/g,'&quot;')}" placeholder="Father / Husband name"></td>
-        <td><input type="number" value="${p.age||''}" placeholder="Age" min="18" max="99" style="width:70px"></td>
-        <td><input type="text" value="${(p.designation||'').replace(/"/g,'&quot;')}"></td>
-        <td><input type="text" value="${(p.din_pan||'').replace(/"/g,'&quot;')}"></td>
-        <td><input type="number" value="${p.share||''}" placeholder="%" min="0" max="100" style="width:80px"></td>
-        <td><input type="text" value="${(p.specimen_signature||'').replace(/"/g,'&quot;')}" placeholder="Sign description"></td>
-        <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;
-      propTb.appendChild(tr);
-    });
-  }
+  if(propTb){propTb.innerHTML='';(safeParseJSON(app.proprietors)||[]).forEach((p,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(p.name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.son_wife_of||'').replace(/"/g,'&quot;')}" placeholder="Father/Husband name"></td><td><input type="number" value="${p.age||''}" placeholder="Age" style="width:70px"></td><td><input type="text" value="${(p.designation||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.din_pan||'').replace(/"/g,'&quot;')}"></td><td><input type="number" value="${p.share||''}" placeholder="%" style="width:80px"></td><td><input type="text" value="${(p.specimen_signature||'').replace(/"/g,'&quot;')}" placeholder="Sign description"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;propTb.appendChild(tr);});}
 
   // ── Block 8: Signatories ──────────────────────────────
   const sigTb=document.getElementById('tb-sig');
-  if(sigTb){
-    sigTb.innerHTML='';
-    (safeParseJSON(app.signatories)||[]).forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Full name"></td>
-        <td><input type="text" value="${(r.capacity||'').replace(/"/g,'&quot;')}" placeholder="Capacity/Role"></td>
-        <td><input type="text" value="${(r.signature||'').replace(/"/g,'&quot;')}" placeholder="Signature reference"></td>
-        <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-sig')">✕</button></td>`;
-      sigTb.appendChild(tr);
-    });
-  }
+  if(sigTb){sigTb.innerHTML='';(safeParseJSON(app.signatories)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Full name"></td><td><input type="text" value="${(r.capacity||'').replace(/"/g,'&quot;')}" placeholder="Capacity/Role"></td><td><input type="text" value="${(r.signature||'').replace(/"/g,'&quot;')}" placeholder="Signature reference"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-sig')">✕</button></td>`;sigTb.appendChild(tr);});}
 
   // ── Block 9: Shipping Addresses ───────────────────────
   const shipBody=document.getElementById('ship-body');
-  if(shipBody){
-    const shipData=safeParseJSON(app.shipping_addresses)||[];
-    if(shipData.length){
-      shipBody.innerHTML='';
-      shipData.forEach((s,i)=>{
-        const div=document.createElement('div');
-        div.className='ship-block';
-        div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div>
-          <button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button>
-          <div class="fg" style="grid-template-columns:1fr 1fr;">
-            <div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}" placeholder="Line 1"></div>
-            <div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}" placeholder="Line 2 (optional)"></div>
-            <div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}" placeholder="Line 3 (optional)"></div>
-            <div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}" placeholder="City"></div>
-            <div class="fld"><label>Pincode</label><input type="text" maxlength="6" value="${(s.pin||'').replace(/"/g,'&quot;')}" placeholder="PIN"></div>
-            <div class="fld"><label>State</label><select><option value="">— Select —</option>${'${SELLING_BRANCHES.map(b=>`<option>${xe(b)}</option>`).join("")}'}</select></div>
-            <div class="fld"><label>GST No.</label><input type="text" maxlength="15" value="${(s.gst||'').replace(/"/g,'&quot;')}" placeholder="GST (optional)"></div>
-            <div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}" placeholder="Email (optional)"></div>
-            <div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" value="${(s.mobile||'').replace(/"/g,'&quot;')}" placeholder="Mobile (optional)"></div>
-          </div>`;
-        shipBody.appendChild(div);
-        // Restore state select
-        const sel=div.querySelector('select');
-        if(sel&&s.state){Array.from(sel.options).forEach(o=>{if(o.value===s.state||o.text===s.state)o.selected=true;});}
-      });
-    }
-  }
+  if(shipBody){const shipData=safeParseJSON(app.shipping_addresses)||[];if(shipData.length){shipBody.innerHTML='';shipData.forEach((s,i)=>{const div=document.createElement('div');div.className='ship-block';div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div><button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button><div class="fg" style="grid-template-columns:1fr 1fr;"><div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}" placeholder="Line 1"></div><div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}" placeholder="Line 2 (optional)"></div><div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}" placeholder="Line 3 (optional)"></div><div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}" placeholder="City"></div><div class="fld"><label>Pincode</label><input type="text" maxlength="6" value="${(s.pin||'').replace(/"/g,'&quot;')}" placeholder="PIN"></div><div class="fld"><label>GST No.</label><input type="text" maxlength="15" value="${(s.gst||'').replace(/"/g,'&quot;')}" placeholder="GST (optional)"></div><div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}" placeholder="Email (optional)"></div><div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" value="${(s.mobile||'').replace(/"/g,'&quot;')}" placeholder="Mobile (optional)"></div></div>`;shipBody.appendChild(div);});}}
 
   // ── Block 10: Bank Details ────────────────────────────
   const bankTb=document.getElementById('tb-bank');
-  if(bankTb){
-    bankTb.innerHTML='';
-    (safeParseJSON(app.bank_details)||[]).forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="text" value="${(r.bank_name||'').replace(/"/g,'&quot;')}" placeholder="Bank name"></td>
-        <td><input type="text" value="${(r.account_no||'').replace(/"/g,'&quot;')}" placeholder="Account no."></td>
-        <td><input type="text" value="${(r.ifsc||'').replace(/"/g,'&quot;')}" placeholder="IFSC"></td>
-        <td><input type="text" value="${(r.account_type||'').replace(/"/g,'&quot;')}" placeholder="Savings/Current"></td>
-        <td><input type="text" value="${(r.account_name||'').replace(/"/g,'&quot;')}" placeholder="Account name"></td>
-        <td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Branch address"></td>
-        <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-bank')">✕</button></td>`;
-      bankTb.appendChild(tr);
-    });
-  }
+  if(bankTb){bankTb.innerHTML='';(safeParseJSON(app.bank_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.bank_name||'').replace(/"/g,'&quot;')}" placeholder="Bank name"></td><td><input type="text" value="${(r.account_no||'').replace(/"/g,'&quot;')}" placeholder="Account no."></td><td><input type="text" value="${(r.ifsc||'').replace(/"/g,'&quot;')}" placeholder="IFSC"></td><td><input type="text" value="${(r.account_type||'').replace(/"/g,'&quot;')}" placeholder="Savings/Current"></td><td><input type="text" value="${(r.account_name||'').replace(/"/g,'&quot;')}" placeholder="Account name"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Branch address"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-bank')">✕</button></td>`;bankTb.appendChild(tr);});}
 
   // ── Block 13: Other Brands ────────────────────────────
   const brandTb=document.getElementById('tb-brands');
-  if(brandTb){
-    brandTb.innerHTML='';
-    (safeParseJSON(app.other_brands)||[]).forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand name"></td>
-        <td><input type="text" value="${(r.since_when||'').replace(/"/g,'&quot;')}" placeholder="Since when"></td>
-        <td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td>
-        <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-brands')">✕</button></td>`;
-      brandTb.appendChild(tr);
-    });
-  }
+  if(brandTb){brandTb.innerHTML='';(safeParseJSON(app.other_brands)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand name"></td><td><input type="text" value="${(r.since_when||'').replace(/"/g,'&quot;')}" placeholder="Since when"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-brands')">✕</button></td>`;brandTb.appendChild(tr);});}
 
   // ── Block 14: Stockists ───────────────────────────────
   const stockTb=document.getElementById('tb-stock');
-  if(stockTb){
-    stockTb.innerHTML='';
-    (safeParseJSON(app.stockists)||[]).forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="text" value="${(r.firm_name||'').replace(/"/g,'&quot;')}" placeholder="Firm name"></td>
-        <td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td>
-        <td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand"></td>
-        <td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td>
-        <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;
-      stockTb.appendChild(tr);
-    });
-  }
+  if(stockTb){stockTb.innerHTML='';(safeParseJSON(app.stockists)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.firm_name||'').replace(/"/g,'&quot;')}" placeholder="Firm name"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;stockTb.appendChild(tr);});}
 
   // ── Block 17: References ──────────────────────────────
   const refTb=document.getElementById('tb-refs');
-  if(refTb){
-    refTb.innerHTML='';
-    (safeParseJSON(app.ref_details)||[]).forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="text" maxlength="40" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Name"></td>
-        <td><input type="text" maxlength="100" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td>
-        <td><input type="text" maxlength="20" value="${(r.relationship||'').replace(/"/g,'&quot;')}" placeholder="Relationship"></td>
-        <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;
-      refTb.appendChild(tr);
-    });
-  }
+  if(refTb){refTb.innerHTML='';(safeParseJSON(app.ref_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" maxlength="40" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Name"></td><td><input type="text" maxlength="100" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td><td><input type="text" maxlength="20" value="${(r.relationship||'').replace(/"/g,'&quot;')}" placeholder="Relationship"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;refTb.appendChild(tr);});}
 
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
