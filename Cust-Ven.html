@@ -174,6 +174,35 @@ tbody tr:hover td{background:var(--surface2);}
 .img-preview-name{font-size:11px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
 .img-preview-clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 3px;line-height:1;}
 .img-upload-inline{display:flex;flex-direction:column;gap:4px;}
+
+/* ── Print styles ── */
+@media print{
+  body *{visibility:hidden!important;}
+  #print-area,#print-area *{visibility:visible!important;}
+  #print-area{position:fixed;inset:0;z-index:99999;background:#fff;padding:0;overflow:visible;}
+  .pm-toolbar{display:none!important;}
+}
+.pr-header{text-align:center;margin-bottom:14px;border-bottom:2px solid #1e40af;padding-bottom:10px;}
+.pr-company{font-size:17px;font-weight:700;color:#1e40af;letter-spacing:1px;}
+.pr-subtitle{font-size:11px;color:#555;margin-top:2px;}
+.pr-appno{display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;color:#1e40af;font-family:monospace;}
+.pr-section{margin-bottom:10px;border:1px solid #ddd;border-radius:6px;overflow:hidden;}
+.pr-sec-hd{background:#f1f5f9;padding:5px 10px;font-size:10px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #ddd;}
+.pr-sec-body{padding:8px 10px;}
+.pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px 14px;}
+.pr-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 14px;}
+.pr-field{margin-bottom:3px;}
+.pr-label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+.pr-value{font-size:11px;color:#111;font-weight:500;border-bottom:1px dotted #ccc;padding-bottom:1px;min-height:15px;}
+.pr-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;}
+.pr-table th{background:#f1f5f9;padding:4px 6px;text-align:left;font-size:9px;text-transform:uppercase;color:#555;border:1px solid #ddd;}
+.pr-table td{padding:4px 6px;border:1px solid #ddd;vertical-align:top;}
+.pr-table tr:nth-child(even) td{background:#fafafa;}
+.pr-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+.pr-badge-draft{background:#f3f4f6;color:#374151;}
+.pr-badge-new{background:#dbeafe;color:#1e40af;}
+.pr-badge-approved{background:#d1fae5;color:#065f46;}
+.pr-badge-dis{background:#fee2e2;color:#991b1b;}
 </style>
 </head>
 <body>
@@ -268,6 +297,7 @@ tbody tr:hover td{background:var(--surface2);}
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-ghost btn-sm" id="btn-print-form" onclick="printCurrentForm()" title="Print / PDF" style="display:none">⎙ Print</button>
           <button class="btn btn-success btn-sm" onclick="submitForm()">Submit Application</button>
         </div>
       </div>
@@ -779,83 +809,7 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <!-- ⑳ Documents & Declaration -->
-        <div class="fc" style="margin-top:8px;">
-          <div class="fc-hd">
-            <div class="fc-title"><span class="fc-num">20</span> Enclose Following Documents</div>
-          </div>
-          <div class="fc-body">
-
-            <!-- Checklist -->
-            <div style="border:1px solid var(--border);border-radius:8px;padding:16px 18px;background:var(--bg);margin-bottom:16px;">
-              <div style="font-weight:600;font-size:11px;color:var(--text);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;">Required Documents</div>
-              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
-                <input type="checkbox" id="doc-a" style="margin-top:3px;flex-shrink:0;">
-                <span><b>(a)</b> Photocopy of GST Registration Certificate — Form GST REG-06 — with all annexures (A &amp; B) attested by one of the signatories.</span>
-              </label>
-              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
-                <input type="checkbox" id="doc-b" style="margin-top:3px;flex-shrink:0;">
-                <span><b>(b)</b> In case of Partnership Firm, copy of partnership deed duly attested by the partners along with a Letter of Authority in favor of the Authorized Partner / Person.</span>
-              </label>
-              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
-                <input type="checkbox" id="doc-c" style="margin-top:3px;flex-shrink:0;">
-                <span><b>(c)</b> List of partners along with their addresses in case Dealer / Distributor is part of a firm associated with the Person.</span>
-              </label>
-              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
-                <input type="checkbox" id="doc-d" style="margin-top:3px;flex-shrink:0;">
-                <span><b>(d)</b> Copy of list of Directors along with their addresses in case Dealer / Distributor is a Company.</span>
-              </label>
-              <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.6;">
-                <input type="checkbox" id="doc-e" style="margin-top:3px;flex-shrink:0;">
-                <span><b>(e)</b> Photocopy of PAN of the Firm duly attested by the Partners / Proprietor / Director.</span>
-              </label>
-              <div style="padding:10px 12px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;font-size:12px;color:#92400e;font-weight:500;">
-                ⚠️ All documents are mandatory for considering the application, otherwise it shall be rejected.
-              </div>
-            </div>
-
-            <!-- Declaration -->
-            <div style="border:1px solid var(--border);border-radius:8px;padding:20px;background:var(--bg);font-size:13px;color:var(--text2);line-height:1.9;">
-              <div style="font-weight:600;font-size:11px;color:var(--text);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;">Declaration</div>
-
-              <p style="margin-bottom:12px;">Kindly consider favorably my / our request to become an Authorized Dealer of <strong>Duroply Industries Limited</strong>.</p>
-
-              <p style="margin-bottom:12px;">I / We <span style="display:inline-block;min-width:180px;border-bottom:1px solid var(--text3);color:var(--text3);font-size:12px;">&nbsp;(Name of the Applicant)&nbsp;</span> certify that the above mentioned particulars are correct and true to the best of my / our knowledge. In case of any change in above details, particularly, in respect of constitution of firm, partners of the firm or change in address etc. during continuity of dealership, I / We <span style="display:inline-block;min-width:180px;border-bottom:1px solid var(--text3);color:var(--text3);font-size:12px;">&nbsp;(Name of the Applicant Firm)&nbsp;</span> undertake to inform you, and also hold ourselves responsible for any liability of this firm.</p>
-
-              <p style="margin-bottom:24px;">I / We <span style="display:inline-block;min-width:180px;border-bottom:1px solid var(--text3);color:var(--text3);font-size:12px;">&nbsp;(Name of the Applicant Firm)&nbsp;</span> further confirm that I / We shall be solely responsible for collection of payment for sale made from our shop / godown / business place etc.</p>
-
-              <!-- Signature Row -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:24px;padding-top:8px;">
-                <div>
-                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Date</div>
-                  <div style="border-bottom:1px solid var(--text3);min-width:180px;padding-bottom:4px;color:var(--text3);">___________________</div>
-                </div>
-                <div>
-                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Yours faithfully</div>
-                  <div style="border-bottom:1px solid var(--border);min-width:220px;padding-bottom:4px;margin-bottom:10px;color:var(--text3);font-size:12px;">For THE —&nbsp;<span style="display:inline-block;min-width:140px;border-bottom:1px solid var(--text3);">&nbsp;</span></div>
-                  <div style="border-bottom:1px solid var(--border);min-width:220px;padding-bottom:4px;margin-bottom:10px;">&nbsp;</div>
-                  <div style="font-size:13px;color:var(--text2);">Proprietor / Karta / Partner / Director</div>
-                  <div style="font-size:12px;color:var(--text3);font-style:italic;margin-top:3px;">Signature with Seal</div>
-                </div>
-              </div>
-
-              <!-- Please Note -->
-              <div style="border-top:1px solid var(--border);padding-top:16px;">
-                <div style="font-weight:600;font-size:11px;color:var(--text);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Please Note</div>
-                <ol style="padding-left:20px;font-size:12.5px;color:var(--text2);line-height:2.2;margin:0;">
-                  <li>We encourage our Dealers / Distributors to use digital payments only.</li>
-                  <li>Dealership of given territory may be revoked if the performance is found to be unsatisfactory.</li>
-                  <li>Goods once sold by Duroply Industries Ltd. will not be taken back.</li>
-                  <li>Duroply Industries Ltd. reserves the right to revise the policies from time to time without prior notification.</li>
-                  <li>All disputes are subject to <strong>Kolkata Jurisdiction</strong> only.</li>
-                </ol>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
           <button class="btn btn-ghost" onclick="showList()">Cancel</button>
           <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
           <button class="btn btn-success" onclick="submitForm()">Submit Application</button>
@@ -865,6 +819,20 @@ tbody tr:hover td{background:var(--surface2);}
     </div><!-- /form-view -->
   </div>
 </div>
+</div>
+
+<!-- ── Print / PDF Modal ── -->
+<div id="print-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div id="print-area" style="background:#fff;width:210mm;max-height:92vh;overflow-y:auto;border-radius:8px;box-shadow:0 24px 80px rgba(0,0,0,0.35);font-family:Arial,sans-serif;font-size:12px;color:#111;">
+    <div class="pm-toolbar" style="position:sticky;top:0;background:#1e40af;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:8px 8px 0 0;z-index:10;gap:10px;">
+      <div style="color:#fff;font-weight:600;font-size:13px;">📄 Preview — Customer / Vendor Requisition</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="window.print()" style="padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#1e40af;">🖨️ Print / Save PDF</button>
+        <button onclick="closePrint()" style="padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;">✕ Close</button>
+      </div>
+    </div>
+    <div id="print-content" style="padding:16mm 18mm 14mm;"></div>
+  </div>
 </div>
 
 <div class="toast-wrap" id="toasts"></div>
@@ -1034,8 +1002,10 @@ function renderList(rows){
   document.getElementById('list-count').textContent=rows.length+' applications';
   const tb=document.getElementById('list-tbody');
   if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No applications yet. Click "+ New Application" to get started.</td></tr>';return;}
-  tb.innerHTML=rows.map(r=>`
-    <tr onclick="canEditRecord(r) ? editApp('${r.id}') : null" style="cursor:${canEditRecord(r)?'pointer':'default'}">
+  tb.innerHTML=rows.map(r=>{
+    const canEdit=canEditRecord(r);
+    const canDel=(r.status==='Draft'||r.status==='New');
+    return `<tr onclick="${canEdit?`editApp('${r.id}')`:'void(0)'}" style="cursor:${canEdit?'pointer':'default'}">
       <td class="cm">${xe(r.app_number||'—')}</td>
       <td class="cp">${xe(r.party_name||'—')}</td>
       <td>${xe(r.party_type||'—')}</td>
@@ -1045,11 +1015,13 @@ function renderList(rows){
       <td>${statusPill(r.status||'Draft')}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px;">
-          ${canEditRecord(r) ? `<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>` : ''}
-          ${(r.status==='Draft'||r.status==='New')?`<button class="btn btn-danger btn-sm" onclick="delApp('${r.id}')">✕</button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="printApp('${r.id}')" title="Print / PDF">⎙</button>
+          ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>`:''}
+          ${canDel?`<button class="btn btn-danger btn-sm" onclick="delApp('${r.id}')">✕</button>`:''}
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function filterList(){
@@ -1076,6 +1048,7 @@ function showNewForm(){
     return;
   }
   editId=null;resetForm();
+  const _pb2=document.getElementById('btn-print-form');if(_pb2)_pb2.style.display='none';
   document.getElementById('fv-title').textContent='New Application';
   document.getElementById('app-no-disp').style.display='none';
   document.getElementById('list-view').style.display='none';
@@ -1092,6 +1065,7 @@ function editApp(id){
     return;
   }
   editId=id;resetForm();fillForm(app);
+  const _pb=document.getElementById('btn-print-form');if(_pb)_pb.style.display='inline-block';
   document.getElementById('fv-title').textContent='Edit Application';
   if(app.app_number){document.getElementById('app-no-disp').textContent=app.app_number;document.getElementById('app-no-disp').style.display='inline-block';}
   document.getElementById('list-view').style.display='none';
@@ -1330,7 +1304,6 @@ function collect(){
     proprietors:JSON.stringify(dyn('tb-prop',['name','son_wife_of','age','designation','din_pan','share','specimen_signature'])),
     signatories:JSON.stringify(dyn('tb-sig',['name','capacity','signature'])),
     bank_details:JSON.stringify(dyn('tb-bank',['bank_name','account_no','ifsc','account_type','account_name','address'])),
-    shipping_addresses:JSON.stringify(Array.from(document.getElementById('ship-body').querySelectorAll('.ship-block')).map(b=>{const inp=b.querySelectorAll('input');return {addr1:inp[0]?.value||'',addr2:inp[1]?.value||'',addr3:inp[2]?.value||'',city:inp[3]?.value||'',pin:inp[4]?.value||'',gst:inp[5]?.value||'',email:inp[6]?.value||'',mobile:inp[7]?.value||''};})),
     other_brands:JSON.stringify(dyn('tb-brands',['brand','since_when','monthly_sale'])),
     stockists:JSON.stringify(dyn('tb-stock',['firm_name','address','brand','monthly_sale'])),
     cheques:JSON.stringify(
@@ -1458,35 +1431,6 @@ function fillForm(app){
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
   // Cheque images come from inside the cheques JSON (handled below)
   window._pendingChequeImgs=[];
-
-  // ── Block 7: Proprietors ──────────────────────────────
-  const propTb=document.getElementById('tb-prop');
-  if(propTb){propTb.innerHTML='';(safeParseJSON(app.proprietors)||[]).forEach((p,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(p.name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.son_wife_of||'').replace(/"/g,'&quot;')}" placeholder="Father/Husband name"></td><td><input type="number" value="${p.age||''}" placeholder="Age" style="width:70px"></td><td><input type="text" value="${(p.designation||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.din_pan||'').replace(/"/g,'&quot;')}"></td><td><input type="number" value="${p.share||''}" placeholder="%" style="width:80px"></td><td><input type="text" value="${(p.specimen_signature||'').replace(/"/g,'&quot;')}" placeholder="Sign description"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;propTb.appendChild(tr);});}
-
-  // ── Block 8: Signatories ──────────────────────────────
-  const sigTb=document.getElementById('tb-sig');
-  if(sigTb){sigTb.innerHTML='';(safeParseJSON(app.signatories)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Full name"></td><td><input type="text" value="${(r.capacity||'').replace(/"/g,'&quot;')}" placeholder="Capacity/Role"></td><td><input type="text" value="${(r.signature||'').replace(/"/g,'&quot;')}" placeholder="Signature reference"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-sig')">✕</button></td>`;sigTb.appendChild(tr);});}
-
-  // ── Block 9: Shipping Addresses ───────────────────────
-  const shipBody=document.getElementById('ship-body');
-  if(shipBody){const shipData=safeParseJSON(app.shipping_addresses)||[];if(shipData.length){shipBody.innerHTML='';shipData.forEach((s,i)=>{const div=document.createElement('div');div.className='ship-block';div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div><button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button><div class="fg" style="grid-template-columns:1fr 1fr;"><div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}" placeholder="Line 1"></div><div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}" placeholder="Line 2 (optional)"></div><div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}" placeholder="Line 3 (optional)"></div><div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}" placeholder="City"></div><div class="fld"><label>Pincode</label><input type="text" maxlength="6" value="${(s.pin||'').replace(/"/g,'&quot;')}" placeholder="PIN"></div><div class="fld"><label>GST No.</label><input type="text" maxlength="15" value="${(s.gst||'').replace(/"/g,'&quot;')}" placeholder="GST (optional)"></div><div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}" placeholder="Email (optional)"></div><div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" value="${(s.mobile||'').replace(/"/g,'&quot;')}" placeholder="Mobile (optional)"></div></div>`;shipBody.appendChild(div);});}}
-
-  // ── Block 10: Bank Details ────────────────────────────
-  const bankTb=document.getElementById('tb-bank');
-  if(bankTb){bankTb.innerHTML='';(safeParseJSON(app.bank_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.bank_name||'').replace(/"/g,'&quot;')}" placeholder="Bank name"></td><td><input type="text" value="${(r.account_no||'').replace(/"/g,'&quot;')}" placeholder="Account no."></td><td><input type="text" value="${(r.ifsc||'').replace(/"/g,'&quot;')}" placeholder="IFSC"></td><td><input type="text" value="${(r.account_type||'').replace(/"/g,'&quot;')}" placeholder="Savings/Current"></td><td><input type="text" value="${(r.account_name||'').replace(/"/g,'&quot;')}" placeholder="Account name"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Branch address"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-bank')">✕</button></td>`;bankTb.appendChild(tr);});}
-
-  // ── Block 13: Other Brands ────────────────────────────
-  const brandTb=document.getElementById('tb-brands');
-  if(brandTb){brandTb.innerHTML='';(safeParseJSON(app.other_brands)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand name"></td><td><input type="text" value="${(r.since_when||'').replace(/"/g,'&quot;')}" placeholder="Since when"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-brands')">✕</button></td>`;brandTb.appendChild(tr);});}
-
-  // ── Block 14: Stockists ───────────────────────────────
-  const stockTb=document.getElementById('tb-stock');
-  if(stockTb){stockTb.innerHTML='';(safeParseJSON(app.stockists)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.firm_name||'').replace(/"/g,'&quot;')}" placeholder="Firm name"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;stockTb.appendChild(tr);});}
-
-  // ── Block 17: References ──────────────────────────────
-  const refTb=document.getElementById('tb-refs');
-  if(refTb){refTb.innerHTML='';(safeParseJSON(app.ref_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" maxlength="40" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Name"></td><td><input type="text" maxlength="100" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td><td><input type="text" maxlength="20" value="${(r.relationship||'').replace(/"/g,'&quot;')}" placeholder="Relationship"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;refTb.appendChild(tr);});}
-
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
   cheqTb.innerHTML='';
@@ -1807,6 +1751,166 @@ function applyRBACToUI(){
     badge.style.display = window.userRole ? 'block' : 'none';
   }
 
+}
+// ════════════════════════════════════════════════════════════
+
+// ══ PRINT / PDF ══════════════════════════════════════════════
+function pv(v){return (v&&String(v).trim())?String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'<span style="color:#ccc">—</span>';}
+function pf(label,value,span){span=span||1;return `<div class="pr-field" style="grid-column:span ${span}"><div class="pr-label">${label}</div><div class="pr-value">${pv(value)}</div></div>`;}
+
+function printApp(id){
+  const app=apps.find(a=>String(a.id)===String(id));
+  if(!app){toast('Record not found','error');return;}
+  buildPrintContent(app);
+  const m=document.getElementById('print-modal');
+  m.style.display='flex';
+}
+
+function printCurrentForm(){
+  if(!editId){toast('Save the record first before printing','error');return;}
+  printApp(editId);
+}
+
+function closePrint(){
+  document.getElementById('print-modal').style.display='none';
+}
+
+function buildPrintContent(app){
+  const props=safeParseJSON(app.proprietors)||[];
+  const sigs=safeParseJSON(app.signatories)||[];
+  const banks=safeParseJSON(app.bank_details)||[];
+  const brands=safeParseJSON(app.other_brands)||[];
+  const stocks=safeParseJSON(app.stockists)||[];
+  const cheqs=safeParseJSON(app.cheques)||[];
+  const refs=safeParseJSON(app.ref_details)||[];
+  const ships=safeParseJSON(app.shipping_addresses)||[];
+  const sc={Draft:'pr-badge-draft',New:'pr-badge-new','Approved By LAO':'pr-badge-approved','Approved By Management':'pr-badge-approved','Disapproved By LAO':'pr-badge-dis','Disapproved By Management':'pr-badge-dis','Sent To HO':'pr-badge-new','Certificate Issued':'pr-badge-approved'};
+  const dateStr=app.created_at?new Date(app.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+
+  let html=`<div class="pr-header">
+    <div class="pr-company">DUROPLY INDUSTRIES LIMITED</div>
+    <div class="pr-subtitle">Customer / Vendor Requisition Form</div>
+    <div style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+      ${app.app_number?`<span class="pr-appno">${app.app_number}</span>`:''}
+      <span class="pr-badge ${sc[app.status]||'pr-badge-draft'}">${app.status||'Draft'}</span>
+      <span style="font-size:11px;color:#555;">Date: ${dateStr}</span>
+    </div>
+  </div>
+
+  <div class="pr-section"><div class="pr-sec-hd">1. Party & Basic Information</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Party Type',app.party_type)}${pf('Enterprise Type',app.enterprise_type)}${pf('Category',app.category)}
+    ${pf('Party / Firm Name',app.party_name,2)}${pf('Constitution',app.constitution+(app.constitution_other?' — '+app.constitution_other:''))}
+    ${pf('Selling Branch',app.selling_branch_id)}
+  </div></div></div>
+
+  ${(app.dealership_area||app.dealership_state)?`<div class="pr-section"><div class="pr-sec-hd">1b. Area / District Details</div><div class="pr-sec-body"><div class="pr-grid">${pf('Area / District for Dealership',app.dealership_area,2)}${pf('State',app.dealership_state)}</div></div></div>`:''}
+
+  <div class="pr-section"><div class="pr-sec-hd">2. Zone, Market & Territory</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Zone',app.zone)}${pf('Market',app.market_name)}${pf('Cluster',app.cluster_name)}${pf('Type of City',app.type_of_city)}
+  </div></div></div>
+
+  <div class="pr-section"><div class="pr-sec-hd">3. Billing Address</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Address Line 1',app.billing_addr1,3)}${pf('Address Line 2',app.billing_addr2,3)}${pf('City',app.billing_city)}${pf('State',app.billing_state)}${pf('PIN',app.billing_pin)}
+  </div></div></div>
+
+  <div class="pr-section"><div class="pr-sec-hd">4. Contact Details</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Contact Person',app.contact_person)}${pf('Email',app.email)}${pf('Mobile',app.mobile)}${pf('Alt. Mobile',app.alt_mobile)}${pf('WhatsApp',app.whatsapp)}
+  </div></div></div>
+
+  <div class="pr-section"><div class="pr-sec-hd">5. Tax & Compliance</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('GST Type',app.gst_type)}${pf('GST Status',app.gst_status)}${pf('GST No.',app.gst_no)}
+    ${pf('GST State',app.gst_state)}${pf('PAN',app.pan)}${pf('TDS Type',app.tds_type)}
+    ${pf('TDS Section',app.tds_section,2)}${pf('Vendor GST Category',app.vendor_gst_category)}
+  </div></div></div>
+
+  ${props.length?`<div class="pr-section"><div class="pr-sec-hd">7. Proprietor / Partner / Karta / Member / Director</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of / Wife of</th><th>Age</th><th>Designation</th><th>DIN / PAN</th><th>Share %</th><th>Specimen Signature</th></tr></thead>
+    <tbody>${props.map((p,i)=>`<tr><td>${i+1}</td><td>${pv(p.name)}</td><td>${pv(p.son_wife_of)}</td><td>${pv(p.age)}</td><td>${pv(p.designation)}</td><td>${pv(p.din_pan)}</td><td>${pv(p.share)}</td><td>${pv(p.specimen_signature)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  ${sigs.length?`<div class="pr-section"><div class="pr-sec-hd">8. Authorized Signatories</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Capacity / Role</th><th>Signature Reference</th></tr></thead>
+    <tbody>${sigs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.capacity)}</td><td>${pv(r.signature)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  ${ships.length?`<div class="pr-section"><div class="pr-sec-hd">9. Shipping Addresses</div><div class="pr-sec-body">
+    ${ships.map((s,i)=>`<div style="margin-bottom:6px;padding:5px 7px;border:1px solid #eee;border-radius:4px;"><b style="font-size:10px;">Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
+  </div></div>`:''}
+
+  ${banks.length?`<div class="pr-section"><div class="pr-sec-hd">10. Bank Details</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Bank Name</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Account Name</th><th>Branch Address</th></tr></thead>
+    <tbody>${banks.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.bank_name)}</td><td>${pv(r.account_no)}</td><td>${pv(r.ifsc)}</td><td>${pv(r.account_type)}</td><td>${pv(r.account_name)}</td><td>${pv(r.address)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  ${app.msme_registered?`<div class="pr-section"><div class="pr-sec-hd">11. MSME Details</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('MSME Registered',app.msme_registered)}${pf('Category',app.msme_category)}${pf('Udyam No.',app.udyam_no)}${pf('Udyam Date',app.udyam_date)}
+  </div></div></div>`:''}
+
+  <div class="pr-section"><div class="pr-sec-hd">12. Details of Existing Business</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Nature of Business',app.biz_nature,3)}${pf('Since Date',app.biz_date)}${pf('Year',app.biz_year)}${pf('Godown Area (sq.ft)',app.godown_area)}
+    ${pf('Shop Type',app.shop_type)}${pf('Godown Type',app.godown_type)}${pf('Residence Type',app.residence_type)}
+  </div></div></div>
+
+  ${brands.length?`<div class="pr-section"><div class="pr-sec-hd">13. Other Plywood Brands</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Brand</th><th>Since When</th><th>Monthly Sale</th></tr></thead>
+    <tbody>${brands.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.brand)}</td><td>${pv(r.since_when)}</td><td>${pv(r.monthly_sale)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  ${stocks.length?`<div class="pr-section"><div class="pr-sec-hd">14. Other Stockists / Dealers in Area</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Firm Name</th><th>Address</th><th>Brand</th><th>Monthly Sale</th></tr></thead>
+    <tbody>${stocks.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.firm_name)}</td><td>${pv(r.address)}</td><td>${pv(r.brand)}</td><td>${pv(r.monthly_sale)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  <div class="pr-section"><div class="pr-sec-hd">15. Additional Information</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Expected Business (₹)',app.expected_business)}${pf('Payment Terms',app.payment_terms)}${pf('Capacity to Invest (Lacs)',app.capacity_invest)}
+    ${pf('Total Investment (Lacs)',app.total_invest)}${pf('Convicted / Insolvent',app.convicted)}
+  </div></div></div>
+
+  ${cheqs.length?`<div class="pr-section"><div class="pr-sec-hd">16. Cheques Enclosed</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Cheque No.</th><th>Bank Name</th></tr></thead>
+    <tbody>${cheqs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.cheque_no)}</td><td>${pv(r.bank_name)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  ${refs.length?`<div class="pr-section"><div class="pr-sec-hd">17. References</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Name</th><th>Address</th><th>Relationship</th></tr></thead>
+    <tbody>${refs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.address)}</td><td>${pv(r.relationship)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+
+  ${app.remarks?`<div class="pr-section"><div class="pr-sec-hd">18. Remarks</div><div class="pr-sec-body"><div style="font-size:11px;line-height:1.7;">${pv(app.remarks)}</div></div></div>`:''}
+
+  <div class="pr-section"><div class="pr-sec-hd">20. Documents & Declaration</div><div class="pr-sec-body">
+    <p style="font-size:11px;font-weight:600;margin-bottom:6px;">Documents to be enclosed:</p>
+    <ol style="padding-left:16px;font-size:10.5px;line-height:2;margin-bottom:10px;">
+      <li>Photocopy of GST Registration Certificate — Form GST REG-06 — with all annexures (A &amp; B) attested by one of the signatories.</li>
+      <li>In case of Partnership Firm, copy of partnership deed duly attested by the partners along with a Letter of Authority in favor of the Authorized Partner / Person.</li>
+      <li>List of partners along with their addresses in case Dealer / Distributor is part of a firm associated with the Person.</li>
+      <li>Copy of list of Directors along with their addresses in case Dealer / Distributor is a Company.</li>
+      <li>Photocopy of PAN of the Firm duly attested by the Partners / Proprietor / Director.</li>
+    </ol>
+    <div style="padding:7px 10px;background:#fef9c3;border:1px solid #fde68a;border-radius:4px;font-size:10px;color:#92400e;margin-bottom:12px;">⚠️ All documents are mandatory. Application shall be rejected if any document is missing.</div>
+    <p style="font-size:11px;line-height:1.8;margin-bottom:8px;">Kindly consider favorably my / our request to become an Authorized Dealer of <strong>Duroply Industries Limited</strong>.</p>
+    <p style="font-size:11px;line-height:1.8;margin-bottom:8px;">I / We ______________________________ (Name of the Applicant) certify that the above mentioned particulars are correct and true to the best of my / our knowledge. In case of any change in above details, I / We ______________________________ (Name of the Applicant Firm) undertake to inform you.</p>
+    <p style="font-size:11px;line-height:1.8;margin-bottom:16px;">I / We ______________________________ (Name of the Applicant Firm) further confirm that I / We shall be solely responsible for collection of payment for sale made from our shop / godown / business place etc.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:16px;">
+      <div style="border-top:1px solid #999;padding-top:6px;font-size:10px;color:#555;">Date: ___________________</div>
+      <div style="border-top:1px solid #999;padding-top:6px;font-size:10px;color:#555;">
+        Yours faithfully<br>For THE — _______________________<br><br>_________________________________<br>
+        <strong>Proprietor / Karta / Partner / Director</strong><br><em>Signature with Seal</em>
+      </div>
+    </div>
+    <div style="border-top:1px solid #ddd;padding-top:10px;">
+      <strong style="font-size:10.5px;">Please Note:</strong>
+      <ol style="padding-left:16px;font-size:10px;line-height:2;margin-top:4px;">
+        <li>We encourage our Dealers / Distributors to use digital payments only.</li>
+        <li>Dealership of given territory may be revoked if the performance is found to be unsatisfactory.</li>
+        <li>Goods once sold by Duroply Industries Ltd. will not be taken back.</li>
+        <li>Duroply Industries Ltd. reserves the right to revise the policies from time to time without prior notification.</li>
+        <li>All disputes are subject to <strong>Kolkata Jurisdiction</strong> only.</li>
+      </ol>
+    </div>
+  </div></div>`;
+
+  document.getElementById('print-content').innerHTML=html;
 }
 // ════════════════════════════════════════════════════════════
 </script>
