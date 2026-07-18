@@ -343,6 +343,24 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
+        <!-- ① Area / District -->
+        <div class="fc" id="card-area">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">1b</span> Area / District Details</div></div>
+          <div class="fc-body">
+            <div class="fg c3">
+              <div class="fld" style="grid-column:span 2">
+                <label>Area or District for which Dealership is applied <span class="req">*</span></label>
+                <input type="text" id="f-dealership_area" placeholder="e.g. South Delhi, Gurugram, Patna East">
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>State</label>
+                <input type="text" id="f-dealership_state" placeholder="State name">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- ② Zone / Market / Cluster / City -->
         <div class="fc">
           <div class="fc-hd"><div class="fc-title"><span class="fc-num">2</span> Zone, Market & Territory</div></div>
@@ -567,7 +585,7 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
           <div class="fc-body">
             <table class="dyn-tbl">
-              <thead><tr><th>#</th><th>Full Name *</th><th>Designation *</th><th>DIN / PAN *</th><th></th></tr></thead>
+              <thead><tr><th>#</th><th>Full Name *</th><th>Son of / Wife of</th><th>Age</th><th>Designation *</th><th>DIN / PAN *</th><th>Share in Business (%)</th><th>Specimen Signature</th><th></th></tr></thead>
               <tbody id="tb-prop"></tbody>
             </table>
             <div style="font-size:11px;color:var(--text3);">Minimum one row required for Customer.</div>
@@ -1078,7 +1096,7 @@ function addPropRow(){
   const tb=document.getElementById('tb-prop');
   const n=tb.rows.length+1;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Full name"></td><td><input type="text" placeholder="Designation"></td><td><input type="text" placeholder="DIN / PAN"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;
+  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Full name"></td><td><input type="text" placeholder="Father / Husband name"></td><td><input type="number" placeholder="Age" min="18" max="99" style="width:70px"></td><td><input type="text" placeholder="Designation"></td><td><input type="text" placeholder="DIN / PAN"></td><td><input type="number" placeholder="%" min="0" max="100" style="width:80px"></td><td><input type="text" placeholder="Sign description / initials"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;
   tb.appendChild(tr);
 }
 function addSigRow(){
@@ -1207,6 +1225,7 @@ function collect(){
     category:g('f-category'),party_name:g('f-party_name'),
     constitution:g('f-constitution'),constitution_other:g('f-constitution_other'),
     selling_branch_id:g('f-selling_branch')||null,
+    dealership_area:g('f-dealership_area'),dealership_state:g('f-dealership_state'),
     zone:g('f-zone'),market_name:g('f-market_name'),
     cluster_name:g('f-cluster_name'),type_of_city:g('f-type_of_city'),
     billing_addr1:g('f-billing_addr1'),billing_addr2:g('f-billing_addr2'),
@@ -1232,7 +1251,7 @@ function collect(){
     capacity_invest:parseInt(g('f-capacity_invest'))||null,
     total_invest:parseInt(g('f-total_invest'))||null,
     convicted:gr('convicted'),remarks:g('f-remarks'),
-    proprietors:JSON.stringify(dyn('tb-prop',['name','designation','din_pan'])),
+    proprietors:JSON.stringify(dyn('tb-prop',['name','son_wife_of','age','designation','din_pan','share','specimen_signature'])),
     signatories:JSON.stringify(dyn('tb-sig',['name','capacity','signature'])),
     bank_details:JSON.stringify(dyn('tb-bank',['bank_name','account_no','ifsc','account_type','account_name','address'])),
     other_brands:JSON.stringify(dyn('tb-brands',['brand','since_when','monthly_sale'])),
@@ -1267,7 +1286,7 @@ async function saveApp(status){
   data.status=status;
   data.submitted_by_user_id=parseInt(currentUser.id); // store bigint id
   data.updated_at=new Date().toISOString();
-  if(!editId){data.app_number=genAppNo();data.created_at=new Date().toISOString();}
+  if(!editId){data.app_number=await genAppNo();data.created_at=new Date().toISOString();}
   if(status==='New')data.submitted_at=new Date().toISOString();
   let error;
   if(editId){({error}=await sb.from('cvr_applications').update(data).eq('id',editId));}
@@ -1290,9 +1309,23 @@ async function delApp(id){
   await loadApps();
 }
 
-function genAppNo(){
+async function genAppNo(){
   const n=new Date(),y=n.getFullYear().toString().slice(-2),m=String(n.getMonth()+1).padStart(2,'0');
-  return 'CVR-'+y+m+'-'+String(Math.floor(Math.random()*90000)+10000);
+  const prefix='CVR-'+y+m+'-';
+  // Get current max running number from Supabase
+  const{data}=await sb.from('cvr_applications')
+    .select('app_number')
+    .like('app_number', prefix+'%')
+    .order('app_number',{ascending:false})
+    .limit(1)
+    .maybeSingle();
+  let next=1;
+  if(data?.app_number){
+    const parts=data.app_number.split('-');
+    const last=parseInt(parts[parts.length-1]||'0');
+    if(!isNaN(last)) next=last+1;
+  }
+  return prefix+String(next).padStart(4,'0');
 }
 
 // ── Reset / Fill ───────────────────────────────────────
@@ -1318,6 +1351,7 @@ function fillForm(app){
   s('f-enterprise_type',app.enterprise_type);s('f-category',app.category);onCategory();
   s('f-party_name',app.party_name);s('f-constitution',app.constitution);onConstitution();
   s('f-constitution_other',app.constitution_other);s('f-selling_branch',app.selling_branch_id);
+  s('f-dealership_area',app.dealership_area||'');s('f-dealership_state',app.dealership_state||'');
   s('f-zone',app.zone);onZone();s('f-market_name',app.market_name);onMarket();
   s('f-cluster_name',app.cluster_name);s('f-type_of_city',app.type_of_city);
   s('f-billing_addr1',app.billing_addr1);s('f-billing_addr2',app.billing_addr2);
