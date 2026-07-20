@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer / Vendor Requisition — Duroply</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#e8edf2;--border:#d0d7e0;
+  --accent:#2563eb;--success:#16a34a;--danger:#dc2626;--warn:#d97706;
+  --text:#1a202c;--text2:#4a5568;--text3:#8896a8;
+  --r:10px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── Login ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#e0e7ff,#f0f4f8,#dbeafe);}
+.lcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(37,99,235,.1);}
+.llogo{text-align:center;margin-bottom:28px;}
+.llogo-icon{width:52px;height:52px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin-bottom:10px;}
+.ltitle{font-size:20px;font-weight:600;letter-spacing:-.4px;}
+.lsub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px;}
+.lcfg{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:20px;}
+.lcfg-hd{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;}
+.lsec{margin-bottom:14px;}
+.lsec label{display:block;font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.lsec input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;padding:10px 12px;border-radius:8px;outline:none;transition:border .15s;}
+.lsec input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.lcfg .lsec input{font-family:var(--mono);font-size:12px;}
+.lbtn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px;}
+.lbtn:hover{filter:brightness(1.1);}
+.lbtn:disabled{opacity:.6;cursor:not-allowed;}
+.lerr{background:#fee2e2;border:1px solid #fca5a5;color:#b91c1c;border-radius:7px;padding:9px 12px;font-size:13px;margin-top:12px;display:none;}
+.lerr.show{display:block;}
+
+/* ── App shell ── */
+#app{display:none;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.slogo{padding:0 18px 18px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+.slogo-name{font-size:13px;font-weight:600;}
+.slogo-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.uchip{margin:0 12px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;}
+.uchip-name{font-size:13px;font-weight:500;}
+.uchip-id{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(37,99,235,.07);}
+.nav-item.logout{margin-top:auto;color:var(--danger);}
+.role-badge{font-size:10px;font-family:var(--mono);background:rgba(37,99,235,.1);color:var(--accent);border-radius:4px;padding:2px 8px;margin:4px 18px 0;text-transform:capitalize;letter-spacing:.3px;display:none;}
+.nav-item.logout:hover{background:#fee2e2;}
+
+/* ── List view ── */
+.content{flex:1;padding:24px;overflow-y:auto;}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.list-title{font-size:18px;font-weight:600;}
+.search-row{display:flex;gap:10px;margin-bottom:16px;align-items:center;}
+.search-wrap{position:relative;flex:1;max-width:360px;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);width:14px;height:14px;}
+.sinput{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px 8px 32px;border-radius:var(--r);outline:none;}
+.sinput:focus{border-color:var(--accent);}
+.badge{font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--text3);padding:3px 8px;border-radius:20px;border:1px solid var(--border);}
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;white-space:nowrap;}
+td{padding:10px 14px;border-bottom:1px solid rgba(208,215,224,.6);color:var(--text2);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr{transition:background .1s;cursor:pointer;}
+tbody tr:hover td{background:var(--surface2);}
+.cp{color:var(--text)!important;font-weight:500;}
+.cm{font-family:var(--mono);font-size:11px;color:#1d4ed8!important;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-family:var(--mono);}
+.p-draft{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;}
+.p-new{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+.p-approved{background:#dcfce7;color:#15803d;border:1px solid #86efac;}
+.p-dis{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;}
+.p-sent{background:#fef9c3;color:#854d0e;border:1px solid #fde047;}
+.p-cert{background:#f3e8ff;color:#7e22ce;border:1px solid #d8b4fe;}
+.empty-state{padding:48px;text-align:center;color:var(--text3);font-size:13px;}
+
+/* ── Buttons ── */
+.btn{padding:7px 16px;border-radius:6px;border:none;font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{filter:brightness(1.1);}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* ── Form view ── */
+#form-view{display:none;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-title{font-size:15px;font-weight:600;}
+.app-no{font-family:var(--mono);font-size:12px;color:var(--accent);background:#eff6ff;border:1px solid #bfdbfe;padding:3px 9px;border-radius:5px;}
+
+/* ── Form cards ── */
+.fc{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.fc-hd{padding:12px 20px;background:linear-gradient(90deg,var(--surface2),var(--surface));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.fc-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;}
+.fc-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fc-body{padding:20px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg.c3{grid-template-columns:1fr 1fr 1fr;}
+.fg.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.fg.c1{grid-template-columns:1fr;}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld.full{grid-column:1/-1;}
+.fld label{font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;}
+.fld label .req{color:var(--danger);}
+.fld input,.fld select,.fld textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 10px;border-radius:7px;outline:none;transition:border .15s;}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--accent);}
+.fld input.err,.fld select.err{border-color:var(--danger);}
+.fld .hint{font-size:10px;color:var(--text3);margin-top:2px;}
+.fld .emsg{font-size:11px;color:var(--danger);display:none;}
+.fld.has-err .emsg{display:block;}
+.fld.has-err input,.fld.has-err select,.fld.has-err textarea{border-color:var(--danger);}
+.fld textarea{resize:vertical;min-height:64px;}
+.radio-row{display:flex;gap:16px;align-items:center;padding:8px 0;}
+.radio-row label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--sans);text-transform:none;letter-spacing:0;}
+.radio-row input[type=radio]{accent-color:var(--accent);}
+
+/* ── Legend chips ── */
+.legend-row{display:flex;gap:10px;flex-wrap:wrap;padding:10px 20px 0;font-size:11px;}
+.leg{display:flex;align-items:center;gap:5px;color:var(--text3);}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.leg-b{background:var(--danger);}
+.leg-c{background:var(--success);}
+.leg-v{background:#d97706;}
+
+/* ── Dynamic rows ── */
+.dyn-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;}
+.dyn-tbl th{background:var(--surface2);padding:7px 10px;text-align:left;font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);border-bottom:1px solid var(--border);text-transform:uppercase;}
+.dyn-tbl td{padding:5px 6px;border-bottom:1px solid rgba(208,215,224,.4);vertical-align:middle;}
+.dyn-tbl input:not([type=file]),.dyn-tbl select{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:12px;padding:5px 8px;border-radius:5px;outline:none;width:100%;}
+.dyn-tbl input:focus,.dyn-tbl select:focus{border-color:var(--accent);}
+.drow-del{background:none;border:none;color:var(--danger);cursor:pointer;padding:2px 6px;font-size:15px;line-height:1;}
+.add-row{font-size:12px;color:var(--accent);background:none;border:1px dashed var(--accent);padding:5px 14px;border-radius:6px;cursor:pointer;transition:all .15s;margin-top:4px;}
+.add-row:hover{background:rgba(37,99,235,.05);}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px;animation:tIn .2s ease;min-width:240px;box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.toast.success{border-color:#86efac;}
+.toast.error{border-color:#fca5a5;}
+@keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Shipping block ── */
+.ship-block{border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;position:relative;background:var(--bg);}
+.ship-block-hd{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+.ship-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;}
+
+/* ── Image upload ── */
+.img-upload-wrap{display:flex;flex-direction:column;gap:6px;}
+.img-upload-label{font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;}
+.img-drop-zone{border:1.5px dashed var(--border);border-radius:7px;background:var(--bg);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;min-width:160px;}
+.img-drop-zone:hover{border-color:var(--accent);background:#eff6ff;}
+.img-drop-zone input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;}
+.img-drop-icon{font-size:18px;flex-shrink:0;color:var(--text3);}
+.img-drop-text{font-size:11px;color:var(--text3);line-height:1.3;}
+.img-drop-text b{display:block;font-size:12px;color:var(--text2);font-weight:500;}
+.img-preview-wrap{display:none;align-items:center;gap:8px;margin-top:4px;}
+.img-preview-wrap.show{display:flex;}
+.img-preview-thumb{width:40px;height:40px;border-radius:5px;object-fit:cover;border:1px solid var(--border);}
+.img-preview-name{font-size:11px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+.img-preview-clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 3px;line-height:1;}
+.img-upload-inline{display:flex;flex-direction:column;gap:4px;}
+
+/* ════ PRINT / PDF ════ */
+@media print{
+  body>*:not(#print-modal){display:none!important;}
+  #print-modal{display:block!important;position:static!important;background:none!important;padding:0!important;margin:0!important;width:100%!important;}
+  #print-area{width:100%!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border-radius:0!important;}
+  #print-content{padding:8mm 10mm!important;}
+  .pm-toolbar{display:none!important;}
+  .pr-section{page-break-inside:avoid;break-inside:avoid;border:2px solid #1e293b!important;}
+  .pr-sec-hd{background:#1e3a8a!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .pr-table th{background:#334155!important;color:#fff!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .pr-table tr:nth-child(even) td{background:#e2e8f0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .pr-table td{border:1px solid #334155!important;}
+  .pr-value{border-bottom:1.5px solid #64748b!important;}
+  .pr-table{page-break-inside:auto;width:100%!important;}
+  .pr-table tr{page-break-inside:avoid;break-inside:avoid;}
+}
+#print-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;overflow-y:auto;}
+#print-modal.open{display:flex;}
+#print-area{background:#fff;width:210mm;max-height:88vh;overflow-y:auto;border-radius:8px;box-shadow:0 24px 80px rgba(0,0,0,.35);font-family:Arial,sans-serif;font-size:12px;color:#111;margin:auto;}
+.pm-toolbar{position:sticky;top:0;background:#1e40af;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:8px 8px 0 0;z-index:10;gap:10px;}
+.pm-btn{padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;}
+.pm-btn-print{background:#fff;color:#1e40af;}
+.pm-btn-close{background:rgba(255,255,255,.2);color:#fff;}
+.pm-btn:hover{opacity:.85;}
+/* Print content */
+.pr-header{text-align:center;margin-bottom:14px;border-bottom:3px solid #1e3a8a;padding-bottom:10px;}
+.pr-company{font-size:18px;font-weight:700;color:#1e3a8a;letter-spacing:1px;}
+.pr-subtitle{font-size:11px;color:#333;margin-top:2px;}
+.pr-appno{display:inline-block;background:#dbeafe;border:2px solid #1e40af;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:700;color:#1e3a8a;font-family:monospace;}
+.pr-section{margin-bottom:10px;border:2px solid #1e293b;border-radius:6px;overflow:hidden;}
+.pr-sec-hd{background:#1e3a8a;padding:6px 12px;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.pr-sec-body{padding:8px 10px;}
+.pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 16px;}
+.pr-field{margin-bottom:4px;}
+.pr-label{font-size:9px;color:#1e293b;text-transform:uppercase;letter-spacing:.4px;font-weight:700;}
+.pr-value{font-size:11px;color:#0f172a;font-weight:500;border-bottom:1.5px solid #64748b;padding-bottom:2px;min-height:16px;}
+.pr-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;}
+.pr-table th{background:#334155;padding:5px 7px;text-align:left;font-size:9px;text-transform:uppercase;color:#fff;border:1px solid #1e293b;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.pr-table td{padding:5px 7px;border:1px solid #334155;vertical-align:top;color:#0f172a;}
+.pr-table tr:nth-child(even) td{background:#e2e8f0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.pr-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;border:1px solid;}
+.pr-badge-draft{background:#e2e8f0;color:#1e293b;border-color:#94a3b8;}
+.pr-badge-new{background:#bfdbfe;color:#1e3a8a;border-color:#1e40af;}
+.pr-badge-approved{background:#bbf7d0;color:#14532d;border-color:#16a34a;}
+.pr-badge-dis{background:#fecaca;color:#7f1d1d;border-color:#dc2626;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="lcard">
+    <div class="llogo">
+      <div class="llogo-icon">D</div>
+      <div class="ltitle">Duroply Industries Ltd.</div>
+      <div class="lsub">customer / vendor requisition portal</div>
+    </div>
+    <div class="lcfg" style="display:none">
+      <div class="lcfg-hd">Supabase Connection</div>
+      <div class="lsec" style="margin-bottom:10px;">
+        <label>Project URL</label>
+        <input id="cfg-url" type="text" value="https://fplmoyrqmhoaanvfsoni.supabase.co" autocomplete="off">
+      </div>
+      <div class="lsec" style="margin-bottom:0">
+        <label>Anon Key</label>
+        <input id="cfg-key" type="password" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js" autocomplete="off">
+      </div>
+    </div>
+    <div class="lsec"><label>User ID</label><input id="l-uid" type="text" placeholder="Enter your user ID" autocomplete="username"></div>
+    <div class="lsec" style="margin-bottom:0"><label>Password</label><input id="l-pwd" type="password" placeholder="Enter your password" autocomplete="current-password"></div>
+    <button class="lbtn" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="slogo">
+      <div class="slogo-name">Duroply Industries</div>
+      <div class="slogo-sub">requisition portal · v11</div>
+    </div>
+    <div class="uchip">
+      <div class="uchip-name" id="u-name">—</div>
+      <div class="uchip-id" id="u-id">—</div>
+    </div>
+    <div class="nav-item active" id="nav-list" onclick="showList()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
+      My Applications
+    </div>
+    <div class="nav-item" id="nav-new" onclick="showNewForm()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      New Application
+    </div>
+    <div class="role-badge" id="role-badge"></div>
+    <div class="nav-item logout" onclick="doLogout()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/></svg>
+      Sign Out
+    </div>
+  </aside>
+
+  <div class="main">
+    <!-- LIST VIEW -->
+    <div id="list-view" class="content">
+      <div class="list-header">
+        <div class="list-title">My Applications</div>
+        <button class="btn btn-success" onclick="showNewForm()">+ New Application</button>
+      </div>
+      <div class="search-row">
+        <div class="search-wrap">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+          <input class="sinput" id="list-search" placeholder="Search name, app no, status…" oninput="filterList()">
+        </div>
+        <span class="badge" id="list-count">–</span>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr>
+            <th>APP NO.</th><th>PARTY NAME</th><th>TYPE</th><th>CATEGORY</th>
+            <th>ZONE</th><th>DATE</th><th>STATUS</th><th>ACTIONS</th>
+          </tr></thead>
+          <tbody id="list-tbody">
+            <tr><td colspan="8" class="empty-state"><span class="spin"></span> Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FORM VIEW -->
+    <div id="form-view">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="btn btn-ghost btn-sm" onclick="showList()">← Back</button>
+          <div class="topbar-title" id="fv-title">New Application</div>
+          <span class="app-no" id="app-no-disp" style="display:none"></span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-ghost btn-sm" id="btn-print-form" onclick="printCurrentForm()" style="display:none">⎙ Print</button>
+          <button class="btn btn-ghost btn-sm" id="btn-excel-form" onclick="downloadExcelCurrent()" style="display:none;color:#16a34a;font-weight:600;">⬇ Excel</button>
+          <button class="btn btn-success btn-sm" onclick="submitForm()">Submit Application</button>
+        </div>
+      </div>
+
+      <div class="content" style="padding-bottom:20px;">
+
+        <!-- Field legend -->
+        <div class="legend-row" style="padding:0 0 12px;">
+          <div class="leg"><div class="leg-dot leg-b"></div> Mandatory for both</div>
+          <div class="leg"><div class="leg-dot leg-c"></div> Mandatory for Customer</div>
+          <div class="leg"><div class="leg-dot leg-v"></div> Mandatory for Vendor</div>
+        </div>
+
+        <!-- ① Party & Basic -->
+        <div class="fc">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">1</span> Party & Basic Information</div>
+          </div>
+          <div class="fc-body">
+            <div class="fg c3" style="margin-bottom:14px;">
+              <div class="fld">
+                <label>Party Type <span class="req">*</span></label>
+                <select id="f-party_type" onchange="onPartyType()">
+                  <option value="">— Select —</option>
+                  <option>Customer</option>
+                  <option>Vendor</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld" id="w-enterprise">
+                <label>Type of Enterprise</label>
+                <select id="f-enterprise_type">
+                  <option value="">— Select —</option>
+                  <option>Manufacturing</option><option>Trading</option><option>Services</option>
+                </select>
+              </div>
+              <div class="fld">
+                <label>Category <span class="req">*</span></label>
+                <select id="f-category" onchange="onCategory()">
+                  <option value="">— Select Party Type First —</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+            </div>
+            <div class="fg c3">
+              <div class="fld full">
+                <label>Party Name <span class="req">*</span></label>
+                <input id="f-party_name" type="text" placeholder="Name of the firm (UPPER CASE)">
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>Constitution of Firm <span class="req">*</span></label>
+                <select id="f-constitution" onchange="onConstitution()">
+                  <option value="">— Select —</option>
+                  <option>Proprietorship</option><option>Partnership</option>
+                  <option>Hindu Undivided Family (HUF)</option><option>Co-operative</option>
+                  <option>Private Limited Company</option><option>Public Limited Company</option>
+                  <option>Others</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld" id="w-const-other" style="display:none">
+                <label>Specify Constitution <span class="req">*</span></label>
+                <input id="f-constitution_other" type="text" placeholder="Specify…">
+              </div>
+              <div class="fld" id="w-selling-branch">
+                <label>Selling Branch <span class="req" id="sb-req">*</span></label>
+                <select id="f-selling_branch">
+                  <option value="">— Select Branch —</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ① Area / District -->
+        <div class="fc" id="card-area">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">1b</span> Area / District Details</div></div>
+          <div class="fc-body">
+            <div class="fg c3">
+              <div class="fld" style="grid-column:span 2">
+                <label>Area or District for which Dealership is applied <span class="req">*</span></label>
+                <input type="text" id="f-dealership_area" placeholder="e.g. South Delhi, Gurugram, Patna East">
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>State</label>
+                <input type="text" id="f-dealership_state" placeholder="State name">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ② Zone / Market / Cluster / City -->
+        <div class="fc">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">2</span> Zone, Market & Territory</div></div>
+          <div class="fc-body">
+            <div class="fg c4">
+              <div class="fld">
+                <label>Zone <span class="req" id="zone-req">*</span></label>
+                <select id="f-zone" onchange="onZone()">
+                  <option value="">— Select Zone —</option>
+                  <option>NORTH</option><option>SOUTH</option><option>EAST</option>
+                  <option>WEST</option><option>CENTRAL</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>Market Name <span class="req" id="mkt-req">*</span></label>
+                <select id="f-market_name" onchange="onMarket()">
+                  <option value="">— Select Zone First —</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>Cluster Name <span class="req" id="cls-req">*</span></label>
+                <select id="f-cluster_name">
+                  <option value="">— Select Market First —</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>Type of City <span class="req" id="city-type-req">*</span></label>
+                <select id="f-type_of_city">
+                  <option value="">— Select —</option>
+                  <option>D-HQ</option><option>Metro</option>
+                  <option>Mini Metro</option><option>Others</option>
+                </select>
+                <span class="emsg">Required</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ③ Billing Address -->
+        <div class="fc" id="card-billing">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">3</span> Billing Address <span id="bill-lbl" style="font-size:11px;font-weight:400;color:var(--success);">(Mandatory for Customer)</span></div></div>
+          <div class="fc-body">
+            <div class="fg">
+              <div class="fld full"><label>Address Line 1 <span class="req" id="ba1-req">*</span></label><input id="f-billing_addr1" placeholder="Address line 1 (UPPER CASE)"></div>
+              <div class="fld full"><label>Address Line 2</label><input id="f-billing_addr2" placeholder="Address line 2 (optional)"></div>
+              <div class="fld full"><label>Address Line 3</label><input id="f-billing_addr3" placeholder="Address line 3 (optional)"></div>
+              <div class="fld"><label>City <span class="req" id="bc-req">*</span></label><input id="f-billing_city" placeholder="City"></div>
+              <div class="fld"><label>Pincode <span class="req" id="bp-req">*</span></label><input id="f-billing_pin" maxlength="6" placeholder="PIN Code"></div>
+              <div class="fld">
+                <label>State <span class="req" id="bs-req">*</span></label>
+                <select id="f-billing_state"><option value="">— Select State —</option></select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ④ Contact -->
+        <div class="fc">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">4</span> Contact Details</div></div>
+          <div class="fc-body">
+            <div class="fg c3">
+              <div class="fld">
+                <label>Contact Person <span class="req" id="cp-req">*</span></label>
+                <input id="f-contact_person" placeholder="Contact person name">
+                <span class="emsg">Required for Customer</span>
+              </div>
+              <div class="fld">
+                <label>Email ID <span class="req">*</span></label>
+                <input id="f-email" type="email" placeholder="email@example.com">
+                <span class="hint">Note: Email should NOT be in upper case</span>
+                <span class="emsg">Valid email required</span>
+              </div>
+              <div class="fld">
+                <label>Mobile No. <span class="req" id="mob-req">*</span></label>
+                <input id="f-mobile" maxlength="15" placeholder="10+ digit mobile (digits only)">
+                <span class="emsg">Min 10 digits required</span>
+              </div>
+              <div class="fld"><label>Alt. Mobile No.</label><input id="f-alt_mobile" maxlength="15" placeholder="Alternate mobile (optional)"></div>
+              <div class="fld"><label>WhatsApp No.</label><input id="f-whatsapp" maxlength="15" placeholder="WhatsApp number (optional)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑤ Tax & Compliance -->
+        <div class="fc">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">5</span> Tax & Compliance</div></div>
+          <div class="fc-body">
+            <div class="fg c3">
+              <div class="fld">
+                <label>GST Type <span class="req">*</span></label>
+                <select id="f-gst_type">
+                  <option value="">— Select —</option><option>Regular</option><option>Composite</option>
+                </select><span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>GST Status <span class="req">*</span></label>
+                <select id="f-gst_status" onchange="onGstStatus()">
+                  <option value="">— Select —</option>
+                  <option>Registered</option><option>Unregistered</option><option>Not Applicable</option>
+                </select><span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>Vendor GST Category <span class="req">*</span></label>
+                <select id="f-vendor_gst_category">
+                  <option value="">— Select —</option>
+                  <option>Regular (Domestic Tarrif Area - DTA)</option>
+                  <option>Import (Foreign Supplier)</option><option>India Customs</option>
+                  <option>SEZ Unit or SEZ Developer - Bonded</option>
+                  <option>SEZ Unit or SEZ Developer - Non Bonded</option>
+                  <option>Deemed Imports</option><option>Composition Taxable Person</option>
+                </select><span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>GST No. <span class="req" id="gst-no-req" style="display:none">*</span></label>
+                <input id="f-gst_no" maxlength="15" placeholder="15-char GST number">
+                <span class="hint">Format: 2-digit state code + PAN + 1 + Z + 1</span>
+                <span class="emsg">Invalid GST format</span>
+              </div>
+              <div class="fld">
+                <label>GST State <span class="req">*</span></label>
+                <select id="f-gst_state"><option value="">— Select —</option></select>
+                <span class="emsg">Required</span>
+              </div>
+              <div class="fld">
+                <label>PAN No. <span class="req">*</span></label>
+                <input id="f-pan" maxlength="10" placeholder="AAAAA9999A">
+                <span class="hint">5 Alpha + 4 Digits + 1 Alpha (UPPER CASE)</span>
+                <span class="emsg">Invalid PAN format</span>
+              </div>
+              <div class="fld img-upload-wrap">
+                <label class="img-upload-label">PAN Card Image <span style="color:var(--text3)">(Optional)</span></label>
+                <label for="f-pan-img" class="img-drop-zone" id="dz-pan" style="cursor:pointer;">
+                  <input type="file" id="f-pan-img" accept="image/*,.pdf" onchange="onImgSelect('f-pan-img','prev-pan','dz-pan')">
+                  <span class="img-drop-icon">&#128196;</span>
+                  <div class="img-drop-text"><b>Upload PAN Card</b>JPG, PNG or PDF</div>
+                </label>
+                <div class="img-preview-wrap" id="prev-pan">
+                  <img class="img-preview-thumb" id="prev-pan-thumb" src="" alt="" style="display:none;">
+                  <a class="img-preview-name" id="prev-pan-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
+                  <button class="img-preview-clear" onclick="clearImg('f-pan-img','prev-pan','dz-pan')" title="Remove">&#10005;</button>
+                </div>
+              </div>
+              <div class="fld img-upload-wrap">
+                <label class="img-upload-label">GST Certificate Image <span style="color:var(--text3)">(Optional)</span></label>
+                <label for="f-gst-img" class="img-drop-zone" id="dz-gst" style="cursor:pointer;">
+                  <input type="file" id="f-gst-img" accept="image/*,.pdf" onchange="onImgSelect('f-gst-img','prev-gst','dz-gst')">
+                  <span class="img-drop-icon">&#128203;</span>
+                  <div class="img-drop-text"><b>Upload GST Certificate</b>JPG, PNG or PDF</div>
+                </label>
+                <div class="img-preview-wrap" id="prev-gst">
+                  <img class="img-preview-thumb" id="prev-gst-thumb" src="" alt="" style="display:none;">
+                  <a class="img-preview-name" id="prev-gst-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
+                  <button class="img-preview-clear" onclick="clearImg('f-gst-img','prev-gst','dz-gst')" title="Remove">&#10005;</button>
+                </div>
+              </div>
+              <div class="fld">
+                <label>Vendor TDS Type <span class="req">*</span></label>
+                <select id="f-tds_type">
+                  <option value="">— Select —</option>
+                  <option>Company</option><option>Other</option><option>Not Applicable</option>
+                </select><span class="emsg">Required</span>
+              </div>
+              <div class="fld full">
+                <label>TDS Section (WTax Name) <span class="req">*</span></label>
+                <select id="f-tds_section">
+                  <option value="">— Select —</option>
+                  <option>TD01-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
+                  <option>TD02-NON-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
+                  <option>TD03-NON-COM-TDS FOR PROF. SERVICE-194J@10%</option>
+                  <option>TD04-COM-TDS FOR PROF. SERVICE-194J@10%</option>
+                  <option>TD05-NON-COM-TDS FOR TECH. SERVICE-194J@2%</option>
+                  <option>TD06-COM-TDS FOR TECH. SERVICE-194J@2%</option>
+                  <option>TD07-NON-COM-TDS FOR COMMISSION OR BROKERAGE-194H@2%</option>
+                  <option>TD08-NON-COM-TDS FOR CONTRACTORS-194C@1%</option>
+                  <option>TD09-COM-TDS FOR CONTRACTORS-194C@2%</option>
+                  <option>TD10-COM-TDS FOR COMMISSION OR BROKERAGE-194H@2%</option>
+                  <option>TD11-COM-TDS FOR RENT ON LAND&amp;BUILDING,F&amp;F-194I@10%</option>
+                  <option>TD12-NON-COM-TDS FOR RENT ON LAND&amp;BUILDING,F&amp;F-194I@10%</option>
+                  <option>TD13-NON-COM-TDS FOR RENT ON P&amp;M AND EQUIPMENT-194I@2%</option>
+                  <option>TD14-COM-TDS FOR RENT ON P&amp;M AND EQUIPMENT-194I@2%</option>
+                  <option>TD15-NON-COM-TDS FOR INTEREST(OTHERS)-194A@10%</option>
+                  <option>TD16-COM-TDS FOR INTEREST(OTHERS)-194A@10%</option>
+                  <option>TD17-FIRM-TDS FOR CONTRACTORS-194C@2%</option>
+                  <option>TD18-NON-COM-TDS FOR GIFT-194R@10%</option>
+                  <option>TD19-COM-TDS FOR GIFT-194R@10%</option>
+                  <option>TD20-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
+                  <option>TD21-NON-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
+                </select><span class="emsg">Required</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑥ Customer Details -->
+        <div class="fc" id="card-cust">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">6</span> Customer Details</div></div>
+          <div class="fc-body">
+            <div class="fg c4">
+              <div class="fld" id="w-dealer-code">
+                <label>Dealer Code <span style="color:var(--text3)">(Sub Dealer)</span></label>
+                <input id="f-dealer_code" placeholder="Dealer code for validation">
+              </div>
+              <div class="fld"><label>Credit Limit</label><input id="f-credit_limit" type="number" value="0"></div>
+              <div class="fld"><label>Credit Days</label><input id="f-credit_days" type="number" value="0"></div>
+              <div class="fld">
+                <label>Sales Person <span class="req">*</span></label>
+                <select id="f-sales_person"><option value="">— Select —</option></select>
+                <span class="emsg">Required</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑦ Proprietors -->
+        <div class="fc" id="card-prop">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">7</span> Proprietor / Partner / Karta / Member / Director</div>
+            <button class="add-row" onclick="addPropRow()">+ Add Row</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Full Name *</th><th>Son of / Wife of</th><th>Age</th><th>Designation *</th><th>DIN / PAN *</th><th>Share in Business (%)</th><th>Specimen Signature</th><th></th></tr></thead>
+              <tbody id="tb-prop"></tbody>
+            </table>
+            <div style="font-size:11px;color:var(--text3);">Minimum one row required for Customer.</div>
+          </div>
+        </div>
+
+        <!-- ⑧ Authorized Signatories -->
+        <div class="fc" id="card-sig">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">8</span> Authorized Signatories <span style="font-size:11px;font-weight:400;color:var(--text3);">(Optional · max 5)</span></div>
+            <button class="add-row" onclick="addSigRow()">+ Add Row</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Full Name *</th><th>Capacity *</th><th>Specimen Signature *</th><th></th></tr></thead>
+              <tbody id="tb-sig"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⑨ Shipping Addresses -->
+        <div class="fc" id="card-ship">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">9</span> Shipping Address <span style="font-size:11px;font-weight:400;color:var(--text3);">(Customer only · max 5)</span></div>
+            <button class="add-row" onclick="addShipping()">+ Add Address</button>
+          </div>
+          <div class="fc-body" id="ship-body">
+            <div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>
+          </div>
+        </div>
+
+        <!-- ⑩ Bank Details -->
+        <div class="fc">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">10</span> Bank Details <span style="font-size:11px;font-weight:400;color:var(--text3);">(Both · Optional)</span></div>
+            <button class="add-row" onclick="addBankRow()">+ Add Bank</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Bank Name *</th><th>Account No. *</th><th>IFSC *</th><th>Acc. Type</th><th>Acc. Name</th><th>Address</th><th></th></tr></thead>
+              <tbody id="tb-bank"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⑪ MSME -->
+        <div class="fc" id="card-msme">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">11</span> MSME Details <span style="font-size:11px;font-weight:400;color:var(--warn);">(Vendor only)</span></div></div>
+          <div class="fc-body">
+            <div class="fg c4">
+              <div class="fld">
+                <label>Registered under MSME? <span class="req">*</span></label>
+                <div class="radio-row">
+                  <label><input type="radio" name="msme" value="Yes" onchange="onMsme()"> Yes</label>
+                  <label><input type="radio" name="msme" value="No" onchange="onMsme()" checked> No</label>
+                  <label><input type="radio" name="msme" value="Unknown" onchange="onMsme()"> Unknown</label>
+                </div>
+              </div>
+              <div class="fld" id="w-msme-cat">
+                <label>MSME Category <span class="req">*</span></label>
+                <select id="f-msme_category">
+                  <option value="">— Select —</option>
+                  <option>Micro Enterprise</option><option>Small Enterprise</option>
+                  <option>Medium Enterprise</option><option>Others</option>
+                </select>
+              </div>
+              <div class="fld" id="w-udyam-no">
+                <label>UDYAM Registration No. <span class="req">*</span></label>
+                <input id="f-udyam_no" placeholder="XXXXX-XX-00-0000000">
+                <span class="hint">Format: 5 letters-2 letters-2 digits-7 digits</span>
+              </div>
+              <div class="fld" id="w-udyam-date">
+                <label>UDYAM Registration Date <span class="req">*</span></label>
+                <input id="f-udyam_date" type="date">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑫ Existing Business -->
+        <div class="fc" id="card-biz">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">12</span> Details of Existing Business <span style="font-size:11px;font-weight:400;color:var(--success);">(Mandatory for Customer)</span></div></div>
+          <div class="fc-body">
+            <div class="fg" style="margin-bottom:14px;">
+              <div class="fld full">
+                <label>Nature of Business <span class="req">*</span></label>
+                <textarea id="f-biz_nature" rows="3" placeholder="Describe nature of business…"></textarea>
+              </div>
+              <div class="fld"><label>Date of Starting</label><input id="f-biz_date" type="date" oninput="onBizDate()"></div>
+              <div class="fld"><label>Year of Starting <span class="req">*</span></label><input id="f-biz_year" maxlength="4" placeholder="YYYY"></div>
+              <div class="fld"><label>Area of Godown (Sq.Ft.)</label><input id="f-godown_area" type="number" step="0.01" placeholder="0.00"></div>
+            </div>
+            <div class="fg c3">
+              <div class="fld">
+                <label>Shop <span class="req">*</span></label>
+                <div class="radio-row"><label><input type="radio" name="shop_t" value="Rented"> Rented</label><label><input type="radio" name="shop_t" value="Owned"> Owned</label></div>
+              </div>
+              <div class="fld">
+                <label>Godown <span class="req">*</span></label>
+                <div class="radio-row"><label><input type="radio" name="godown_t" value="Rented"> Rented</label><label><input type="radio" name="godown_t" value="Owned"> Owned</label></div>
+              </div>
+              <div class="fld">
+                <label>Residence <span class="req">*</span></label>
+                <div class="radio-row"><label><input type="radio" name="res_t" value="Rented"> Rented</label><label><input type="radio" name="res_t" value="Owned"> Owned</label></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑬ Other Plywood Brands -->
+        <div class="fc" id="card-brands">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">13</span> Other Plywood Brands <span style="font-size:11px;font-weight:400;color:var(--text3);">(Customer · Optional)</span></div>
+            <button class="add-row" onclick="addBrand()">+ Add Brand</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Brand Name * (60c)</th><th>Since When * (20c)</th><th>Avg Monthly Sale (₹) *</th><th></th></tr></thead>
+              <tbody id="tb-brands"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⑭ Other Stockists -->
+        <div class="fc" id="card-stock">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">14</span> Other Stockists / Dealers in Area <span style="font-size:11px;font-weight:400;color:var(--text3);">(Customer · Optional)</span></div>
+            <button class="add-row" onclick="addStockist()">+ Add Row</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Firm Name *</th><th>Address (200c)</th><th>Brand/Company * (60c)</th><th>Avg Monthly Sale (₹)</th><th></th></tr></thead>
+              <tbody id="tb-stock"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⑮ Additional Info -->
+        <div class="fc">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">15</span> Additional Information</div></div>
+          <div class="fc-body">
+            <div class="fg c3">
+              <div class="fld" id="w-exp-biz"><label>Expected Business in FY (₹)</label><input id="f-expected_business" type="number" placeholder="Amount"></div>
+              <div class="fld"><label>Terms of Payment (100c)</label><input id="f-payment_terms" maxlength="100" placeholder="Payment terms"></div>
+              <div class="fld" id="w-cap1"><label>Capacity to Invest in Products (Lacs)</label><input id="f-capacity_invest" type="number"></div>
+              <div class="fld" id="w-cap2"><label>Total Capacity to Invest (Lacs)</label><input id="f-total_invest" type="number"></div>
+              <div class="fld">
+                <label>Convicted / Insolvent?</label>
+                <div class="radio-row">
+                  <label><input type="radio" name="convicted" value="Yes"> Yes</label>
+                  <label><input type="radio" name="convicted" value="No" checked> No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑯ Cheques -->
+        <div class="fc" id="card-cheques">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">16</span> Cheques Enclosed <span style="font-size:11px;font-weight:400;color:var(--text3);">(Customer · max 2)</span></div>
+            <button class="add-row" onclick="addCheque()">+ Add Cheque</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Cheque No. *</th><th>Bank Name *</th><th>Cheque Image</th><th></th></tr></thead>
+              <tbody id="tb-cheques"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⑰ References -->
+        <div class="fc">
+          <div class="fc-hd">
+            <div class="fc-title"><span class="fc-num">17</span> References <span style="font-size:11px;font-weight:400;color:var(--text3);">(Both · Optional · max 3)</span></div>
+            <button class="add-row" onclick="addRef()">+ Add Reference</button>
+          </div>
+          <div class="fc-body">
+            <table class="dyn-tbl">
+              <thead><tr><th>#</th><th>Name * (40c)</th><th>Address * (100c)</th><th>Relationship * (20c)</th><th></th></tr></thead>
+              <tbody id="tb-refs"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⑱ Remarks -->
+        <div class="fc">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">18</span> Remarks</div></div>
+          <div class="fc-body">
+            <div class="fld"><label>Remarks (Optional)</label><textarea id="f-remarks" rows="3" placeholder="Any additional remarks…"></textarea></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+          <button class="btn btn-ghost" onclick="showList()">Cancel</button>
+          <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-success" onclick="submitForm()">Submit Application</button>
+        </div>
+
+      </div>
+    </div><!-- /form-view -->
+  </div>
+</div>
+</div>
+
+<div id="print-modal">
+  <div id="print-area">
+    <div class="pm-toolbar">
+      <span style="color:#fff;font-weight:600;font-size:13px;">📄 Preview — Customer / Vendor Requisition</span>
+      <div style="display:flex;gap:8px;">
+        <button class="pm-btn pm-btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
+        <button class="pm-btn pm-btn-close" onclick="closePrint()">✕ Close</button>
+      </div>
+    </div>
+    <div id="print-content" style="padding:12mm 14mm;"></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ── Reference data ──────────────────────────────────────
+const SELLING_BRANCHES = ["ANDHRA PRADESH - S2","ASSAM - E1","BIHAR - E3","CENTRAL U.P. - NA","CHHATTISGARH - C1","DELHI CORPORATE OFFICE - N9","EAST U.P. - N1","GUJARAT - W1","HARYANA - N4","HP-TRICITY - N7","INSTITUTIONAL - Z0","JAMMU - N8","JHARKHAND - E2","KERALA - S3","KOLKATA CORPORATE OFFICE - E6","MADHYA PRADESH - C0","MAHARASHTRA - W0","NCR - N0","NIODA AND GREATER NOIDA - NB","NORTH KARNATAKA - S5","ODISHA - E4","PUNE - W2","PUNJAB - N3","RAJASTHAN - N5","RAJKOT FACTORY - F0","SOUTH KARNATAKA - S0","TAMIL NADU - S4","TELANGANA - S1","TRIPURA - E5","UTTARAKHAND - N6","VIDARBHA - W3","WEST BENGAL - E0","WEST U.P. - N2"];
+
+const GST_STATES = ["ANDAMAN & NICOBAR ISLANDS -35","ANDHRA PRADESH (NEW) -37","ANDHRA PRADESH (OLD) -28","ARUNACHAL PRADESH -12","ASSAM -18","BIHAR -10","CHANDIGARH -04","CHHATTISGARH -22","DADRA & NAGAR HAVELI -26","DAMAN & DIU -25","DELHI -07","GOA -30","GUJARAT -24","HARYANA -06","HIMACHAL PRADESH -02","JAMMU & KASHMIR -01","JHARKHAND -20","KARNATAKA -29","KERALA -32","LAKSHADWEEP -31","MADHYA PRADESH -23","MAHARASHTRA -27","MANIPUR -14","MEGHALAYA -17","MIZORAM -15","NAGALAND -13","ORISSA -21","PUDUCHERRY -34","PUNJAB -03","RAJASTHAN -08","SIKKIM -11","TAMIL NADU -33","TELENGANA -36","TRIPURA -16","UTTAR PRADESH -09","UTTARAKHAND -05","WEST BENGAL -19"];
+
+const CUSTOMER_CATS = ["Dealer- (01311)","Distributor- (01311)","OEM- (01311)","Project- (01311)","Other- (01311)","Sub Dealer- (01311)"];
+const VENDOR_CATS = ["Supplier-Raw Materials (Indigenous) (00511)","Supplier-Raw Materials (Imported) (00512)","Supplier-Chemical & Stores (Imported) (00513)","Supplier-Chemicals & Stores (Indigenous) (00514)","Supplier-Trading Goods (Indigenous) (00515)","Supplier-Trading Goods (Imported) (00518)","Supplier-Land (00501)","Supplier-Capital Assets (00516)","Supplier-Miscellaneous (00519)","Service Provider-Commission (00535)","Service Provider-Transporters (00536)","Service Provider-Contractors (00537)","Service Provider-Others (00539)","Loans-Term Loan From Banks (Secured) (00117)","Loans-Other Loans From Banks (Unsecured) (00211)","Loans-Other Loans From Companies (Unsecured) (00212)","Loans-Loans From Others (Unsecured) (00213)","Trade Payable-Bill Discounted (00510)","Trade Payable-Advances Against Booking Of Plots & Houses (00525)","Adv from Customer-Advances From Agents And Customers (00522)","Sec. Dep. & Lia.-Deposits From Agents And Customers (00521)"];
+
+const MARKETS = {
+  CENTRAL:["BILASPUR","DURG","RAIPUR"],
+  NORTH:["AGRA","AJMER","ALIGARH","ALWAR","AMBALA","AMRITSAR","AYODHYA","AZAMGARH","BANDA","BAREILLY","CENTRAL PUNJAB","DEHRADUN","EAST DELHI","ETAWAH","FARIDABAD","FARRUKHABAD","GHAZIABAD","GORAKHPUR","GREATER NOIDA","GURGAON","HADOTI REGION","HARDOI","HARIDWAR","HISSAR","JAIPUR","JAMMU AND KASHMIR","JHANSI","KANPUR","KOTA","LUCKNOW","M. NAGAR","MARWAD REGION","MATHURA","MEERUT","MEVAD REGION","MIRZAPUR","MORADABAD","NOIDA","NORTH DELHI","NORTH PUNJAB","PANIPAT","PRAYAGRAJ","REWARI","ROHTAK","RUDRAPUR","SEKHAWATI","SOUTH DELHI","SRIGANGANAGAR","TRI CITY","VARANASI","WEST PUNJAB"],
+  SOUTH:["ADILABAD","BANGALORE CITY","BELGAUM","BELLARY","CENTRAL KERALA","CENTRAL TAMILNADU","CHENNAI","COASTAL ANDHRA","COIMBATORE","DAVANGERI","EAST TAMILANADU","GOA","GULBARGA","GUNTUR","HUBLI","HYDERABAD URBAN","KARIMANGAR","KARWAR","KHAMMAM","MADHURAI","NELLORE","NIZAMABAD","NORTH KERALA","NORTH TAMILNADU","NORTH WEST TAMILNADU","ONGOLE","RAYALASEEMA","SIDDIPET","SOUTH KERALA","SOUTH TAMILNADU","TIRUPATI","TRISSUR","VELLORE","VIJAYAWADA TWIN CITY","VISHAKHAPATNAM","WARANGAL"],
+  EAST:["AGARTALA","BEGUSARAI","BHAGALPUR","BHUBANESWAR","BOKARO","BONGAIGAON","DEOGHAR","DHANBAD","DUMKA","GAYA","GUWAHATI","HAZARIBAGH","HOWRAH & HOOGHLY","JAMSHEDPUR","JHARSUGDA","JORHAT","KOLKATA","LOWER ASSAM","MUZAFFARPUR ZONE 1","MUZAFFARPUR ZONE 2","MUZAFFARPUR ZONE 3","NORTH BENGAL","NORTH BIHAR","NORTH KOLKATA","PALAMU","PATNA","PURNEA","RANCHI CITY","ROURKELA","SAMBAPLUR","SANTHAL PARGANA","SASARAM","SHILLONG","SILCHAR","SOUTH BENGAL","SOUTH KOLKATA","TEZPUR","TRIPURA","UPPER ASSAM","WEST SINGHBHUM","WESTERN ORISSA"],
+  WEST:["AHMEDABAD","AKOLA","AMRAVATI","ANAND","AURANGABAD","BHARUCH","BHOPAL","CHANDRAPUR","CHINDWARA","DHULE","GWALIOR","HOSHANGABAD","INDORE","JABALPUR","JALNA","KATNI","KOLHAPUR","LALGHATI","MARATHWADA","MEHSANA","MUMBAI MMR","NAGPUR CITY","NAGPUR SOUTH & EAST","NANDED","NASIK","NAVI MUMBAI","NEW INDORE","NEW MARKET","OLD INDORE","PCMC","PUNE NORTH & WEST","PUNE SOUTH & EAST","RAJKOT CITY","RAJKOT SURROUNDING","SAGAR","SANGLI","SATARA","SATNA","SHIRDI","SOLAPUR","SOUTH MUMBAI","SURAT","THANA DISTRICT","UPCOUNTRY GWALIOR","VADODARA","VALSAD","VIDARBHA","VIDISHA","VINDYACHAL","YAVATMAL"]
+};
+
+// ── State ──────────────────────────────────────────────
+let sb=null, currentUser=null, apps=[], editId=null;
+
+// ── Auto-init from index.html session ────────────────────────
+async function autoInitFromSession(){
+  let sess=window._sessionUser;
+  if(!sess){
+    try{
+      const raw=sessionStorage.getItem('duroply_session');
+      if(raw) sess=JSON.parse(raw);
+    }catch(e){}
+  }
+  if(!sess||!sess.id) return;
+  window._sessionUser=sess;
+  sb=supabase.createClient(
+    'https://fplmoyrqmhoaanvfsoni.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js',
+    {auth:{persistSession:false}}
+  );
+  currentUser=sess;
+  document.getElementById('u-name').textContent=[sess.fname,sess.lname].filter(Boolean).join(' ')||sess.userid;
+  document.getElementById('u-id').textContent=sess.userid;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  populateStatic();
+  await loadUserSession();
+  await loadSalesPersons();
+  await loadApps();
+}
+// Check session on load (before DOMContentLoaded fires in some browsers)
+// Auto-init from index.html session (sessionStorage)
+document.addEventListener('DOMContentLoaded', function(){
+  if(window._sessionUser){
+    autoInitFromSession();
+    return;
+  }
+  try{
+    const raw = sessionStorage.getItem('duroply_session');
+    if(raw){
+      const sess = JSON.parse(raw);
+      if(sess && sess.id){
+        window._sessionUser = sess;
+        autoInitFromSession();
+      }
+    }
+  }catch(e){}
+});
+
+// ── Populate static dropdowns ──
+function populateStatic(){
+  const fill=(id,arr)=>{const s=document.getElementById(id);s.innerHTML='<option value="">— Select —</option>';arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});};
+  fill('f-billing_state', SELLING_BRANCHES);
+  fill('f-gst_state', GST_STATES);
+  // Selling branch (text based, same as billing states list)
+  const sb_sel=document.getElementById('f-selling_branch');
+  sb_sel.innerHTML='<option value="">— Select Branch —</option>';
+  SELLING_BRANCHES.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sb_sel.appendChild(o);});
+}
+
+// ── Login ──────────────────────────────────────────────
+async function doLogin(){
+  const url='https://fplmoyrqmhoaanvfsoni.supabase.co';
+  const key='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwbG1veXJxbWhvYWFudmZzb25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4Mzg0MTQsImV4cCI6MjA5NDQxNDQxNH0._bEsoCy3MS_rE1XBRI7ye0feODIDll0Vk3uESs2L7js';
+  const uid=document.getElementById('l-uid').value.trim();
+  const pwd=document.getElementById('l-pwd').value;
+  const btn=document.getElementById('login-btn');
+  document.getElementById('lerr').className='lerr';
+  if(!url||!key){showLE('Enter Supabase URL and Anon Key.');return;}
+  if(!uid){showLE('Enter your User ID.');return;}
+  if(!pwd){showLE('Enter your password.');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Signing in…';
+  try{
+    sb=supabase.createClient(url,key,{auth:{persistSession:false}});
+    const{data,error}=await sb.from('users').select('id,userid,fname,lname,status,pwd_old').eq('userid',uid).limit(1);
+    if(error){showLE('DB error: '+error.message);sb=null;return;}
+    if(!data||!data.length){showLE('User ID not found.');return;}
+    const u=data[0];
+    if(u.pwd_old!==pwd){showLE('Incorrect password.');return;}
+    if(u.status!=1){showLE('Account inactive. Contact administrator.');return;}
+    currentUser=u;
+    const name=[u.fname,u.lname].filter(Boolean).join(' ')||u.userid;
+    document.getElementById('u-name').textContent=name;
+    document.getElementById('u-id').textContent=u.userid;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    populateStatic();
+    await loadUserSession();
+    await loadSalesPersons();
+    await loadApps();
+  }catch(e){showLE('Connection error: '+e.message);sb=null;}
+  finally{btn.disabled=false;btn.textContent='Sign In';}
+}
+function showLE(m){const e=document.getElementById('lerr');e.textContent=m;e.className='lerr show';document.getElementById('login-btn').disabled=false;document.getElementById('login-btn').textContent='Sign In';}
+function doLogout(){
+  if(!confirm('Sign out?'))return;
+  sb=null;currentUser=null;
+  sessionStorage.removeItem('duroply_session');
+  document.getElementById('l-pwd').value='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  // If running inside index.html iframe, redirect parent to home
+  if(window.parent&&window.parent!==window){
+    try{window.parent.postMessage('logout','*');}catch(e){}
+  }
+}
+['l-uid','l-pwd'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+
+async function loadSalesPersons(){
+  try{
+    const{data}=await sb.from('users').select('id,userid,fname,lname').eq('status',1).order('fname');
+    const s=document.getElementById('f-sales_person');
+    if(data)data.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=([u.fname,u.lname].filter(Boolean).join(' ')||u.userid)+' ('+u.userid+')';s.appendChild(o);});
+  }catch(e){}
+}
+
+// ── Load apps ──────────────────────────────────────────
+async function loadApps(){
+  if(!sb||!currentUser)return;
+  const scope=getRBACScope();
+  const myId=parseInt(currentUser.id);
+
+  // Always get full reportee tree first (includes self)
+  const reporteeIds=await getReporteeIds(myId);
+
+  let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
+
+  if(scope==='all'){
+    // no filter — super_admin sees everything
+  } else if(scope==='zone'){
+    // Zone manager: see all reportees' records (via cc_users tree)
+    // This covers S01429 reporting to S01269 regardless of branch/zone field
+    query=query.in('submitted_by_user_id', reporteeIds);
+  } else if(scope==='reportees'){
+    query=query.in('submitted_by_user_id', reporteeIds);
+  } else {
+    // own_branch — only own records
+    query=query.eq('submitted_by_user_id', myId);
+  }
+
+  const{data,error}=await query;
+  apps=data||[];
+  renderList(apps);
+}
+
+function renderList(rows){
+  document.getElementById('list-count').textContent=rows.length+' applications';
+  const tb=document.getElementById('list-tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">No applications yet. Click "+ New Application" to get started.</td></tr>';return;}
+  tb.innerHTML=rows.map(r=>{
+    const canEdit=canEditRecord(r);
+    const canDel=(r.status==='Draft'||r.status==='New');
+    return `<tr onclick="${canEdit?`editApp('${r.id}')`:'void(0)'}" style="cursor:${canEdit?'pointer':'default'}">
+      <td class="cm">${xe(r.app_number||'—')}</td>
+      <td class="cp">${xe(r.party_name||'—')}</td>
+      <td>${xe(r.party_type||'—')}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${xe(r.category||'—')}</td>
+      <td>${xe(r.zone||'—')}</td>
+      <td>${r.created_at?new Date(r.created_at).toLocaleDateString('en-IN'):'—'}</td>
+      <td>${statusPill(r.status||'Draft')}</td>
+      <td onclick="event.stopPropagation()">
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-ghost btn-sm" onclick="printApp('${r.id}')" title="Print/PDF">⎙</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadExcel('${r.id}')" title="Download Excel" style="color:#16a34a;font-size:10px;font-weight:600;">XLS</button>
+          ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="editApp('${r.id}')">✎</button>`:''}
+          ${canDel?`<button class="btn btn-danger btn-sm" onclick="delApp('${r.id}')">✕</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterList(){
+  const q=document.getElementById('list-search').value.toLowerCase();
+  renderList(apps.filter(r=>[r.app_number,r.party_name,r.party_type,r.category,r.zone,r.status].some(v=>(v||'').toLowerCase().includes(q))));
+}
+
+function statusPill(s){
+  const m={Draft:'p-draft',New:'p-new','Approved By LAO':'p-approved','Disapproved By LAO':'p-dis','Sent To HO':'p-sent','Approved By Management':'p-approved','Disapproved By Management':'p-dis','Certificate Issued':'p-cert'};
+  return `<span class="pill ${m[s]||'p-draft'}">${xe(s)}</span>`;
+}
+
+// ── Nav ────────────────────────────────────────────────
+function showList(){
+  document.getElementById('list-view').style.display='block';
+  document.getElementById('form-view').style.display='none';
+  document.getElementById('nav-list').classList.add('active');
+  document.getElementById('nav-new').classList.remove('active');
+  loadApps();
+}
+function showNewForm(){
+  if(!canDo('customer_vendor','create')){
+    toast('You do not have permission to create applications.','error');
+    return;
+  }
+  editId=null;resetForm();
+  ['btn-print-form','btn-excel-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  document.getElementById('fv-title').textContent='New Application';
+  document.getElementById('app-no-disp').style.display='none';
+  document.getElementById('list-view').style.display='none';
+  document.getElementById('form-view').style.display='block';
+  document.getElementById('nav-new').classList.add('active');
+  document.getElementById('nav-list').classList.remove('active');
+  window.scrollTo(0,0);
+}
+function editApp(id){
+  const numId=isNaN(id)?id:Number(id);
+  const app=apps.find(a=>a.id===numId||String(a.id)===String(id));if(!app)return;
+  if(!canEditRecord(app)){
+    toast('You do not have permission to edit this application.','error');
+    return;
+  }
+  editId=id;resetForm();fillForm(app);
+  ['btn-print-form','btn-excel-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-block';});
+  document.getElementById('fv-title').textContent='Edit Application';
+  if(app.app_number){document.getElementById('app-no-disp').textContent=app.app_number;document.getElementById('app-no-disp').style.display='inline-block';}
+  document.getElementById('list-view').style.display='none';
+  document.getElementById('form-view').style.display='block';
+  window.scrollTo(0,0);
+}
+
+// ── Party type change ──────────────────────────────────
+function onPartyType(){
+  const pt=document.getElementById('f-party_type').value;
+  const isC=pt==='Customer',isV=pt==='Vendor';
+  const cat=document.getElementById('f-category');
+  cat.innerHTML='<option value="">— Select —</option>';
+  (isC?CUSTOMER_CATS:isV?VENDOR_CATS:[]).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;cat.appendChild(o);});
+  // show/hide sections
+  ['card-cust','card-prop','card-sig','card-ship','card-biz','card-brands','card-stock','card-cheques'].forEach(id=>document.getElementById(id).style.display=isC?'block':'none');
+  document.getElementById('card-msme').style.display=isV?'block':'none';
+  document.getElementById('w-enterprise').style.display=isV?'block':'none';
+  document.getElementById('w-exp-biz').style.display=isC?'block':'none';
+  document.getElementById('w-cap1').style.display=isC?'block':'none';
+  document.getElementById('w-cap2').style.display=isC?'block':'none';
+  // required markers
+  ['ba1-req','bc-req','bp-req','bs-req'].forEach(id=>document.getElementById(id).style.display=isC?'inline':'none');
+  document.getElementById('cp-req').style.display=isC?'inline':'none';
+  document.getElementById('mob-req').style.display=isC?'inline':'none';
+  document.getElementById('sb-req').style.display=isC?'inline':'none';
+  document.getElementById('zone-req').style.display=isC?'inline':'none';
+  document.getElementById('mkt-req').style.display=isC?'inline':'none';
+  document.getElementById('cls-req').style.display=isC?'inline':'none';
+  document.getElementById('city-type-req').style.display=isC?'inline':'none';
+}
+
+function onCategory(){
+  const cat=document.getElementById('f-category').value;
+  document.getElementById('w-dealer-code').style.display=cat.includes('Sub Dealer')?'block':'none';
+}
+
+function onConstitution(){
+  const v=document.getElementById('f-constitution').value;
+  document.getElementById('w-const-other').style.display=v==='Others'?'block':'none';
+}
+
+function onGstStatus(){
+  const v=document.getElementById('f-gst_status').value;
+  document.getElementById('gst-no-req').style.display=v==='Registered'?'inline':'none';
+}
+
+function onMsme(){
+  const v=document.querySelector('input[name=msme]:checked').value;
+  const show=v==='Yes';
+  ['w-msme-cat','w-udyam-no','w-udyam-date'].forEach(id=>document.getElementById(id).style.display=show?'block':'none');
+}
+
+function onBizDate(){
+  const d=document.getElementById('f-biz_date').value;
+  if(d)document.getElementById('f-biz_year').value=d.substring(0,4);
+}
+
+function onZone(){
+  const zone=document.getElementById('f-zone').value;
+  const mkt=document.getElementById('f-market_name');
+  mkt.innerHTML='<option value="">— Select Market —</option>';
+  document.getElementById('f-cluster_name').innerHTML='<option value="">— Select Market First —</option>';
+  if(zone&&MARKETS[zone]){MARKETS[zone].forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;mkt.appendChild(o);});}
+}
+
+function onMarket(){
+  // Cluster data not provided in V11 for all combos — load from DB or leave as text
+  const cl=document.getElementById('f-cluster_name');
+  cl.innerHTML='<option value="">— Select Cluster —</option>';
+  // placeholder: same as market for now
+  const mkt=document.getElementById('f-market_name').value;
+  if(mkt){const o=document.createElement('option');o.value=mkt;o.textContent=mkt+' (default cluster)';cl.appendChild(o);}
+}
+
+// ── Dynamic rows ───────────────────────────────────────
+function addPropRow(){
+  const tb=document.getElementById('tb-prop');
+  const n=tb.rows.length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Full name"></td><td><input type="text" placeholder="Father / Husband name"></td><td><input type="number" placeholder="Age" min="18" max="99" style="width:70px"></td><td><input type="text" placeholder="Designation"></td><td><input type="text" placeholder="DIN / PAN"></td><td><input type="number" placeholder="%" min="0" max="100" style="width:80px"></td><td><input type="text" placeholder="Sign description / initials"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function addSigRow(){
+  const tb=document.getElementById('tb-sig');
+  if(tb.rows.length>=5){toast('Max 5 signatories','error');return;}
+  const n=tb.rows.length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Full name"></td><td><input type="text" placeholder="Capacity/Role"></td><td><input type="text" placeholder="Signature reference"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-sig')">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function addShipping(){
+  const body=document.getElementById('ship-body');
+  const blocks=body.querySelectorAll('.ship-block');
+  if(blocks.length>=5){toast('Max 5 shipping addresses','error');return;}
+  if(!blocks.length)body.innerHTML='';
+  const n=blocks.length+1;
+  const div=document.createElement('div');
+  div.className='ship-block';
+  div.innerHTML=`<div class="ship-block-hd">Shipping Address ${n}</div>
+  <button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button>
+  <div class="fg" style="grid-template-columns:1fr 1fr;">
+    <div class="fld full"><label>Address Line 1</label><input type="text" placeholder="Line 1"></div>
+    <div class="fld full"><label>Address Line 2</label><input type="text" placeholder="Line 2 (optional)"></div>
+    <div class="fld full"><label>Address Line 3</label><input type="text" placeholder="Line 3 (optional)"></div>
+    <div class="fld"><label>City</label><input type="text" placeholder="City"></div>
+    <div class="fld"><label>Pincode</label><input type="text" maxlength="6" placeholder="PIN"></div>
+    <div class="fld"><label>State</label><select><option value="">— Select —</option>${SELLING_BRANCHES.map(s=>`<option>${xe(s)}</option>`).join('')}</select></div>
+    <div class="fld"><label>GST No.</label><input type="text" maxlength="15" placeholder="GST (optional)"></div>
+    <div class="fld"><label>Email ID</label><input type="email" placeholder="Email (optional)"></div>
+    <div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" placeholder="Mobile (optional)"></div>
+  </div>`;
+  body.appendChild(div);
+}
+function addBankRow(){
+  const tb=document.getElementById('tb-bank');
+  const n=tb.rows.length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Bank name"></td><td><input type="text" placeholder="Account no."></td><td><input type="text" placeholder="IFSC"></td><td><input type="text" placeholder="Savings/Current"></td><td><input type="text" placeholder="Account name"></td><td><input type="text" placeholder="Branch address"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-bank')">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function addBrand(){
+  const tb=document.getElementById('tb-brands');
+  const n=tb.rows.length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td><td><input type="text" maxlength="60" placeholder="Brand name"></td><td><input type="text" maxlength="20" placeholder="Since when"></td><td><input type="number" placeholder="Amount ₹"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-brands')">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function addStockist(){
+  const tb=document.getElementById('tb-stock');
+  const n=tb.rows.length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td><td><input type="text" placeholder="Firm name"></td><td><input type="text" maxlength="200" placeholder="Address (optional)"></td><td><input type="text" maxlength="60" placeholder="Brand/Company"></td><td><input type="number" placeholder="Amount ₹ (opt.)"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function addCheque(savedImgData){
+  const tb=document.getElementById('tb-cheques');
+  if(tb.rows.length>=2){toast('Max 2 cheques','error');return;}
+  const n=tb.rows.length+1;
+  const uid='chq-img-'+Date.now()+'-'+n;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td>
+  <td><input type="text" placeholder="Cheque no."></td>
+  <td><input type="text" placeholder="Bank name"></td>
+  <td>
+    <div class="img-upload-inline">
+      <label for="${uid}" class="img-drop-zone" id="dz-${uid}" style="min-width:130px;padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border:1.5px dashed var(--border);border-radius:7px;background:var(--bg);">
+        <input type="file" id="${uid}" accept="image/*,.pdf" onchange="onChequeImg(this,'${uid}')">
+        <span style="font-size:14px;color:var(--text3);">&#128444;</span>
+        <div class="img-drop-text"><b>Upload Image</b>JPG / PNG / PDF</div>
+      </label>
+      <div class="img-preview-wrap" id="prev-${uid}" style="margin-top:3px;display:none;align-items:center;gap:6px;">
+        <img class="img-preview-thumb" id="thumb-${uid}" src="" alt="" style="width:36px;height:36px;border-radius:4px;object-fit:cover;border:1px solid var(--border);">
+        <a class="img-preview-name" id="pname-${uid}" target="_blank" href="#" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--accent);text-decoration:none;"></a>
+        <button class="img-preview-clear" onclick="clearChequeImg('${uid}')" title="Remove" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:0 3px;">&#10005;</button>
+      </div>
+    </div>
+  </td>
+  <td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-cheques')">&#10005;</button></td>`;
+  tb.appendChild(tr);
+  if(savedImgData){restoreChequeImg(uid,savedImgData);}
+}
+function addRef(){
+  const tb=document.getElementById('tb-refs');
+  if(tb.rows.length>=3){toast('Max 3 references','error');return;}
+  const n=tb.rows.length+1;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${n}</td><td><input type="text" maxlength="40" placeholder="Name"></td><td><input type="text" maxlength="100" placeholder="Address"></td><td><input type="text" maxlength="20" placeholder="Relationship"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function renum(tbId){Array.from(document.getElementById(tbId).rows).forEach((r,i)=>r.cells[0].textContent=i+1);}
+
+// ── Validate ───────────────────────────────────────────
+function validate(){
+  let ok=true;
+  document.querySelectorAll('.fld.has-err').forEach(f=>f.classList.remove('has-err'));
+  const req=id=>{const el=document.getElementById(id);if(!el)return;if(!el.value.trim()){el.closest('.fld')&&el.closest('.fld').classList.add('has-err');ok=false;}};
+  req('f-party_type');req('f-category');req('f-party_name');req('f-constitution');
+  req('f-email');req('f-gst_type');req('f-gst_status');req('f-vendor_gst_category');
+  req('f-pan');req('f-tds_type');req('f-tds_section');req('f-gst_state');
+  const pt=document.getElementById('f-party_type').value;
+  if(pt==='Customer'){
+    req('f-billing_addr1');req('f-billing_city');req('f-billing_pin');req('f-billing_state');
+    req('f-contact_person');req('f-mobile');req('f-sales_person');
+    req('f-zone');req('f-market_name');req('f-cluster_name');req('f-type_of_city');
+    if(!document.getElementById('tb-prop').rows.length){toast('At least one Proprietor/Partner row required','error');ok=false;}
+  }
+  // PAN
+  const pan=document.getElementById('f-pan').value.trim();
+  if(pan&&!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)){document.getElementById('f-pan').closest('.fld').classList.add('has-err');toast('Invalid PAN format (AAAAA9999A)','error');ok=false;}
+  // GST
+  if(document.getElementById('f-gst_status').value==='Registered'){
+    const gst=document.getElementById('f-gst_no').value.trim();
+    if(!gst||!/^\d{2}[A-Z]{5}\d{4}[A-Z]\d[Z][A-Z0-9]$/.test(gst)){document.getElementById('f-gst_no').closest('.fld').classList.add('has-err');toast('Invalid GST number format','error');ok=false;}
+  }
+  if(!ok)toast('Please fix highlighted fields','error');
+  return ok;
+}
+
+// ── Collect form ───────────────────────────────────────
+function collect(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';}
+  const gr=n=>{const e=document.querySelector(`input[name=${n}]:checked`);return e?e.value:'';}
+  const dyn=(tbId,flds)=>Array.from(document.getElementById(tbId).rows).map(r=>Object.fromEntries(flds.map((f,i)=>[f,r.cells[i+1]?.querySelector('input,select')?.value||''])));
+  return {
+    party_type:g('f-party_type'),enterprise_type:g('f-enterprise_type'),
+    category:g('f-category'),party_name:g('f-party_name'),
+    constitution:g('f-constitution'),constitution_other:g('f-constitution_other'),
+    selling_branch_id:g('f-selling_branch')||null,
+    dealership_area:g('f-dealership_area'),dealership_state:g('f-dealership_state'),
+    zone:g('f-zone'),market_name:g('f-market_name'),
+    cluster_name:g('f-cluster_name'),type_of_city:g('f-type_of_city'),
+    billing_addr1:g('f-billing_addr1'),billing_addr2:g('f-billing_addr2'),
+    billing_addr3:g('f-billing_addr3'),billing_city:g('f-billing_city'),
+    billing_state:g('f-billing_state'),billing_pin:g('f-billing_pin'),
+    contact_person:g('f-contact_person'),email:g('f-email'),
+    mobile:g('f-mobile'),alt_mobile:g('f-alt_mobile'),whatsapp:g('f-whatsapp'),
+    gst_type:g('f-gst_type'),gst_status:g('f-gst_status'),
+    vendor_gst_category:g('f-vendor_gst_category'),gst_no:g('f-gst_no'),
+    gst_state:g('f-gst_state'),pan:g('f-pan'),
+    tds_type:g('f-tds_type'),tds_section:g('f-tds_section'),
+    dealer_code:g('f-dealer_code'),
+    credit_limit:parseFloat(g('f-credit_limit'))||0,
+    credit_days:parseInt(g('f-credit_days'))||0,
+    sales_person_id:g('f-sales_person')||null,
+    msme_registered:gr('msme'),msme_category:g('f-msme_category'),
+    udyam_no:g('f-udyam_no'),udyam_date:g('f-udyam_date')||null,
+    biz_nature:g('f-biz_nature'),biz_date:g('f-biz_date')||null,
+    biz_year:g('f-biz_year'),godown_area:parseFloat(g('f-godown_area'))||null,
+    shop_type:gr('shop_t'),godown_type:gr('godown_t'),residence_type:gr('res_t'),
+    expected_business:parseInt(g('f-expected_business'))||null,
+    payment_terms:g('f-payment_terms'),
+    capacity_invest:parseInt(g('f-capacity_invest'))||null,
+    total_invest:parseInt(g('f-total_invest'))||null,
+    convicted:gr('convicted'),remarks:g('f-remarks'),
+    proprietors:JSON.stringify(dyn('tb-prop',['name','son_wife_of','age','designation','din_pan','share','specimen_signature'])),
+    signatories:JSON.stringify(dyn('tb-sig',['name','capacity','signature'])),
+    bank_details:JSON.stringify(dyn('tb-bank',['bank_name','account_no','ifsc','account_type','account_name','address'])),
+    other_brands:JSON.stringify(dyn('tb-brands',['brand','since_when','monthly_sale'])),
+    stockists:JSON.stringify(dyn('tb-stock',['firm_name','address','brand','monthly_sale'])),
+    cheques:JSON.stringify(
+      Array.from(document.getElementById('tb-cheques').rows).map(r=>{
+        const fileInput=r.querySelector('input[type=file]');
+        return {
+          cheque_no:r.cells[1]?.querySelector('input')?.value||'',
+          bank_name:r.cells[2]?.querySelector('input')?.value||'',
+          img_b64:fileInput?._savedB64||'',
+          img_name:fileInput?._savedName||''
+        };
+      })
+    ),
+    pan_image_b64:(document.getElementById('f-pan-img')?._savedB64)||'',
+    pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
+    gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
+    gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
+    ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
+
+  };
+}
+
+// ── Save / Submit ──────────────────────────────────────
+async function saveDraft(){await saveApp('Draft');}
+async function submitForm(){if(!validate())return;await saveApp('New');}
+
+async function saveApp(status){
+  if(!sb){toast('Not connected','error');return;}
+  const data=collect();
+  data.status=status;
+  data.submitted_by_user_id=parseInt(currentUser.id); // store bigint id
+  data.updated_at=new Date().toISOString();
+  if(!editId){data.app_number=await genAppNo();data.created_at=new Date().toISOString();}
+  if(status==='New')data.submitted_at=new Date().toISOString();
+  let error;
+  if(editId){({error}=await sb.from('cvr_applications').update(data).eq('id',editId));}
+  else{({error}=await sb.from('cvr_applications').insert(data));}
+  if(error){
+    if(error.code==='42P01')toast('Table "cvr_applications" not found. Run the SQL setup script first.','error');
+    else toast('Save failed: '+error.message,'error');
+    return;
+  }
+  toast(status==='Draft'?'Draft saved successfully':'Application submitted successfully','success');
+  showList();
+}
+
+async function delApp(id){
+  if(!confirm('Delete this application? Cannot be undone.'))return;
+  const numId=isNaN(id)?id:Number(id);
+  const{error}=await sb.from('cvr_applications').delete().eq('id',numId);
+  if(error){toast('Delete failed: '+error.message,'error');return;}
+  toast('Application deleted','success');
+  await loadApps();
+}
+
+async function genAppNo(){
+  const n=new Date(),y=n.getFullYear().toString().slice(-2),m=String(n.getMonth()+1).padStart(2,'0');
+  const prefix='CVR-'+y+m+'-';
+  // Get current max running number from Supabase
+  const{data}=await sb.from('cvr_applications')
+    .select('app_number')
+    .like('app_number', prefix+'%')
+    .order('app_number',{ascending:false})
+    .limit(1)
+    .maybeSingle();
+  let next=1;
+  if(data?.app_number){
+    const parts=data.app_number.split('-');
+    const last=parseInt(parts[parts.length-1]||'0');
+    if(!isNaN(last)) next=last+1;
+  }
+  return prefix+String(next).padStart(4,'0');
+}
+
+// ── Reset / Fill ───────────────────────────────────────
+function resetForm(){
+  document.querySelectorAll('#form-view input:not([type=radio]):not([type=file]),#form-view select,#form-view textarea').forEach(el=>el.value='');
+  document.querySelectorAll('#form-view input[type=radio]').forEach(el=>el.checked=false);
+  // Clear file inputs and their saved state
+  document.querySelectorAll('#form-view input[type=file]').forEach(el=>{el.value='';el._savedB64=null;el._savedName=null;});
+  clearImg('f-pan-img','prev-pan','dz-pan');
+  clearImg('f-gst-img','prev-gst','dz-gst');
+  ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques','tb-refs'].forEach(id=>document.getElementById(id).innerHTML='');
+  document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
+  document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
+  onPartyType();
+  const mn=document.querySelector('input[name=msme][value=No]');if(mn)mn.checked=true;
+  onMsme();
+  const cn=document.querySelector('input[name=convicted][value=No]');if(cn)cn.checked=true;
+}
+
+function fillForm(app){
+  const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
+  s('f-party_type',app.party_type);onPartyType();
+  s('f-enterprise_type',app.enterprise_type);s('f-category',app.category);onCategory();
+  s('f-party_name',app.party_name);s('f-constitution',app.constitution);onConstitution();
+  s('f-constitution_other',app.constitution_other);s('f-selling_branch',app.selling_branch_id);
+  s('f-dealership_area',app.dealership_area||'');s('f-dealership_state',app.dealership_state||'');
+  s('f-zone',app.zone);onZone();s('f-market_name',app.market_name);onMarket();
+  s('f-cluster_name',app.cluster_name);s('f-type_of_city',app.type_of_city);
+  s('f-billing_addr1',app.billing_addr1);s('f-billing_addr2',app.billing_addr2);
+  s('f-billing_addr3',app.billing_addr3);s('f-billing_city',app.billing_city);
+  s('f-billing_state',app.billing_state);s('f-billing_pin',app.billing_pin);
+  s('f-contact_person',app.contact_person);s('f-email',app.email);
+  s('f-mobile',app.mobile);s('f-alt_mobile',app.alt_mobile);s('f-whatsapp',app.whatsapp);
+  s('f-gst_type',app.gst_type);s('f-gst_status',app.gst_status);onGstStatus();
+  s('f-vendor_gst_category',app.vendor_gst_category);s('f-gst_no',app.gst_no);
+  s('f-gst_state',app.gst_state);s('f-pan',app.pan);
+  s('f-tds_type',app.tds_type);s('f-tds_section',app.tds_section);
+  s('f-dealer_code',app.dealer_code);s('f-credit_limit',app.credit_limit);
+  s('f-credit_days',app.credit_days);s('f-sales_person',app.sales_person_id);
+  s('f-msme_category',app.msme_category);s('f-udyam_no',app.udyam_no);
+  s('f-udyam_date',app.udyam_date);s('f-biz_nature',app.biz_nature);
+  s('f-biz_date',app.biz_date);s('f-biz_year',app.biz_year);
+  s('f-godown_area',app.godown_area);s('f-expected_business',app.expected_business);
+  s('f-payment_terms',app.payment_terms);s('f-capacity_invest',app.capacity_invest);
+  s('f-total_invest',app.total_invest);s('f-remarks',app.remarks);
+  ['msme','shop_t','godown_t','res_t','convicted'].forEach(n=>{
+    const v=app[{msme:'msme_registered',shop_t:'shop_type',godown_t:'godown_type',res_t:'residence_type',convicted:'convicted'}[n]];
+    if(v){const el=document.querySelector(`input[name=${n}][value="${v}"]`);if(el){el.checked=true;if(n==='msme')onMsme();}}
+  });
+  // Restore PAN image from DB
+  if(app.pan_image_b64){restoreStaticImg('f-pan-img','prev-pan','dz-pan',app.pan_image_b64,app.pan_image_name);}
+  // Restore GST image from DB
+  if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
+  // Cheque images come from inside the cheques JSON (handled below)
+  window._pendingChequeImgs=[];
+  // Restore cheques with images
+  const cheqTb=document.getElementById('tb-cheques');
+  cheqTb.innerHTML='';
+  const cheques=safeParseJSON(app.cheques)||[];
+  const pendingImgs=window._pendingChequeImgs||[];
+  cheques.forEach((c,i)=>{
+    const si=pendingImgs[i];
+    const imgData=(si&&si.b64&&si.b64.length>10)?{b64:si.b64,name:si.name||'Cheque image'}:null;
+    addCheque(imgData);
+    const lastRow=cheqTb.rows[cheqTb.rows.length-1];
+    if(lastRow){
+      const txtInputs=Array.from(lastRow.querySelectorAll('input')).filter(i=>i.type==='text');
+      if(txtInputs[0])txtInputs[0].value=c.cheque_no||'';
+      if(txtInputs[1])txtInputs[1].value=c.bank_name||'';
+    }
+  });
+  window._pendingChequeImgs=[];
+}
+function safeParseJSON(s){try{return s?JSON.parse(s):null;}catch(e){return null;}}
+
+// ── Image upload helpers ────────────────────────────────
+// Store base64 data on the input element itself for collect()
+function readFileAsBase64(file){
+  return new Promise(resolve=>{
+    const r=new FileReader();
+    r.onload=e=>resolve(e.target.result);
+    r.readAsDataURL(file);
+  });
+}
+// PAN / GST static upload fields
+async function onImgSelect(inputId, prevId, dzId){
+  const input=document.getElementById(inputId);
+  const prev=document.getElementById(prevId);
+  const dz=document.getElementById(dzId);
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  const b64=await readFileAsBase64(file);
+  input._savedB64=b64;
+  input._savedName=file.name;
+  const thumb=document.getElementById(prevId+'-thumb');
+  const nameEl=document.getElementById(prevId+'-name');
+  const blobUrl=URL.createObjectURL(file);
+  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='inline-block';}}
+  else{if(thumb){thumb.src='';thumb.style.display='none';}}
+  if(nameEl){nameEl.textContent=file.name;nameEl.href=blobUrl;nameEl.style.display='inline-block';}
+  if(prev){prev.style.display='flex';prev.classList.add('show');}
+  if(dz)dz.style.borderColor='var(--success)';
+}
+function clearImg(inputId, prevId, dzId){
+  const input=document.getElementById(inputId);
+  if(input){input.value='';input._savedB64=null;input._savedName=null;}
+  const prev=document.getElementById(prevId);
+  const dz=document.getElementById(dzId);
+  const thumb=document.getElementById(prevId+'-thumb');
+  const nameEl=document.getElementById(prevId+'-name');
+  if(thumb){thumb.src='';thumb.style.display='none';}
+  if(nameEl){nameEl.textContent='';nameEl.href='#';nameEl.style.display='none';}
+  if(prev){prev.classList.remove('show');prev.style.display='';}
+  if(dz)dz.style.borderColor='';
+}
+// Restore PAN/GST from saved base64 (edit mode)
+function b64ToUrl(b64){
+  // Convert base64 data URI to blob URL so browsers can open it reliably
+  try{
+    const arr=b64.split(',');
+    const mime=arr[0].match(/:(.*?);/)[1];
+    const bstr=atob(arr[1]);
+    let n=bstr.length;
+    const u8=new Uint8Array(n);
+    while(n--){u8[n]=bstr.charCodeAt(n);}
+    return URL.createObjectURL(new Blob([u8],{type:mime}));
+  }catch(e){return b64;}
+}
+function restoreStaticImg(inputId, prevId, dzId, b64, name){
+  if(!b64)return;
+  const input=document.getElementById(inputId);
+  const prev=document.getElementById(prevId);
+  const dz=document.getElementById(dzId);
+  if(input){input._savedB64=b64;input._savedName=name||'Saved file';}
+  const thumb=document.getElementById(prevId+'-thumb');
+  const nameEl=document.getElementById(prevId+'-name');
+  const blobUrl=b64ToUrl(b64);
+  if(b64.startsWith('data:image')){
+    if(thumb){thumb.src=b64;thumb.style.display='inline-block';}
+  }else{
+    if(thumb){thumb.src='';thumb.style.display='none';}
+  }
+  if(nameEl){
+    nameEl.textContent=name||'View file';
+    nameEl.href=blobUrl;
+    nameEl.style.display='inline-block';
+  }
+  if(prev){prev.style.display='flex';prev.classList.add('show');}
+  if(dz)dz.style.borderColor='var(--success)';
+}
+// Cheque row upload
+async function onChequeImg(input, uid){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  const b64=await readFileAsBase64(file);
+  input._savedB64=b64;
+  input._savedName=file.name;
+  const prev=document.getElementById('prev-'+uid);
+  const thumb=document.getElementById('thumb-'+uid);
+  const pname=document.getElementById('pname-'+uid);
+  const dz=document.getElementById('dz-'+uid);
+  const blobUrl=URL.createObjectURL(file);
+  if(file.type.startsWith('image/')){if(thumb){thumb.src=b64;thumb.style.display='inline-block';}}
+  else{if(thumb){thumb.src='';thumb.style.display='none';}}
+  if(pname){pname.textContent=file.name;pname.href=blobUrl;pname.style.display='inline-block';}
+  if(prev){prev.style.cssText='margin-top:3px;display:flex;align-items:center;gap:6px;';}
+  if(dz)dz.style.borderColor='var(--success)';
+}
+function clearChequeImg(uid){
+  const input=document.getElementById(uid);
+  if(input){input.value='';input._savedB64=null;input._savedName=null;}
+  const prev=document.getElementById('prev-'+uid);
+  const thumb=document.getElementById('thumb-'+uid);
+  const pname=document.getElementById('pname-'+uid);
+  const dz=document.getElementById('dz-'+uid);
+  if(thumb){thumb.src='';thumb.style.display='none';}
+  if(pname){pname.textContent='';pname.style.display='none';}
+  if(prev)prev.style.display='none';
+  if(dz)dz.style.borderColor='';
+}
+// Restore cheque image from saved base64 (edit mode)
+function restoreChequeImg(uid, savedData){
+  if(!savedData||!savedData.b64)return;
+  // Use setTimeout to ensure DOM elements exist after tr append
+  setTimeout(function(){
+    const prev=document.getElementById('prev-'+uid);
+    const thumb=document.getElementById('thumb-'+uid);
+    const pname=document.getElementById('pname-'+uid);
+    const dz=document.getElementById('dz-'+uid);
+    const input=document.getElementById(uid);
+    if(!prev)return;
+    if(input){input._savedB64=savedData.b64;input._savedName=savedData.name||'Saved file';}
+    const blobUrl=b64ToUrl(savedData.b64);
+    if(savedData.b64.startsWith('data:image')){
+      if(thumb){thumb.src=savedData.b64;thumb.style.display='inline-block';}
+    }else{
+      if(thumb){thumb.src='';thumb.style.display='none';}
+    }
+    if(pname){
+      pname.textContent=savedData.name||'View file';
+      pname.href=blobUrl;
+      pname.style.display='inline-block';
+    }
+    prev.style.cssText='margin-top:3px;display:flex;align-items:center;gap:6px;';
+    if(dz)dz.style.borderColor='var(--success)';
+  },0);
+}
+
+// ── Toast ──────────────────────────────────────────────
+function toast(msg,type){
+  type=type||'info';
+  const w=document.getElementById('toasts'),el=document.createElement('div');
+  el.className='toast '+type;
+  const col=type==='success'?'#16a34a':type==='error'?'#dc2626':'#2563eb';
+  el.innerHTML=`<span style="color:${col};font-weight:700">${type==='success'?'✓':type==='error'?'✕':'ℹ'}</span> ${msg}`;
+  w.appendChild(el);setTimeout(()=>el.remove(),4000);
+}
+function xe(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ════════════════════════════════════════════════════════════
+//  RBAC — Customer/Vendor Requisition
+//  Reads permissions from app_permissions table
+//  App key: 'customer_vendor'
+// ════════════════════════════════════════════════════════════
+const APP_KEY = 'customer_vendor';
+window.userPerms = null;
+window.userRole  = '';
+
+async function loadUserSession(){
+  if(!sb||!currentUser) return;
+  try{
+    // 1. Get role from users_roles
+    const{data:roleRow}=await sb.from('users_roles')
+      .select('role,is_active')
+      .eq('id', parseInt(currentUser.id))
+      .maybeSingle();
+
+    window.userRole = roleRow?.role || 'branch_staff_ops';
+    currentUser.role = window.userRole;
+
+    // 2. Super admin — full access, no DB lookup needed
+    if(window.userRole === 'super_admin'){
+      window.userPerms = {
+        can_access:true, can_create:true, can_edit:true,
+        can_approve:true, can_delete:true, data_scope:'all'
+      };
+      applyRBACToUI();
+      return;
+    }
+
+    // 3. Get permissions for this role + app
+    const{data:perm}=await sb.from('app_permissions')
+      .select('*')
+      .eq('role', window.userRole)
+      .eq('app_key', APP_KEY)
+      .maybeSingle();
+
+    // Hierarchical default scope per role
+    const _hierScope={
+      zone_manager:'zone',
+      branch_manager:'reportees',
+      branch_accountant:'own_branch',
+      branch_staff_ops:'reportees',
+      branch_staff_finance:'own_branch'
+    };
+    if(perm){
+      // Row found — but if data_scope is still 'own_branch' for a role
+      // that should have broader hierarchical access, apply the correct default
+      if(perm.data_scope==='own_branch' && _hierScope[window.userRole] && _hierScope[window.userRole]!=='own_branch'){
+        perm.data_scope = _hierScope[window.userRole];
+          }
+      window.userPerms = perm;
+    } else {
+      // No row found — use full hierarchical defaults
+      window.userPerms = {
+        can_access:true, can_create:false, can_edit:false,
+        can_approve:false, can_delete:false,
+        data_scope: _hierScope[window.userRole]||'own_branch'
+      };
+    }
+
+    // 4. Block entirely if can_access = false
+    if(!window.userPerms.can_access){
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+      const e=document.getElementById('lerr');
+      e.textContent='You do not have access to this application. Contact your administrator.';
+      e.className='lerr show';
+      return;
+    }
+
+    applyRBACToUI();
+  }catch(e){
+    console.warn('RBAC load error — defaulting to view-only:', e.message);
+    const _hs={zone_manager:'zone',branch_manager:'reportees',branch_accountant:'own_branch',branch_staff_ops:'reportees',branch_staff_finance:'own_branch'};window.userPerms={can_access:true,can_create:false,can_edit:false,can_approve:false,can_delete:false,data_scope:_hs[window.userRole]||'own_branch'};
+    applyRBACToUI();
+  }
+}
+
+// Check if current user can do an action
+function canDo(appKey, action){
+  if(!window.userPerms) return false;
+  if(window.userPerms.can_access===false) return false;
+  return window.userPerms['can_'+action] === true;
+}
+
+// Can edit a specific record — true if role has edit permission
+// OR if the record was created by the current user (own record always editable)
+function canEditRecord(record){
+  if(!window.userPerms||window.userPerms.can_access===false) return false;
+  if(!record) return false;
+  // If role has edit permission — can edit all visible records
+  if(window.userPerms.can_edit) return true;
+  // If role has no edit permission but can create —
+  // allow editing own records only (created by this user)
+  if(window.userPerms.can_create){
+    return parseInt(record.submitted_by_user_id)===parseInt(currentUser?.id);
+  }
+  return false;
+}
+
+// Get data scope for query filtering
+function getRBACScope(){
+  if(!window.userPerms) return 'own_branch';
+  return window.userPerms.data_scope || 'own_branch';
+}
+
+// Get all bigint ids in the reporting tree under this manager
+// Uses cc_users column (bigint) for hierarchy traversal
+async function getReporteeIds(managerBigintId){
+  const collected=[managerBigintId];
+  const toProcess=[managerBigintId];
+  try{
+    while(toProcess.length>0){
+      const batch=toProcess.splice(0,50);
+      const{data:reports, error}=await sb.from('users')
+        .select('id')
+        .in('cc_users', batch)
+        .eq('status',1);
+      if(error){console.warn('getReporteeIds error:',error.message);break;}
+      (reports||[]).forEach(r=>{
+        const rid=parseInt(r.id);
+        if(!collected.includes(rid)){
+          collected.push(rid);
+          toProcess.push(rid);
+        }
+      });
+    }
+    return collected;
+  }catch(e){
+    console.warn('getReporteeIds failed:',e.message);
+    return [managerBigintId];
+  }
+}
+
+// Apply permissions to UI elements
+function applyRBACToUI(){
+  const canCreate = canDo(APP_KEY,'create');
+  const canEdit   = canDo(APP_KEY,'edit');
+
+  // New Application nav item + button
+  const navNew = document.getElementById('nav-new');
+  if(navNew) navNew.style.display = canCreate ? '' : 'none';
+
+  const btnNew = document.querySelector('.btn.btn-success[onclick="showNewForm()"]');
+  if(btnNew) btnNew.style.display = canCreate ? '' : 'none';
+
+  // Edit buttons in list — re-render will pick this up via canDo check
+  // Role badge
+  const badge = document.getElementById('role-badge');
+  if(badge){
+    badge.textContent = (window.userRole||'').replace(/_/g,' ');
+    badge.style.display = window.userRole ? 'block' : 'none';
+  }
+
+}
+// ════════════════════════════════════════════════════════════
+
+// ══ PRINT / PDF ══════════════════════════════════════════════
+function pv(v){return (v&&String(v).trim())?String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'<span style="color:#aaa">—</span>';}
+function pf(label,value,span){span=span||1;return `<div class="pr-field" style="grid-column:span ${span}"><div class="pr-label">${label}</div><div class="pr-value">${pv(value)}</div></div>`;}
+
+function printApp(id){
+  const app=apps.find(a=>String(a.id)===String(id));
+  if(!app){toast('Record not found','error');return;}
+  buildPrintContent(app);
+  document.getElementById('print-modal').classList.add('open');
+}
+function printCurrentForm(){
+  if(!editId){toast('Save the record first','error');return;}
+  printApp(editId);
+}
+function closePrint(){document.getElementById('print-modal').classList.remove('open');}
+
+function buildPrintContent(app){
+  const props=safeParseJSON(app.proprietors)||[];
+  const sigs=safeParseJSON(app.signatories)||[];
+  const banks=safeParseJSON(app.bank_details)||[];
+  const brands=safeParseJSON(app.other_brands)||[];
+  const stocks=safeParseJSON(app.stockists)||[];
+  const cheqs=safeParseJSON(app.cheques)||[];
+  const refs=safeParseJSON(app.ref_details)||[];
+  const ships=safeParseJSON(app.shipping_addresses)||[];
+  const sc={Draft:'pr-badge-draft',New:'pr-badge-new','Approved By LAO':'pr-badge-approved','Approved By Management':'pr-badge-approved','Disapproved By LAO':'pr-badge-dis','Disapproved By Management':'pr-badge-dis','Sent To HO':'pr-badge-new','Certificate Issued':'pr-badge-approved'};
+  const dateStr=app.created_at?new Date(app.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const html=`
+  <div class="pr-header">
+    <div class="pr-company">DUROPLY INDUSTRIES LIMITED</div>
+    <div class="pr-subtitle">Customer / Vendor Requisition Form</div>
+    <div style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+      ${app.app_number?`<span class="pr-appno">${app.app_number}</span>`:''}
+      <span class="pr-badge ${sc[app.status]||'pr-badge-draft'}">${app.status||'Draft'}</span>
+      <span style="font-size:11px;color:#1e293b;font-weight:700;">Date: ${dateStr}</span>
+    </div>
+  </div>
+  <div class="pr-section"><div class="pr-sec-hd">1. Party &amp; Basic Information</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Party Type',app.party_type)}${pf('Enterprise Type',app.enterprise_type)}${pf('Category',app.category)}
+    ${pf('Party / Firm Name',app.party_name,2)}${pf('Constitution',app.constitution+(app.constitution_other?' — '+app.constitution_other:''))}
+    ${pf('Selling Branch',app.selling_branch_id)}
+  </div></div></div>
+  ${(app.dealership_area||app.dealership_state)?`<div class="pr-section"><div class="pr-sec-hd">1b. Area / District Details</div><div class="pr-sec-body"><div class="pr-grid">${pf('Area / District for Dealership',app.dealership_area,2)}${pf('State',app.dealership_state)}</div></div></div>`:''}
+  <div class="pr-section"><div class="pr-sec-hd">2. Zone, Market &amp; Territory</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Zone',app.zone)}${pf('Market',app.market_name)}${pf('Cluster',app.cluster_name)}${pf('Type of City',app.type_of_city)}
+  </div></div></div>
+  <div class="pr-section"><div class="pr-sec-hd">3. Billing Address</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Address Line 1',app.billing_addr1,3)}${pf('Address Line 2',app.billing_addr2,3)}
+    ${pf('City',app.billing_city)}${pf('State',app.billing_state)}${pf('PIN',app.billing_pin)}
+  </div></div></div>
+  <div class="pr-section"><div class="pr-sec-hd">4. Contact Details</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Contact Person',app.contact_person)}${pf('Email',app.email)}${pf('Mobile',app.mobile)}
+    ${pf('Alt. Mobile',app.alt_mobile)}${pf('WhatsApp',app.whatsapp)}
+  </div></div></div>
+  <div class="pr-section"><div class="pr-sec-hd">5. Tax &amp; Compliance</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('GST Type',app.gst_type)}${pf('GST Status',app.gst_status)}${pf('GST No.',app.gst_no)}
+    ${pf('GST State',app.gst_state)}${pf('PAN',app.pan)}${pf('TDS Type',app.tds_type)}
+    ${pf('TDS Section',app.tds_section,2)}${pf('Vendor GST Category',app.vendor_gst_category)}
+  </div></div></div>
+  ${props.length?`<div class="pr-section"><div class="pr-sec-hd">7. Proprietor / Partner / Karta / Member / Director</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of/Wife of</th><th>Age</th><th>Designation</th><th>DIN/PAN</th><th>Share%</th><th>Specimen Sig.</th></tr></thead>
+    <tbody>${props.map((p,i)=>`<tr><td>${i+1}</td><td>${pv(p.name)}</td><td>${pv(p.son_wife_of)}</td><td>${pv(p.age)}</td><td>${pv(p.designation)}</td><td>${pv(p.din_pan)}</td><td>${pv(p.share)}</td><td>${pv(p.specimen_signature)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  ${sigs.length?`<div class="pr-section"><div class="pr-sec-hd">8. Authorized Signatories</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Capacity/Role</th><th>Signature Reference</th></tr></thead>
+    <tbody>${sigs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.capacity)}</td><td>${pv(r.signature)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  ${ships.length?`<div class="pr-section"><div class="pr-sec-hd">9. Shipping Addresses</div><div class="pr-sec-body">
+    ${ships.map((s,i)=>`<div style="margin-bottom:5px;padding:4px 8px;border:1px solid #334155;border-radius:4px;font-size:10.5px;"><b>Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
+  </div></div>`:''}
+  ${banks.length?`<div class="pr-section"><div class="pr-sec-hd">10. Bank Details</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Bank Name</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Account Name</th><th>Branch Address</th></tr></thead>
+    <tbody>${banks.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.bank_name)}</td><td>${pv(r.account_no)}</td><td>${pv(r.ifsc)}</td><td>${pv(r.account_type)}</td><td>${pv(r.account_name)}</td><td>${pv(r.address)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  ${app.msme_registered?`<div class="pr-section"><div class="pr-sec-hd">11. MSME Details</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('MSME Registered',app.msme_registered)}${pf('Category',app.msme_category)}${pf('Udyam No.',app.udyam_no)}${pf('Udyam Date',app.udyam_date)}
+  </div></div></div>`:''}
+  <div class="pr-section"><div class="pr-sec-hd">12. Details of Existing Business</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Nature of Business',app.biz_nature,3)}${pf('Since Date',app.biz_date)}${pf('Year',app.biz_year)}${pf('Godown Area sq.ft',app.godown_area)}
+    ${pf('Shop',app.shop_type)}${pf('Godown',app.godown_type)}${pf('Residence',app.residence_type)}
+  </div></div></div>
+  ${brands.length?`<div class="pr-section"><div class="pr-sec-hd">13. Other Plywood Brands</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Brand</th><th>Since When</th><th>Monthly Sale</th></tr></thead>
+    <tbody>${brands.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.brand)}</td><td>${pv(r.since_when)}</td><td>${pv(r.monthly_sale)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  ${stocks.length?`<div class="pr-section"><div class="pr-sec-hd">14. Other Stockists / Dealers</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Firm Name</th><th>Address</th><th>Brand</th><th>Monthly Sale</th></tr></thead>
+    <tbody>${stocks.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.firm_name)}</td><td>${pv(r.address)}</td><td>${pv(r.brand)}</td><td>${pv(r.monthly_sale)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  <div class="pr-section"><div class="pr-sec-hd">15. Additional Information</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Expected Business ₹',app.expected_business)}${pf('Payment Terms',app.payment_terms)}${pf('Capacity to Invest Lacs',app.capacity_invest)}
+    ${pf('Total Investment Lacs',app.total_invest)}${pf('Convicted/Insolvent',app.convicted)}
+  </div></div></div>
+  ${cheqs.length?`<div class="pr-section"><div class="pr-sec-hd">16. Cheques Enclosed</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Cheque No.</th><th>Bank Name</th></tr></thead>
+    <tbody>${cheqs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.cheque_no)}</td><td>${pv(r.bank_name)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  ${refs.length?`<div class="pr-section"><div class="pr-sec-hd">17. References</div><div class="pr-sec-body">
+    <table class="pr-table"><thead><tr><th>#</th><th>Name</th><th>Address</th><th>Relationship</th></tr></thead>
+    <tbody>${refs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.address)}</td><td>${pv(r.relationship)}</td></tr>`).join('')}</tbody>
+    </table></div></div>`:''}
+  ${app.remarks?`<div class="pr-section"><div class="pr-sec-hd">18. Remarks</div><div class="pr-sec-body"><div style="font-size:11px;line-height:1.7;">${pv(app.remarks)}</div></div></div>`:''}
+  <div class="pr-section"><div class="pr-sec-hd">20. Documents &amp; Declaration</div><div class="pr-sec-body">
+    <p style="font-size:11px;font-weight:700;margin-bottom:6px;">Documents to be enclosed:</p>
+    <ol style="padding-left:16px;font-size:10.5px;line-height:2;margin-bottom:10px;">
+      <li>Photocopy of GST Registration Certificate — Form GST REG-06 — with all annexures (A &amp; B) attested by one of the signatories.</li>
+      <li>In case of Partnership Firm, copy of partnership deed duly attested by the partners along with a Letter of Authority.</li>
+      <li>List of partners along with their addresses in case Dealer / Distributor is part of a firm associated with the Person.</li>
+      <li>Copy of list of Directors along with their addresses in case Dealer / Distributor is a Company.</li>
+      <li>Photocopy of PAN of the Firm duly attested by the Partners / Proprietor / Director.</li>
+    </ol>
+    <div style="padding:7px 10px;background:#fef9c3;border:2px solid #ca8a04;border-radius:4px;font-size:10px;color:#713f12;font-weight:700;margin-bottom:12px;">⚠️ All documents are mandatory. Application shall be rejected if any document is missing.</div>
+    <p style="font-size:11px;line-height:1.8;margin-bottom:8px;">Kindly consider favorably my / our request to become an Authorized Dealer of <strong>Duroply Industries Limited</strong>.</p>
+    <p style="font-size:11px;line-height:1.8;margin-bottom:8px;">I / We ______________________________ (Name of the Applicant) certify that the above particulars are correct and true. In case of any change, I / We ______________________________ (Name of the Applicant Firm) undertake to inform you.</p>
+    <p style="font-size:11px;line-height:1.8;margin-bottom:20px;">I / We ______________________________ further confirm that I / We shall be solely responsible for collection of payment for sales made from our business place.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:16px;">
+      <div style="border-top:2px solid #1e293b;padding-top:6px;font-size:10px;">Date: ___________________</div>
+      <div style="border-top:2px solid #1e293b;padding-top:6px;font-size:10px;">
+        Yours faithfully<br>For THE — _______________________<br><br>_________________________________<br>
+        <strong>Proprietor / Karta / Partner / Director</strong><br><em>Signature with Seal</em>
+      </div>
+    </div>
+    <div style="border-top:2px solid #1e293b;padding-top:10px;">
+      <strong style="font-size:10.5px;">Please Note:</strong>
+      <ol style="padding-left:16px;font-size:10px;line-height:2;margin-top:4px;">
+        <li>We encourage our Dealers / Distributors to use digital payments only.</li>
+        <li>Dealership of given territory may be revoked if performance is found unsatisfactory.</li>
+        <li>Goods once sold by Duroply Industries Ltd. will not be taken back.</li>
+        <li>Duroply Industries Ltd. reserves the right to revise policies from time to time without prior notification.</li>
+        <li>All disputes are subject to <strong>Kolkata Jurisdiction</strong> only.</li>
+      </ol>
+    </div>
+  </div></div>`;
+  document.getElementById('print-content').innerHTML=html;
+}
+
+// ══ EXCEL DOWNLOAD ════════════════════════════════════════════
+function downloadExcel(id){
+  const app=apps.find(a=>String(a.id)===String(id));
+  if(!app){toast('Record not found','error');return;}
+  generateExcel(app);
+}
+function downloadExcelCurrent(){
+  if(!editId){toast('Save the record first','error');return;}
+  downloadExcel(editId);
+}
+
+async function generateExcel(app){
+  if(typeof ExcelJS==='undefined'){toast('ExcelJS not loaded','error');return;}
+
+  const cheqs = safeParseJSON(app.cheques)||[];
+  const ships = safeParseJSON(app.shipping_addresses)||[];
+  const banks = safeParseJSON(app.bank_details)||[];
+  const props = safeParseJSON(app.proprietors)||[];
+  const sigs  = safeParseJSON(app.signatories)||[];
+  const refs  = safeParseJSON(app.ref_details)||[];
+  const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fname = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Duroply CVR Portal';
+  const ws = wb.addWorksheet('MASTER');
+
+  // 8 cols: [LBL:A | VAL:B-D] [LBL:E | VAL:F-H]
+  ws.columns = [
+    {width:22},{width:16},{width:14},{width:12},
+    {width:22},{width:16},{width:14},{width:12}
+  ];
+
+  // ── Style helpers ──────────────────────────────────────────
+  const THIN = {style:'thin', color:{argb:'FF000000'}};
+  const MED  = {style:'medium',color:{argb:'FF1E3A8A'}};
+  const AB   = {top:THIN,bottom:THIN,left:THIN,right:THIN};
+  const MB   = {top:MED, bottom:MED, left:MED, right:MED};
+
+  function applySecStyle(cell){
+    cell.font      = {bold:true,size:10,color:{argb:'FFFFFFFF'},name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FF1E3A8A'}};
+    cell.border    = MB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+  function applyLblStyle(cell){
+    cell.font      = {size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}};
+    cell.border    = AB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+  function applyValStyle(cell){
+    cell.font      = {size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}};
+    cell.border    = AB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+  function applyHdrStyle(cell){
+    cell.font      = {bold:true,size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFBDD7EE'}};
+    cell.border    = AB;
+    cell.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
+  }
+  function applyShpStyle(cell){
+    cell.font      = {bold:true,size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFE2EFDA'}};
+    cell.border    = AB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+
+  let rowNum = 1;
+
+  // Merge A..H on current row, set value+style, increment
+  function secRow(title){
+    const row = ws.getRow(rowNum);
+    row.height = 18;
+    ws.mergeCells(rowNum,1,rowNum,8);
+    const cell = ws.getCell(rowNum,1);
+    cell.value = title;
+    applySecStyle(cell);
+    // Fill merged cells with same border
+    for(let c=2;c<=8;c++){const cc=ws.getCell(rowNum,c);applySecStyle(cc);}
+    rowNum++;
+  }
+
+  // Full row: col1=label, col2-8=value
+  function fullRow(lbl,val){
+    const row = ws.getRow(rowNum);
+    row.height = 16;
+    const lc = ws.getCell(rowNum,1);
+    lc.value = lbl; applyLblStyle(lc);
+    ws.mergeCells(rowNum,2,rowNum,8);
+    const vc = ws.getCell(rowNum,2);
+    vc.value = val==null?'':val; applyValStyle(vc);
+    for(let c=3;c<=8;c++){const cc=ws.getCell(rowNum,c);applyValStyle(cc);}
+    rowNum++;
+  }
+
+  // Two-block row: [L1:col1 | V1:col2-4] [L2:col5 | V2:col6-8]
+  function twoRow(l1,v1,l2,v2){
+    const row = ws.getRow(rowNum);
+    row.height = 16;
+    // Left block
+    const ll = ws.getCell(rowNum,1);
+    ll.value = l1; applyLblStyle(ll);
+    ws.mergeCells(rowNum,2,rowNum,4);
+    const vl = ws.getCell(rowNum,2);
+    vl.value = v1==null?'':v1; applyValStyle(vl);
+    for(let c=3;c<=4;c++){const cc=ws.getCell(rowNum,c);applyValStyle(cc);}
+    // Right block
+    const lr = ws.getCell(rowNum,5);
+    lr.value = l2||'';
+    if(l2) applyLblStyle(lr); else applyValStyle(lr);
+    ws.mergeCells(rowNum,6,rowNum,8);
+    const vr = ws.getCell(rowNum,6);
+    vr.value = v2==null?'':v2; applyValStyle(vr);
+    for(let c=7;c<=8;c++){const cc=ws.getCell(rowNum,c);applyValStyle(cc);}
+    rowNum++;
+  }
+
+  function blankRow(){ ws.getRow(rowNum).height=6; rowNum++; }
+
+  // ── TITLE ──────────────────────────────────────────────────
+  ws.mergeCells(rowNum,1,rowNum,8);
+  const ttl = ws.getCell(rowNum,1);
+  ttl.value = 'DUROPLY INDUSTRIES LIMITED';
+  ttl.font  = {bold:true,size:13,color:{argb:'FF1E3A8A'},name:'Arial'};
+  ttl.alignment = {horizontal:'center',vertical:'middle'};
+  ws.getRow(rowNum).height = 26; rowNum++;
+
+  ws.mergeCells(rowNum,1,rowNum,8);
+  const sub = ws.getCell(rowNum,1);
+  sub.value = 'Customer / Vendor Requisition Form';
+  sub.font  = {size:10,name:'Arial'};
+  sub.alignment = {horizontal:'center',vertical:'middle'};
+  ws.getRow(rowNum).height = 15; rowNum++;
+
+  ws.mergeCells(rowNum,1,rowNum,4);
+  const apn = ws.getCell(rowNum,1);
+  apn.value = app.app_number||'';
+  apn.font  = {bold:true,size:10,color:{argb:'FF1E3A8A'},name:'Arial'};
+  apn.alignment = {horizontal:'center',vertical:'middle'};
+  ws.mergeCells(rowNum,5,rowNum,8);
+  const dte = ws.getCell(rowNum,5);
+  dte.value = 'Date: '+today;
+  dte.font  = {size:9,name:'Arial'};
+  dte.alignment = {horizontal:'right',vertical:'middle'};
+  ws.getRow(rowNum).height = 15; rowNum++;
+  blankRow();
+
+  // ── 1. Party & Basic ───────────────────────────────────────
+  secRow('1.  PARTY & BASIC INFORMATION');
+  twoRow('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
+  twoRow('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
+  fullRow('Party / Firm Name',app.party_name||'');
+  twoRow('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
+  blankRow();
+
+  if(app.dealership_area||app.dealership_state){
+    secRow('1b. AREA / DISTRICT DETAILS');
+    fullRow('Area / District for Dealership',app.dealership_area||'');
+    twoRow('State',app.dealership_state||'','','');
+    blankRow();
+  }
+
+  // ── 2. Zone ────────────────────────────────────────────────
+  secRow('2.  ZONE, MARKET & TERRITORY');
+  twoRow('Zone',app.zone||'','Market Name',app.market_name||'');
+  twoRow('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
+  blankRow();
+
+  // ── 3. Billing ─────────────────────────────────────────────
+  secRow('3.  BILLING ADDRESS');
+  fullRow('Address Line 1',app.billing_addr1||'');
+  fullRow('Address Line 2',app.billing_addr2||'');
+  fullRow('Address Line 3',app.billing_addr3||'');
+  twoRow('City',app.billing_city||'','State',app.billing_state||'');
+  twoRow('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
+  blankRow();
+
+  // ── 4. Contact ─────────────────────────────────────────────
+  secRow('4.  CONTACT DETAILS');
+  twoRow('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
+  twoRow('Email ID',app.email||'','Alt. Mobile',app.alt_mobile||'');
+  twoRow('WhatsApp No.',app.whatsapp||'','','');
+  blankRow();
+
+  // ── 5. Tax ─────────────────────────────────────────────────
+  secRow('5.  TAX & COMPLIANCE');
+  twoRow('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
+  twoRow('GST No.',app.gst_no||'','GST State',app.gst_state||'');
+  twoRow('PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
+  twoRow('Vendor GST Category',app.vendor_gst_category||'','','');
+  fullRow('TDS Section',app.tds_section||'');
+  blankRow();
+
+  // ── 6. Customer/Vendor ─────────────────────────────────────
+  secRow('6.  CUSTOMER / VENDOR DETAILS');
+  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
+  twoRow('Sales Person',fname,'Employee Code',currentUser?.userid||'');
+  blankRow();
+
+  // ── 7. Proprietors ─────────────────────────────────────────
+  if(props.length){
+    secRow('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
+    const hdrRow = ws.addRow(['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.']);
+    hdrRow.height = 16;
+    hdrRow.eachCell(c=>applyHdrStyle(c));
+    rowNum++;
+    props.forEach((p,i)=>{
+      const r = ws.addRow([i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||'']);
+      r.height = 16;
+      r.eachCell(c=>applyValStyle(c));
+      rowNum++;
+    });
+    blankRow();
+  }
+
+  // ── 8. Signatories ─────────────────────────────────────────
+  if(sigs.length){
+    secRow('8.  AUTHORIZED SIGNATORIES');
+    ws.mergeCells(rowNum,4,rowNum,8);
+    const sh = ws.getRow(rowNum);
+    sh.height = 16;
+    ['#','Full Name','Capacity / Role','Signature Reference'].forEach((h,i)=>{
+      const c = ws.getCell(rowNum,i+1); c.value=h; applyHdrStyle(c);
+    });
+    for(let c=5;c<=8;c++){applyHdrStyle(ws.getCell(rowNum,c));}
+    rowNum++;
+    sigs.forEach((s,i)=>{
+      ws.mergeCells(rowNum,4,rowNum,8);
+      const r=ws.getRow(rowNum); r.height=16;
+      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
+      ws.getCell(rowNum,2).value=s.name||''; applyValStyle(ws.getCell(rowNum,2));
+      ws.getCell(rowNum,3).value=s.capacity||''; applyValStyle(ws.getCell(rowNum,3));
+      ws.getCell(rowNum,4).value=s.signature||''; applyValStyle(ws.getCell(rowNum,4));
+      for(let c=5;c<=8;c++){applyValStyle(ws.getCell(rowNum,c));}
+      rowNum++;
+    });
+    blankRow();
+  }
+
+  // ── 9. Shipping ────────────────────────────────────────────
+  if(ships.length){
+    secRow('9.  SHIPPING ADDRESS (Customer Only)');
+    ships.forEach((s,idx)=>{
+      ws.mergeCells(rowNum,1,rowNum,8);
+      ws.getCell(rowNum,1).value='Shipping Address '+(idx+1);
+      applyShpStyle(ws.getCell(rowNum,1));
+      for(let c=2;c<=8;c++) applyShpStyle(ws.getCell(rowNum,c));
+      ws.getRow(rowNum).height=16; rowNum++;
+      fullRow('Address Line 1',s.addr1||'');
+      fullRow('Address Line 2',s.addr2||'');
+      twoRow('City',s.city||'','Pincode',s.pin||'');
+      twoRow('GST No.',s.gst||'','Email',s.email||'');
+      twoRow('Mobile',s.mobile||'','','');
+    });
+    blankRow();
+  }
+
+  // ── 10. Bank ───────────────────────────────────────────────
+  if(banks.length){
+    secRow('10. BANK DETAILS');
+    ws.mergeCells(rowNum,7,rowNum,8);
+    const bh=['#','Bank Name','Account No.','IFSC','Type','Account Name','Branch Address'];
+    bh.forEach((h,i)=>{ const c=ws.getCell(rowNum,i+1); c.value=h; applyHdrStyle(c); });
+    applyHdrStyle(ws.getCell(rowNum,8));
+    ws.getRow(rowNum).height=16; rowNum++;
+    banks.forEach((b,i)=>{
+      ws.mergeCells(rowNum,7,rowNum,8);
+      const vals=[i+1,b.bank_name||'',b.account_no||'',b.ifsc||'',b.account_type||'',b.account_name||'',b.address||''];
+      vals.forEach((v,ci)=>{ const c=ws.getCell(rowNum,ci+1); c.value=v; applyValStyle(c); });
+      applyValStyle(ws.getCell(rowNum,8));
+      ws.getRow(rowNum).height=16; rowNum++;
+    });
+    blankRow();
+  }
+
+  // ── 11. MSME ───────────────────────────────────────────────
+  if(app.msme_registered){
+    secRow('11. MSME DETAILS');
+    twoRow('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
+    twoRow('Udyam Registration No.',app.udyam_no||'','Udyam Reg. Date',app.udyam_date||'');
+    blankRow();
+  }
+
+  // ── 12. Existing Business ──────────────────────────────────
+  secRow('12. DETAILS OF EXISTING BUSINESS');
+  fullRow('Nature of Business',app.biz_nature||'');
+  twoRow('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
+  twoRow('Godown Area (sq.ft)',app.godown_area||'','Shop',app.shop_type||'');
+  twoRow('Godown',app.godown_type||'','Residence',app.residence_type||'');
+  blankRow();
+
+  // ── 15. Additional ─────────────────────────────────────────
+  secRow('15. ADDITIONAL INFORMATION');
+  twoRow('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
+  twoRow('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'');
+  twoRow('Convicted / Insolvent',app.convicted||'','','');
+  if(app.remarks) fullRow('Remarks',app.remarks||'');
+  blankRow();
+
+  // ── 16. Cheques ────────────────────────────────────────────
+  if(cheqs.length){
+    secRow('16. CHEQUES ENCLOSED');
+    ws.mergeCells(rowNum,3,rowNum,8);
+    ws.getCell(rowNum,1).value='#';      applyHdrStyle(ws.getCell(rowNum,1));
+    ws.getCell(rowNum,2).value='Cheque No.'; applyHdrStyle(ws.getCell(rowNum,2));
+    ws.getCell(rowNum,3).value='Name of Bank'; applyHdrStyle(ws.getCell(rowNum,3));
+    for(let c=4;c<=8;c++) applyHdrStyle(ws.getCell(rowNum,c));
+    ws.getRow(rowNum).height=16; rowNum++;
+    cheqs.forEach((c,i)=>{
+      ws.mergeCells(rowNum,3,rowNum,8);
+      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
+      ws.getCell(rowNum,2).value=c.cheque_no||''; applyValStyle(ws.getCell(rowNum,2));
+      ws.getCell(rowNum,3).value=c.bank_name||''; applyValStyle(ws.getCell(rowNum,3));
+      for(let cc=4;cc<=8;cc++) applyValStyle(ws.getCell(rowNum,cc));
+      ws.getRow(rowNum).height=16; rowNum++;
+    });
+    blankRow();
+  }
+
+  // ── 17. References ─────────────────────────────────────────
+  if(refs.length){
+    secRow('17. REFERENCES');
+    ws.mergeCells(rowNum,3,rowNum,6); ws.mergeCells(rowNum,7,rowNum,8);
+    ['#','Name','Address','Relationship'].forEach((h,i)=>{
+      const c=ws.getCell(rowNum,[1,2,3,7][i]); c.value=h; applyHdrStyle(c);
+    });
+    for(let c=4;c<=6;c++) applyHdrStyle(ws.getCell(rowNum,c));
+    applyHdrStyle(ws.getCell(rowNum,8));
+    ws.getRow(rowNum).height=16; rowNum++;
+    refs.forEach((rf,i)=>{
+      ws.mergeCells(rowNum,3,rowNum,6); ws.mergeCells(rowNum,7,rowNum,8);
+      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
+      ws.getCell(rowNum,2).value=rf.name||''; applyValStyle(ws.getCell(rowNum,2));
+      ws.getCell(rowNum,3).value=rf.address||''; applyValStyle(ws.getCell(rowNum,3));
+      for(let c=4;c<=6;c++) applyValStyle(ws.getCell(rowNum,c));
+      ws.getCell(rowNum,7).value=rf.relationship||''; applyValStyle(ws.getCell(rowNum,7));
+      applyValStyle(ws.getCell(rowNum,8));
+      ws.getRow(rowNum).height=16; rowNum++;
+    });
+    blankRow();
+  }
+
+  // ── Declaration ────────────────────────────────────────────
+  secRow('DECLARATION & SIGNATURE');
+  twoRow('DATE',today,'Requisition By',fname);
+  blankRow();
+
+  // ── Notes ──────────────────────────────────────────────────
+  ['Note:',
+   '1) Selling Branch to be chosen from the List provided, if Party type is Customer.',
+   '2) Scanned copies of GST, PAN and Service tax registration to be given along with requisition.',
+   '3) Category code to be selected from the list provided with GL Code.',
+   '4) While creating party code for sub dealer, provide respective dealer code also.',
+   '5) Credit limit and Credit days is mandatory in case party type is Customer.',
+   '6) Name of Employee who introduced this customer needed to be filled up.',
+   '7) Party Code will be allotted only after online verification of applicable registrations.',
+   '8) Sales Person name is with whom customer is to be mapped.',
+  ].forEach(n=>{
+    ws.mergeCells(rowNum,1,rowNum,8);
+    const c=ws.getCell(rowNum,1);
+    c.value=n; c.font={size:8,italic:true,color:{argb:'FF666666'},name:'Arial'};
+    c.alignment={wrapText:true};
+    ws.getRow(rowNum).height=14; rowNum++;
+  });
+
+  // ── Page setup ─────────────────────────────────────────────
+  ws.pageSetup = {
+    paperSize:9, orientation:'portrait',
+    fitToPage:true, fitToWidth:1, fitToHeight:0,
+    margins:{left:0.4,right:0.4,top:0.6,bottom:0.6,header:0.2,footer:0.2}
+  };
+
+  // ── Download ───────────────────────────────────────────────
+  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()
+    +'-'+(app.app_number||'REQ')+'.xlsx';
+
+  const buf  = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+  toast('Excel downloaded: '+filename,'success');
+}
+// ════════════════════════════════════════════════════════════
+</script>
+</body>
+</html>
