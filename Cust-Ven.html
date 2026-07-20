@@ -2028,6 +2028,64 @@ function buildPrintContent(app){
       </ol>
     </div>
   </div></div>`;
+  // ── For Office Use (separate page) ──
+  var _ofuSec=document.getElementById('ofu-section');
+  if(_ofuSec && _ofuSec.style.display!=='none'){
+    var _ou=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
+    var _brands=[
+      _ou.brand_duro?'Duro':'',_ou.brand_tower?'Tower':'',
+      _ou.brand_ntd?'NTD':'',_ou.brand_other?(_ou.brand_other_name||'Other'):''
+    ].filter(Boolean).join(', ')||'—';
+    var _total=((parseFloat(_ou.qtr1)||0)+(parseFloat(_ou.qtr2)||0)+(parseFloat(_ou.qtr3)||0)+(parseFloat(_ou.qtr4)||0)).toFixed(2);
+
+    html+=`<div style="page-break-before:always;"></div>
+    <div class="pr-header" style="margin-top:0;">
+      <div class="pr-company" style="font-size:14px;">FOR OFFICE USE ONLY</div>
+      <div class="pr-subtitle">${xe(app.party_name||'')} &nbsp;|&nbsp; ${xe(app.app_number||'')}</div>
+    </div>
+    <div class="pr-section"><div class="pr-sec-hd">Verification &amp; Recommendation</div><div class="pr-sec-body"><div class="pr-grid">
+      ${pf('Name of the Dealer',app.party_name,3)}
+      ${pf('2. Details Verified by (Name & Designation)',_ou.verified_by,3)}
+      ${pf('3. Appointment Recommended by',_ou.recommended_by,3)}
+    </div></div></div>
+    <div class="pr-section"><div class="pr-sec-hd">4. Approved by</div><div class="pr-sec-body"><div class="pr-grid">
+      ${pf('SM / BM / DBM',_ou.approved_bm)}
+      ${pf('RM / GM / VP',_ou.approved_rm)}
+      ${pf('Managing Director',_ou.approved_md)}
+    </div></div></div>
+    <div class="pr-section"><div class="pr-sec-hd">5 &amp; 6. Sales Person &amp; Expected Brands</div><div class="pr-sec-body"><div class="pr-grid">
+      ${pf('5. Sales Person Mapped',_ou.sales_person,3)}
+      ${pf('6. Expected Brands',_brands,3)}
+    </div></div></div>
+    <div class="pr-section"><div class="pr-sec-hd">7. Expected Business (Rs. in Lacs)</div><div class="pr-sec-body"><div class="pr-grid">
+      ${pf('Qtr I (Apr-Jun)',_ou.qtr1)}
+      ${pf('Qtr II (Jul-Sep)',_ou.qtr2)}
+      ${pf('Qtr III (Oct-Dec)',_ou.qtr3)}
+      ${pf('Qtr IV (Jan-Mar)',_ou.qtr4)}
+      ${pf('Total (Lacs)',_total)}
+    </div></div></div>
+    <div class="pr-section"><div class="pr-sec-hd">8. Credit Limit</div><div class="pr-sec-body"><div class="pr-grid">
+      ${pf('Amount (Rs.)',_ou.credit_limit)}
+      ${pf('No. of Days',_ou.credit_days)}
+    </div></div></div>
+    <div class="pr-section"><div class="pr-sec-hd">9 &amp; 10. Commitments &amp; Cheques</div><div class="pr-sec-body"><div class="pr-grid">
+      ${pf('Exclusive Commitment',_ou.exclusive)}
+      ${_ou.exclusive==='Yes'?pf('Brand',_ou.excl_brand):''}
+      ${_ou.exclusive==='Yes'?pf('Terms',_ou.excl_terms):''}
+      ${_ou.exclusive==='Yes'?pf('Period',_ou.excl_period):''}
+      ${pf('Cheques Given',_ou.cheque_given)}
+      ${_ou.cheque_given==='Yes'?pf('Receipt No.',_ou.cheque_receipt):''}
+      ${_ou.cheque_given==='Yes'?pf('Receipt Date',_ou.cheque_date):''}
+    </div></div></div>
+    <div class="pr-section"><div class="pr-sec-hd">11. Certification</div><div class="pr-sec-body">
+      <div style="font-size:11px;line-height:1.8;">I ________________________ holding the designation of <strong>${pv(_ou.certifier_desig)}</strong> certify that the above mentioned particulars are authentic and validated to the best of my knowledge.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:20px;">
+        <div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Date: ___________________</div>
+        <div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Signature with Seal</div>
+      </div>
+    </div></div>`;
+  }
+
   document.getElementById('print-content').innerHTML=html;
 }
 
@@ -2470,7 +2528,15 @@ function fillOfficeUse(app){
   var raw=app.office_use;
   var d=raw?(typeof raw==='string'?JSON.parse(raw):raw):{};
   ofuS('ofu-dealer_name', app.party_name||'');
-  ofuS('ofu-sales_person',    d.sales_person||'');
+  var _spName = d.sales_person||'';
+  if(!_spName && app.sales_person_id){
+    var _spSel=document.getElementById('f-sales_person');
+    if(_spSel){
+      var _spOpt=Array.from(_spSel.options).find(function(o){return String(o.value)===String(app.sales_person_id);});
+      if(_spOpt) _spName=_spOpt.textContent.replace(/\s*[(][^)]*[)]\s*$/,'').trim();
+    }
+  }
+  ofuS('ofu-sales_person', _spName);
   ofuS('ofu-verified_by',     d.verified_by||'');
   ofuS('ofu-recommended_by',  d.recommended_by||'');
   ofuS('ofu-approved_bm',     d.approved_bm||'');
