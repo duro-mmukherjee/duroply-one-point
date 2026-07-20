@@ -1929,41 +1929,28 @@ function generateExcel(app){
   const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
   const fname = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
 
-  // ── CSS style strings ──────────────────────────────────────
-  const B  = 'border:1px solid #000;';
-  const MB = 'border:2px solid #1E3A8A;';
-  const BG_SEC = 'background:#1E3A8A;color:#fff;font-weight:bold;font-size:10pt;'+MB;
-  const BG_LBL = 'background:#D9E1F2;font-size:9pt;'+B;
-  const BG_VAL = 'background:#fff;font-size:9pt;'+B;
-  const BG_HDR = 'background:#BDD7EE;font-weight:bold;font-size:9pt;text-align:center;'+B;
-  const BG_SHP = 'background:#E2EFDA;font-weight:bold;font-size:9pt;'+B;
-  const BG_TTL = 'font-size:13pt;font-weight:bold;color:#1E3A8A;text-align:center;';
-  const BG_SUB = 'font-size:10pt;text-align:center;';
-  const BG_NOT = 'font-size:8pt;font-style:italic;color:#666;';
+  const xe=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  const xe = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Border styles — these ARE read by xlsx table_to_sheet
+  const bs = 'border:1.5px solid #000;padding:4px 6px;font-family:Arial;font-size:9pt;';
+  const S  = 'background:#1E3A8A;color:#FFF;font-weight:bold;font-size:10pt;'+bs+'border:2px solid #1E3A8A;';
+  const L  = 'background:#D9E1F2;font-weight:normal;'+bs;
+  const V  = 'background:#FFFFFF;'+bs;
+  const H  = 'background:#BDD7EE;font-weight:bold;text-align:center;'+bs;
+  const SH = 'background:#E2EFDA;font-weight:bold;'+bs;
+  const N  = 'font-style:italic;font-size:8pt;color:#666;font-family:Arial;';
 
-  // ── HTML table builder ─────────────────────────────────────
-  let html = '<table style="border-collapse:collapse;width:100%;">';
+  const sec  = t =>`<tr><td colspan="8" style="${S}">${xe(t)}</td></tr>`;
+  const full = (l,v)=>`<tr><td style="${L}">${xe(l)}</td><td colspan="7" style="${V}">${xe(v)}</td></tr>`;
+  const two  = (l1,v1,l2,v2)=>`<tr><td style="${L}">${xe(l1)}</td><td colspan="3" style="${V}">${xe(v1)}</td><td style="${l2?L:V}">${xe(l2||'')}</td><td colspan="3" style="${V}">${xe(v2||'')}</td></tr>`;
+  const blank= ()=>`<tr><td colspan="8" style="border:none;padding:2px;"></td></tr>`;
 
-  // Title rows
-  html += `<tr><td colspan="8" style="${BG_TTL}">DUROPLY INDUSTRIES LIMITED</td></tr>`;
-  html += `<tr><td colspan="8" style="${BG_SUB}">Customer / Vendor Requisition Form</td></tr>`;
-  html += `<tr><td colspan="4" style="font-weight:bold;color:#1E3A8A;text-align:center;">${xe(app.app_number||'')}</td>
-            <td colspan="4" style="text-align:right;">Date: ${today}</td></tr>`;
-  html += `<tr><td colspan="8"></td></tr>`;
+  let html = `<table border="1" style="border-collapse:collapse;width:100%;">`;
+  html += `<tr><td colspan="8" style="text-align:center;font-size:13pt;font-weight:bold;color:#1E3A8A;font-family:Arial;padding:6px;">DUROPLY INDUSTRIES LIMITED</td></tr>`;
+  html += `<tr><td colspan="8" style="text-align:center;font-size:10pt;font-family:Arial;padding:4px;">Customer / Vendor Requisition Form</td></tr>`;
+  html += `<tr><td colspan="4" style="text-align:center;font-weight:bold;color:#1E3A8A;font-family:Arial;padding:4px;${bs}">${xe(app.app_number||'')}</td><td colspan="4" style="text-align:right;font-family:Arial;padding:4px;${bs}">Date: ${today}</td></tr>`;
+  html += blank();
 
-  // Section header helper
-  const sec  = t => `<tr><td colspan="8" style="${BG_SEC}">${xe(t)}</td></tr>`;
-  // Full-width: label(1col) + value(7col)
-  const full = (l,v) => `<tr><td style="${BG_LBL}">${xe(l)}</td><td colspan="7" style="${BG_VAL}">${xe(v)}</td></tr>`;
-  // Two-block: [lbl(1)|val(3)] [lbl(1)|val(3)]
-  const two  = (l1,v1,l2,v2) => `<tr>
-    <td style="${BG_LBL}">${xe(l1)}</td><td colspan="3" style="${BG_VAL}">${xe(v1)}</td>
-    <td style="${l2?BG_LBL:BG_VAL}">${xe(l2||'')}</td><td colspan="3" style="${BG_VAL}">${xe(v2||'')}</td></tr>`;
-  const blank = () => `<tr><td colspan="8"></td></tr>`;
-
-  // ── 1. Party & Basic ──
   html += sec('1.  PARTY & BASIC INFORMATION');
   html += two('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
   html += two('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
@@ -1971,7 +1958,6 @@ function generateExcel(app){
   html += two('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
   html += blank();
 
-  // ── 1b. Area / District ──
   if(app.dealership_area||app.dealership_state){
     html += sec('1b. AREA / DISTRICT DETAILS');
     html += full('Area / District for Dealership',app.dealership_area||'');
@@ -1979,13 +1965,11 @@ function generateExcel(app){
     html += blank();
   }
 
-  // ── 2. Zone ──
   html += sec('2.  ZONE, MARKET & TERRITORY');
   html += two('Zone',app.zone||'','Market Name',app.market_name||'');
   html += two('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
   html += blank();
 
-  // ── 3. Billing Address ──
   html += sec('3.  BILLING ADDRESS');
   html += full('Address Line 1',app.billing_addr1||'');
   html += full('Address Line 2',app.billing_addr2||'');
@@ -1994,14 +1978,12 @@ function generateExcel(app){
   html += two('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
   html += blank();
 
-  // ── 4. Contact ──
   html += sec('4.  CONTACT DETAILS');
   html += two('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
   html += two('Email ID',app.email||'','Alt. Mobile',app.alt_mobile||'');
   html += two('WhatsApp No.',app.whatsapp||'','','');
   html += blank();
 
-  // ── 5. Tax & Compliance ──
   html += sec('5.  TAX & COMPLIANCE');
   html += two('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
   html += two('GST No.',app.gst_no||'','GST State',app.gst_state||'');
@@ -2010,37 +1992,29 @@ function generateExcel(app){
   html += full('TDS Section',app.tds_section||'');
   html += blank();
 
-  // ── 6. Customer / Vendor Details ──
   html += sec('6.  CUSTOMER / VENDOR DETAILS');
   html += two('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
   html += two('Sales Person',fname,'Employee Code',currentUser?.userid||'');
   html += blank();
 
-  // ── 7. Proprietors ──
   if(props.length){
     html += sec('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
-    html += `<tr>${['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.'].map(h=>`<td style="${BG_HDR}">${h}</td>`).join('')}</tr>`;
-    props.forEach((p,i)=>{
-      html += `<tr>${[i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''].map(v=>`<td style="${BG_VAL}">${xe(v)}</td>`).join('')}</tr>`;
-    });
+    html += `<tr>${['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.'].map(h=>`<td style="${H}">${h}</td>`).join('')}</tr>`;
+    props.forEach((p,i)=>{ html += `<tr>${[i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''].map(v=>`<td style="${V}">${xe(v)}</td>`).join('')}</tr>`; });
     html += blank();
   }
 
-  // ── 8. Signatories ──
   if(sigs.length){
     html += sec('8.  AUTHORIZED SIGNATORIES');
-    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Full Name</td><td style="${BG_HDR}">Capacity / Role</td><td colspan="5" style="${BG_HDR}">Signature Reference</td></tr>`;
-    sigs.forEach((s,i)=>{
-      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(s.name||'')}</td><td style="${BG_VAL}">${xe(s.capacity||'')}</td><td colspan="5" style="${BG_VAL}">${xe(s.signature||'')}</td></tr>`;
-    });
+    html += `<tr><td style="${H}">#</td><td style="${H}">Full Name</td><td style="${H}">Capacity / Role</td><td colspan="5" style="${H}">Signature Reference</td></tr>`;
+    sigs.forEach((s,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(s.name||'')}</td><td style="${V}">${xe(s.capacity||'')}</td><td colspan="5" style="${V}">${xe(s.signature||'')}</td></tr>`; });
     html += blank();
   }
 
-  // ── 9. Shipping ──
   if(ships.length){
     html += sec('9.  SHIPPING ADDRESS (Customer Only)');
     ships.forEach((s,idx)=>{
-      html += `<tr><td colspan="8" style="${BG_SHP}">Shipping Address ${idx+1}</td></tr>`;
+      html += `<tr><td colspan="8" style="${SH}">Shipping Address ${idx+1}</td></tr>`;
       html += full('Address Line 1',s.addr1||'');
       html += full('Address Line 2',s.addr2||'');
       html += two('City',s.city||'','Pincode',s.pin||'');
@@ -2050,17 +2024,13 @@ function generateExcel(app){
     html += blank();
   }
 
-  // ── 10. Bank Details ──
   if(banks.length){
     html += sec('10. BANK DETAILS');
-    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Bank Name</td><td style="${BG_HDR}">Account No.</td><td style="${BG_HDR}">IFSC</td><td style="${BG_HDR}">Type</td><td style="${BG_HDR}">Account Name</td><td colspan="2" style="${BG_HDR}">Branch Address</td></tr>`;
-    banks.forEach((b,i)=>{
-      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(b.bank_name||'')}</td><td style="${BG_VAL}">${xe(b.account_no||'')}</td><td style="${BG_VAL}">${xe(b.ifsc||'')}</td><td style="${BG_VAL}">${xe(b.account_type||'')}</td><td style="${BG_VAL}">${xe(b.account_name||'')}</td><td colspan="2" style="${BG_VAL}">${xe(b.address||'')}</td></tr>`;
-    });
+    html += `<tr><td style="${H}">#</td><td style="${H}">Bank Name</td><td style="${H}">Account No.</td><td style="${H}">IFSC</td><td style="${H}">Type</td><td style="${H}">Account Name</td><td colspan="2" style="${H}">Branch Address</td></tr>`;
+    banks.forEach((b,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(b.bank_name||'')}</td><td style="${V}">${xe(b.account_no||'')}</td><td style="${V}">${xe(b.ifsc||'')}</td><td style="${V}">${xe(b.account_type||'')}</td><td style="${V}">${xe(b.account_name||'')}</td><td colspan="2" style="${V}">${xe(b.address||'')}</td></tr>`; });
     html += blank();
   }
 
-  // ── 11. MSME ──
   if(app.msme_registered){
     html += sec('11. MSME DETAILS');
     html += two('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
@@ -2068,7 +2038,6 @@ function generateExcel(app){
     html += blank();
   }
 
-  // ── 12. Existing Business ──
   html += sec('12. DETAILS OF EXISTING BUSINESS');
   html += full('Nature of Business',app.biz_nature||'');
   html += two('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
@@ -2076,7 +2045,6 @@ function generateExcel(app){
   html += two('Godown',app.godown_type||'','Residence',app.residence_type||'');
   html += blank();
 
-  // ── 15. Additional Info ──
   html += sec('15. ADDITIONAL INFORMATION');
   html += two('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
   html += two('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'');
@@ -2084,32 +2052,23 @@ function generateExcel(app){
   if(app.remarks) html += full('Remarks',app.remarks||'');
   html += blank();
 
-  // ── 16. Cheques ──
   if(cheqs.length){
     html += sec('16. CHEQUES ENCLOSED');
-    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Cheque No.</td><td colspan="6" style="${BG_HDR}">Name of Bank</td></tr>`;
-    cheqs.forEach((c,i)=>{
-      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(c.cheque_no||'')}</td><td colspan="6" style="${BG_VAL}">${xe(c.bank_name||'')}</td></tr>`;
-    });
+    html += `<tr><td style="${H}">#</td><td style="${H}">Cheque No.</td><td colspan="6" style="${H}">Name of Bank</td></tr>`;
+    cheqs.forEach((c,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(c.cheque_no||'')}</td><td colspan="6" style="${V}">${xe(c.bank_name||'')}</td></tr>`; });
     html += blank();
   }
 
-  // ── 17. References ──
   if(refs.length){
     html += sec('17. REFERENCES');
-    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Name</td><td colspan="4" style="${BG_HDR}">Address</td><td colspan="2" style="${BG_HDR}">Relationship</td></tr>`;
-    refs.forEach((rf,i)=>{
-      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(rf.name||'')}</td><td colspan="4" style="${BG_VAL}">${xe(rf.address||'')}</td><td colspan="2" style="${BG_VAL}">${xe(rf.relationship||'')}</td></tr>`;
-    });
+    html += `<tr><td style="${H}">#</td><td style="${H}">Name</td><td colspan="4" style="${H}">Address</td><td colspan="2" style="${H}">Relationship</td></tr>`;
+    refs.forEach((rf,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(rf.name||'')}</td><td colspan="4" style="${V}">${xe(rf.address||'')}</td><td colspan="2" style="${V}">${xe(rf.relationship||'')}</td></tr>`; });
     html += blank();
   }
 
-  // ── Declaration ──
   html += sec('DECLARATION & SIGNATURE');
   html += two('DATE',today,'Requisition By',fname);
   html += blank();
-
-  // ── Notes ──
   ['Note:',
    '1) Selling Branch to be chosen from the List provided, if Party type is Customer.',
    '2) Scanned copies of GST, PAN and Service tax registration to be given along with requisition.',
@@ -2119,33 +2078,25 @@ function generateExcel(app){
    '6) Name of Employee who introduced this customer needed to be filled up.',
    '7) Party Code will be allotted only after online verification of applicable registrations.',
    '8) Sales Person name is with whom customer is to be mapped.',
-  ].forEach(n=>{ html += `<tr><td colspan="8" style="${BG_NOT}">${xe(n)}</td></tr>`; });
-
+  ].forEach(n=>{ html+=`<tr><td colspan="8" style="${N}">${xe(n)}</td></tr>`; });
   html += '</table>';
 
-  // ── Convert HTML table to sheet ────────────────────────────
-  // Create a temporary DOM element
+  // Inject table into hidden DOM element and convert
   const div = document.createElement('div');
+  div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
   div.innerHTML = html;
-  const table = div.querySelector('table');
+  document.body.appendChild(div);
 
-  const ws = XLSX.utils.table_to_sheet(table, {raw:false});
+  const ws = XLSX.utils.table_to_sheet(div.querySelector('table'), {raw:true, display:false});
+  document.body.removeChild(div);
 
-  // Column widths
   ws['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:22},{wch:16},{wch:14},{wch:12}];
-
-  // Fit to 1 page wide
-  ws['!pageSetup'] = {
-    paperSize:9, orientation:'portrait',
-    fitToPage:true, fitToWidth:1, fitToHeight:0,
-    left:0.4, right:0.4, top:0.6, bottom:0.6
-  };
+  ws['!pageSetup'] = {paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,left:0.4,right:0.4,top:0.6,bottom:0.6};
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'MASTER');
 
-  const filename = (app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()
-    + '-' + (app.app_number||'REQ') + '.xlsx';
+  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()+'-'+(app.app_number||'REQ')+'.xlsx';
   XLSX.writeFile(wb, filename);
   toast('Excel downloaded: '+filename,'success');
 }
