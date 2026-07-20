@@ -221,32 +221,6 @@ tbody tr:hover td{background:var(--surface2);}
 .pr-badge-new{background:#bfdbfe;color:#1e3a8a;border-color:#1e40af;}
 .pr-badge-approved{background:#bbf7d0;color:#14532d;border-color:#16a34a;}
 .pr-badge-dis{background:#fecaca;color:#7f1d1d;border-color:#dc2626;}
-/* ── Office Use Block ── */
-.ofu-block{border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin-top:8px;}
-.ofu-hd{background:var(--accent);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
-.ofu-hd-title{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
-.ofu-hd-badge{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);background:rgba(0,0,0,.2);padding:2px 8px;border-radius:4px;}
-.ofu-body{padding:16px;}
-.ofu-sec{margin-bottom:16px;}
-.ofu-sec-title{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:600;}
-.ofu-row{display:grid;gap:10px;margin-bottom:8px;}
-.ofu-row.c2{grid-template-columns:1fr 1fr;}
-.ofu-row.c3{grid-template-columns:1fr 1fr 1fr;}
-.ofu-row.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
-.ofu-fld label{font-size:11px;color:var(--text3);display:block;margin-bottom:3px;}
-.ofu-fld input,.ofu-fld select{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);}
-.ofu-fld input:disabled,.ofu-fld select:disabled{background:var(--surface2);color:var(--text2);cursor:not-allowed;opacity:.7;}
-.ofu-approval-box{border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;background:var(--bg);}
-.ofu-approval-box .ofu-appr-title{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
-.ofu-approval-box input{width:100%;text-align:center;border:none;border-bottom:1px solid var(--border);border-radius:0;background:transparent;font-size:12px;padding:4px 0;color:var(--text);}
-.ofu-approval-box input:disabled{opacity:.6;cursor:not-allowed;}
-.ofu-checkbox-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:4px;}
-.ofu-checkbox-row label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
-.ofu-checkbox-row input[type=checkbox]{width:16px;height:16px;}
-.ofu-readonly-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:12px;}
-.ofu-save-btn{background:var(--accent);color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
-.ofu-save-btn:hover{opacity:.85;}
-
 </style>
 </head>
 <body>
@@ -854,115 +828,6 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <!-- ── FOR OFFICE USE ── -->
-        <div id="ofu-section" style="display:none;">
-          <div class="ofu-block">
-            <div class="ofu-hd">
-              <div class="ofu-hd-title">📋 For Office Use Only</div>
-              <div class="ofu-hd-badge" id="ofu-access-badge">View Only</div>
-            </div>
-            <div class="ofu-body">
-              <div id="ofu-readonly-banner" class="ofu-readonly-banner" style="display:none;">
-                🔒 You have read-only access to this section. Only authorised office staff can fill this.
-              </div>
-              <!-- 1+5. Dealer & Sales Person -->
-              <div class="ofu-sec">
-                <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>1. Name of the Dealer</label><input type="text" id="ofu-dealer_name" disabled></div>
-                  <div class="ofu-fld"><label>5. Sales Person Mapped</label><input type="text" id="ofu-sales_person" placeholder="Name of sales person"></div>
-                </div>
-              </div>
-              <!-- 2+3. Verified & Recommended -->
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">Verification & Recommendation</div>
-                <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>2. Details Verified by (Name & Designation)</label><input type="text" id="ofu-verified_by" placeholder="Name, Designation"></div>
-                  <div class="ofu-fld"><label>3. Appointment Recommended by</label><input type="text" id="ofu-recommended_by" placeholder="Name"></div>
-                </div>
-              </div>
-              <!-- 4. Approved by -->
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">4. Approved by</div>
-                <div class="ofu-row c3">
-                  <div class="ofu-approval-box"><div class="ofu-appr-title">SM / BM / DBM</div><input type="text" id="ofu-approved_bm" placeholder="Name / Signature"></div>
-                  <div class="ofu-approval-box"><div class="ofu-appr-title">RM / GM / VP</div><input type="text" id="ofu-approved_rm" placeholder="Name / Signature"></div>
-                  <div class="ofu-approval-box"><div class="ofu-appr-title">Managing Director</div><input type="text" id="ofu-approved_md" placeholder="Name / Signature"></div>
-                </div>
-              </div>
-              <!-- 6. Expected Brands -->
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">6. Expected Brands to be Dealt In</div>
-                <div class="ofu-checkbox-row">
-                  <label><input type="checkbox" id="ofu-brand_duro"> Duro</label>
-                  <label><input type="checkbox" id="ofu-brand_tower"> Tower</label>
-                  <label><input type="checkbox" id="ofu-brand_ntd"> NTD</label>
-                  <label><input type="checkbox" id="ofu-brand_other"> Other</label>
-                  <div class="ofu-fld" style="flex:1;min-width:150px;margin:0;"><input type="text" id="ofu-brand_other_name" placeholder="Please specify"></div>
-                </div>
-              </div>
-              <!-- 7. Expected Business -->
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">7. Expected Business in Current Financial Year (Rs. in Lacs)</div>
-                <div class="ofu-row c4">
-                  <div class="ofu-fld"><label>Qtr I (Apr – Jun)</label><input type="number" id="ofu-qtr1" placeholder="0.00" min="0" step="0.01"></div>
-                  <div class="ofu-fld"><label>Qtr II (Jul – Sep)</label><input type="number" id="ofu-qtr2" placeholder="0.00" min="0" step="0.01"></div>
-                  <div class="ofu-fld"><label>Qtr III (Oct – Dec)</label><input type="number" id="ofu-qtr3" placeholder="0.00" min="0" step="0.01"></div>
-                  <div class="ofu-fld"><label>Qtr IV (Jan – Mar)</label><input type="number" id="ofu-qtr4" placeholder="0.00" min="0" step="0.01"></div>
-                </div>
-              </div>
-              <!-- 8. Credit Limit -->
-              <div class="ofu-sec">
-                <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>8. Credit Limit (Rs. in Amount)</label><input type="number" id="ofu-credit_limit_ofu" placeholder="Amount in Rs." min="0"></div>
-                  <div class="ofu-fld"><label>8. Credit Limit (No. of Days)</label><input type="number" id="ofu-credit_days_ofu" placeholder="Days" min="0"></div>
-                </div>
-              </div>
-              <!-- 9. Exclusive Commitment -->
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">9. Any Exclusive Commitment Given</div>
-                <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_exclusive" id="ofu-exclusive_yes" value="Yes" onchange="ofuToggleExclusive()"> Yes</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_exclusive" id="ofu-exclusive_no" value="No" onchange="ofuToggleExclusive()" checked> No</label>
-                </div>
-                <div id="ofu-exclusive-details" style="display:none;">
-                  <div class="ofu-row c3">
-                    <div class="ofu-fld"><label>Brand</label><input type="text" id="ofu-excl_brand" placeholder="Brand name"></div>
-                    <div class="ofu-fld"><label>Terms & Conditions</label><input type="text" id="ofu-excl_terms" placeholder="Terms"></div>
-                    <div class="ofu-fld"><label>Time Period</label><input type="text" id="ofu-excl_period" placeholder="e.g. 1 year"></div>
-                  </div>
-                </div>
-              </div>
-              <!-- 10. Cheques Given -->
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">10. Cheques Given</div>
-                <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_cheque" id="ofu-cheque_yes" value="Yes" onchange="ofuToggleCheque()"> Yes</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_cheque" id="ofu-cheque_no" value="No" onchange="ofuToggleCheque()" checked> No</label>
-                </div>
-                <div id="ofu-cheque-details" style="display:none;">
-                  <div class="ofu-row c2">
-                    <div class="ofu-fld"><label>Receipt No.</label><input type="text" id="ofu-cheque_receipt" placeholder="Receipt number"></div>
-                    <div class="ofu-fld"><label>Receipt Date</label><input type="date" id="ofu-cheque_date"></div>
-                  </div>
-                </div>
-              </div>
-              <!-- 11. Certification -->
-              <div class="ofu-sec">
-                <div style="font-size:12px;color:var(--text2);line-height:2;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">
-                  I &nbsp;<span style="display:inline-block;min-width:120px;border-bottom:1px solid var(--text3);">&nbsp;</span>&nbsp;
-                  holding the designation of &nbsp;
-                  <input type="text" id="ofu-certifier_designation" style="display:inline-block;width:180px;font-size:12px;padding:2px 6px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--text);" placeholder="Designation">
-                  &nbsp; certify that the above mentioned particulars are authentic and validated to the best of my knowledge.
-                </div>
-              </div>
-              <!-- Save button (office staff only) -->
-              <div id="ofu-save-row" style="display:none;margin-top:8px;text-align:right;">
-                <button class="ofu-save-btn" onclick="saveOfficeUse()">💾 Save Office Use Data</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
           <button class="btn btn-ghost" onclick="showList()">Cancel</button>
           <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
@@ -1201,7 +1066,6 @@ function showNewForm(){
     return;
   }
   editId=null;resetForm();
-  const _ofu=document.getElementById('ofu-section');if(_ofu)_ofu.style.display='none';
   ['btn-print-form','btn-excel-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('fv-title').textContent='New Application';
   document.getElementById('app-no-disp').style.display='none';
@@ -1220,7 +1084,6 @@ function editApp(id){
   }
   editId=id;resetForm();fillForm(app);
   ['btn-print-form','btn-excel-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-block';});
-  setupOfficeUse(app);
   document.getElementById('fv-title').textContent='Edit Application';
   if(app.app_number){document.getElementById('app-no-disp').textContent=app.app_number;document.getElementById('app-no-disp').style.display='inline-block';}
   document.getElementById('list-view').style.display='none';
@@ -1476,8 +1339,18 @@ function collect(){
     pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
     gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
     gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
+    shipping_addresses:JSON.stringify(
+      Array.from(document.getElementById('ship-body').querySelectorAll('.ship-block')).map(b=>{
+        const inputs=b.querySelectorAll('input[type=text],input[type=email]');
+        const sel=b.querySelector('select');
+        return {
+          addr1:inputs[0]?.value||'',addr2:inputs[1]?.value||'',addr3:inputs[2]?.value||'',
+          city:inputs[3]?.value||'',pin:inputs[4]?.value||'',state:sel?.value||'',
+          gst:inputs[5]?.value||'',email:inputs[6]?.value||'',mobile:inputs[7]?.value||''
+        };
+      })
+    ),
     ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
-    office_use: editId ? undefined : undefined, // preserved separately via saveOfficeUse()
 
   };
 }
@@ -1587,6 +1460,34 @@ function fillForm(app){
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
   // Cheque images come from inside the cheques JSON (handled below)
   window._pendingChequeImgs=[];
+
+  // ── Restore Shipping Addresses ──────────────────────
+  const _shipBody=document.getElementById('ship-body');
+  if(_shipBody){
+    const _shipData=safeParseJSON(app.shipping_addresses)||[];
+    if(_shipData.length){
+      _shipBody.innerHTML='';
+      _shipData.forEach((s,i)=>{
+        const div=document.createElement('div');
+        div.className='ship-block';
+        div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div>
+<button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button>
+<div class="fg" style="grid-template-columns:1fr 1fr;">
+  <div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}" placeholder="Line 1"></div>
+  <div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}" placeholder="Line 2 (optional)"></div>
+  <div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}" placeholder="Line 3 (optional)"></div>
+  <div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}" placeholder="City"></div>
+  <div class="fld"><label>Pincode</label><input type="text" maxlength="6" value="${(s.pin||'').replace(/"/g,'&quot;')}" placeholder="PIN"></div>
+  <div class="fld"><label>State</label><select><option value="">— Select —</option>${SELLING_BRANCHES.map(b=>`<option${s.state===b?' selected':''}>${xe(b)}</option>`).join('')}</select></div>
+  <div class="fld"><label>GST No.</label><input type="text" maxlength="15" value="${(s.gst||'').replace(/"/g,'&quot;')}" placeholder="GST (optional)"></div>
+  <div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}" placeholder="Email (optional)"></div>
+  <div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" value="${(s.mobile||'').replace(/"/g,'&quot;')}" placeholder="Mobile (optional)"></div>
+</div>`;
+        _shipBody.appendChild(div);
+      });
+    }
+  }
+
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
   cheqTb.innerHTML='';
@@ -1978,7 +1879,13 @@ function buildPrintContent(app){
     <tbody>${sigs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.capacity)}</td><td>${pv(r.signature)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
   ${ships.length?`<div class="pr-section"><div class="pr-sec-hd">9. Shipping Addresses</div><div class="pr-sec-body">
-    ${ships.map((s,i)=>`<div style="margin-bottom:5px;padding:4px 8px;border:1px solid #334155;border-radius:4px;font-size:10.5px;"><b>Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
+    ${ships.map((s,i)=>`<div style="margin-bottom:8px;padding:6px 8px;border:1px solid #334155;border-radius:4px;">
+      <div style="font-weight:700;font-size:11px;margin-bottom:4px;">Address ${i+1}</div>
+      <div class="pr-grid">
+        ${pf('Address Line 1',s.addr1,3)}${pf('Address Line 2',s.addr2,3)}${pf('Address Line 3',s.addr3,3)}
+        ${pf('City',s.city)}${pf('Pincode',s.pin)}${pf('State',s.state)}
+        ${pf('GST No.',s.gst)}${pf('Email',s.email)}${pf('Mobile',s.mobile)}
+      </div></div>`).join('')}
   </div></div>`:''}
   ${banks.length?`<div class="pr-section"><div class="pr-sec-hd">10. Bank Details</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Bank Name</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Account Name</th><th>Branch Address</th></tr></thead>
@@ -2435,116 +2342,6 @@ async function generateExcel(app){
   toast('Excel downloaded: '+filename,'success');
 }
 // ════════════════════════════════════════════════════════════
-// ══ FOR OFFICE USE ════════════════════════════════════════════
-function ofuToggleExclusive(){
-  const yes=document.getElementById('ofu-exclusive_yes')?.checked;
-  const d=document.getElementById('ofu-exclusive-details');
-  if(d) d.style.display=yes?'block':'none';
-}
-function ofuToggleCheque(){
-  const yes=document.getElementById('ofu-cheque_yes')?.checked;
-  const d=document.getElementById('ofu-cheque-details');
-  if(d) d.style.display=yes?'block':'none';
-}
-function ofuGetVal(id){const el=document.getElementById(id);return el?el.value||'':\'\'';}
-function ofuSetVal(id,v){const el=document.getElementById(id);if(el)el.value=v||'';}
-function ofuSetChk(id,v){const el=document.getElementById(id);if(el)el.checked=!!v;}
-function ofuSetRad(name,v){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.checked=(r.value===v));}
-
-function collectOfficeUse(){
-  return {
-    sales_person:ofuGetVal('ofu-sales_person'),
-    verified_by:ofuGetVal('ofu-verified_by'),
-    recommended_by:ofuGetVal('ofu-recommended_by'),
-    approved_bm:ofuGetVal('ofu-approved_bm'),
-    approved_rm:ofuGetVal('ofu-approved_rm'),
-    approved_md:ofuGetVal('ofu-approved_md'),
-    brand_duro:document.getElementById('ofu-brand_duro')?.checked||false,
-    brand_tower:document.getElementById('ofu-brand_tower')?.checked||false,
-    brand_ntd:document.getElementById('ofu-brand_ntd')?.checked||false,
-    brand_other:document.getElementById('ofu-brand_other')?.checked||false,
-    brand_other_name:ofuGetVal('ofu-brand_other_name'),
-    qtr1:parseFloat(ofuGetVal('ofu-qtr1'))||0,
-    qtr2:parseFloat(ofuGetVal('ofu-qtr2'))||0,
-    qtr3:parseFloat(ofuGetVal('ofu-qtr3'))||0,
-    qtr4:parseFloat(ofuGetVal('ofu-qtr4'))||0,
-    credit_limit:parseFloat(ofuGetVal('ofu-credit_limit_ofu'))||0,
-    credit_days:parseInt(ofuGetVal('ofu-credit_days_ofu'))||0,
-    exclusive:document.getElementById('ofu-exclusive_yes')?.checked?'Yes':'No',
-    excl_brand:ofuGetVal('ofu-excl_brand'),
-    excl_terms:ofuGetVal('ofu-excl_terms'),
-    excl_period:ofuGetVal('ofu-excl_period'),
-    cheque_given:document.getElementById('ofu-cheque_yes')?.checked?'Yes':'No',
-    cheque_receipt:ofuGetVal('ofu-cheque_receipt'),
-    cheque_date:ofuGetVal('ofu-cheque_date'),
-    certifier_desig:ofuGetVal('ofu-certifier_designation'),
-  };
-}
-
-function fillOfficeUse(app){
-  const d=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
-  ofuSetVal('ofu-dealer_name',app.party_name||'');
-  ofuSetVal('ofu-sales_person',d.sales_person||'');
-  ofuSetVal('ofu-verified_by',d.verified_by||'');
-  ofuSetVal('ofu-recommended_by',d.recommended_by||'');
-  ofuSetVal('ofu-approved_bm',d.approved_bm||'');
-  ofuSetVal('ofu-approved_rm',d.approved_rm||'');
-  ofuSetVal('ofu-approved_md',d.approved_md||'');
-  ofuSetChk('ofu-brand_duro',d.brand_duro);
-  ofuSetChk('ofu-brand_tower',d.brand_tower);
-  ofuSetChk('ofu-brand_ntd',d.brand_ntd);
-  ofuSetChk('ofu-brand_other',d.brand_other);
-  ofuSetVal('ofu-brand_other_name',d.brand_other_name||'');
-  ofuSetVal('ofu-qtr1',d.qtr1||'');
-  ofuSetVal('ofu-qtr2',d.qtr2||'');
-  ofuSetVal('ofu-qtr3',d.qtr3||'');
-  ofuSetVal('ofu-qtr4',d.qtr4||'');
-  ofuSetVal('ofu-credit_limit_ofu',d.credit_limit||'');
-  ofuSetVal('ofu-credit_days_ofu',d.credit_days||'');
-  ofuSetRad('ofu_exclusive',d.exclusive||'No');
-  ofuSetVal('ofu-excl_brand',d.excl_brand||'');
-  ofuSetVal('ofu-excl_terms',d.excl_terms||'');
-  ofuSetVal('ofu-excl_period',d.excl_period||'');
-  ofuSetRad('ofu_cheque',d.cheque_given||'No');
-  ofuSetVal('ofu-cheque_receipt',d.cheque_receipt||'');
-  ofuSetVal('ofu-cheque_date',d.cheque_date||'');
-  ofuSetVal('ofu-certifier_designation',d.certifier_desig||'');
-  ofuToggleExclusive();
-  ofuToggleCheque();
-}
-
-function setupOfficeUse(app){
-  const section=document.getElementById('ofu-section');
-  if(!section) return;
-  const validStatuses=['Draft','New','Approved By LAO','Approved By Management',
-    'Disapproved By LAO','Disapproved By Management','Sent To HO','Certificate Issued'];
-  const show=app&&validStatuses.includes(app.status);
-  section.style.display=show?'block':'none';
-  if(!show) return;
-  const canEdit=(window.userRole==='super_admin');
-  const badge=document.getElementById('ofu-access-badge');
-  const saveRow=document.getElementById('ofu-save-row');
-  const banner=document.getElementById('ofu-readonly-banner');
-  if(badge) badge.textContent=canEdit?'✏️ Editable':'🔒 View Only';
-  if(saveRow) saveRow.style.display=canEdit?'block':'none';
-  if(banner) banner.style.display=canEdit?'none':'block';
-  section.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select').forEach(el=>{
-    el.disabled=(el.id==='ofu-dealer_name')||!canEdit;
-  });
-  section.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(el=>{
-    el.disabled=!canEdit;
-  });
-  fillOfficeUse(app);
-}
-
-async function saveOfficeUse(){
-  if(!editId){toast('Please save the main form first','error');return;}
-  if(window.userRole!=='super_admin'){toast('Access denied','error');return;}
-  const{error}=await sb.from('cvr_applications').update({office_use:JSON.stringify(collectOfficeUse())}).eq('id',editId);
-  if(error){toast('Save failed: '+error.message,'error');return;}
-  toast('Office use data saved successfully','success');
-}
-
 </script>
 </body>
 </html>
