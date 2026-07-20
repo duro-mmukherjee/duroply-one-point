@@ -221,31 +221,6 @@ tbody tr:hover td{background:var(--surface2);}
 .pr-badge-new{background:#bfdbfe;color:#1e3a8a;border-color:#1e40af;}
 .pr-badge-approved{background:#bbf7d0;color:#14532d;border-color:#16a34a;}
 .pr-badge-dis{background:#fecaca;color:#7f1d1d;border-color:#dc2626;}
-/* ── Office Use Block ── */
-.ofu-block{border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin-top:8px;}
-.ofu-hd{background:var(--accent);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
-.ofu-hd-title{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
-.ofu-hd-badge{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);background:rgba(0,0,0,.2);padding:2px 8px;border-radius:4px;}
-.ofu-body{padding:16px;}
-.ofu-sec{margin-bottom:16px;}
-.ofu-sec-title{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:600;}
-.ofu-row{display:grid;gap:10px;margin-bottom:8px;}
-.ofu-row.c2{grid-template-columns:1fr 1fr;}
-.ofu-row.c3{grid-template-columns:1fr 1fr 1fr;}
-.ofu-row.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
-.ofu-fld label{font-size:11px;color:var(--text3);display:block;margin-bottom:3px;}
-.ofu-fld input,.ofu-fld select{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);}
-.ofu-fld input:disabled,.ofu-fld select:disabled{background:var(--surface2);color:var(--text2);cursor:not-allowed;opacity:.7;}
-.ofu-approval-box{border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;background:var(--bg);}
-.ofu-approval-box .ofu-appr-title{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
-.ofu-approval-box input{width:100%;text-align:center;border:none;border-bottom:1px solid var(--border);border-radius:0;background:transparent;font-size:12px;padding:4px 0;color:var(--text);}
-.ofu-approval-box input:disabled{opacity:.6;cursor:not-allowed;}
-.ofu-checkbox-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:4px;}
-.ofu-checkbox-row label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
-.ofu-checkbox-row input[type=checkbox]{width:16px;height:16px;}
-.ofu-readonly-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:12px;}
-.ofu-save-btn{background:var(--accent);color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
-.ofu-save-btn:hover{opacity:.85;}
 </style>
 </head>
 <body>
@@ -853,104 +828,6 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <div id="ofu-section" style="display:none;">
-          <div class="ofu-block">
-            <div class="ofu-hd">
-              <div class="ofu-hd-title">&#128203; For Office Use Only</div>
-              <div class="ofu-hd-badge" id="ofu-access-badge">View Only</div>
-            </div>
-            <div class="ofu-body">
-              <div id="ofu-readonly-banner" class="ofu-readonly-banner" style="display:none;">
-                &#128274; You have read-only access. Only authorised office staff can fill this section.
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>1. Name of the Dealer</label><input type="text" id="ofu-dealer_name" disabled></div>
-                  <div class="ofu-fld"><label>5. Sales Person Mapped</label><input type="text" id="ofu-sales_person" placeholder="Name of sales person"></div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">Verification &amp; Recommendation</div>
-                <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>2. Details Verified by (Name &amp; Designation)</label><input type="text" id="ofu-verified_by" placeholder="Name, Designation"></div>
-                  <div class="ofu-fld"><label>3. Appointment Recommended by</label><input type="text" id="ofu-recommended_by" placeholder="Name"></div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">4. Approved by</div>
-                <div class="ofu-row c3">
-                  <div class="ofu-approval-box"><div class="ofu-appr-title">SM / BM / DBM</div><input type="text" id="ofu-approved_bm" placeholder="Name / Signature"></div>
-                  <div class="ofu-approval-box"><div class="ofu-appr-title">RM / GM / VP</div><input type="text" id="ofu-approved_rm" placeholder="Name / Signature"></div>
-                  <div class="ofu-approval-box"><div class="ofu-appr-title">Managing Director</div><input type="text" id="ofu-approved_md" placeholder="Name / Signature"></div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">6. Expected Brands to be Dealt In</div>
-                <div class="ofu-checkbox-row">
-                  <label><input type="checkbox" id="ofu-brand_duro"> Duro</label>
-                  <label><input type="checkbox" id="ofu-brand_tower"> Tower</label>
-                  <label><input type="checkbox" id="ofu-brand_ntd"> NTD</label>
-                  <label><input type="checkbox" id="ofu-brand_other"> Other</label>
-                  <div class="ofu-fld" style="flex:1;min-width:150px;margin:0;"><input type="text" id="ofu-brand_other_name" placeholder="Please specify"></div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">7. Expected Business in Current Financial Year (Rs. in Lacs)</div>
-                <div class="ofu-row c4">
-                  <div class="ofu-fld"><label>Qtr I (Apr - Jun)</label><input type="number" id="ofu-qtr1" placeholder="0.00" min="0" step="0.01"></div>
-                  <div class="ofu-fld"><label>Qtr II (Jul - Sep)</label><input type="number" id="ofu-qtr2" placeholder="0.00" min="0" step="0.01"></div>
-                  <div class="ofu-fld"><label>Qtr III (Oct - Dec)</label><input type="number" id="ofu-qtr3" placeholder="0.00" min="0" step="0.01"></div>
-                  <div class="ofu-fld"><label>Qtr IV (Jan - Mar)</label><input type="number" id="ofu-qtr4" placeholder="0.00" min="0" step="0.01"></div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>8. Credit Limit (Rs. in Amount)</label><input type="number" id="ofu-credit_limit_ofu" placeholder="Amount in Rs." min="0"></div>
-                  <div class="ofu-fld"><label>8. Credit Limit (No. of Days)</label><input type="number" id="ofu-credit_days_ofu" placeholder="Days" min="0"></div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">9. Any Exclusive Commitment Given</div>
-                <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_exclusive" id="ofu-exclusive_yes" value="Yes" onchange="ofuToggleExclusive()"> Yes</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_exclusive" id="ofu-exclusive_no" value="No" onchange="ofuToggleExclusive()" checked> No</label>
-                </div>
-                <div id="ofu-exclusive-details" style="display:none;">
-                  <div class="ofu-row c3">
-                    <div class="ofu-fld"><label>Brand</label><input type="text" id="ofu-excl_brand" placeholder="Brand name"></div>
-                    <div class="ofu-fld"><label>Terms &amp; Conditions</label><input type="text" id="ofu-excl_terms" placeholder="Terms"></div>
-                    <div class="ofu-fld"><label>Time Period</label><input type="text" id="ofu-excl_period" placeholder="e.g. 1 year"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div class="ofu-sec-title">10. Cheques Given</div>
-                <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_cheque" id="ofu-cheque_yes" value="Yes" onchange="ofuToggleCheque()"> Yes</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="radio" name="ofu_cheque" id="ofu-cheque_no" value="No" onchange="ofuToggleCheque()" checked> No</label>
-                </div>
-                <div id="ofu-cheque-details" style="display:none;">
-                  <div class="ofu-row c2">
-                    <div class="ofu-fld"><label>Receipt No.</label><input type="text" id="ofu-cheque_receipt" placeholder="Receipt number"></div>
-                    <div class="ofu-fld"><label>Receipt Date</label><input type="date" id="ofu-cheque_date"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="ofu-sec">
-                <div style="font-size:12px;color:var(--text2);line-height:2;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">
-                  I &nbsp;<span style="display:inline-block;min-width:120px;border-bottom:1px solid var(--text3);">&nbsp;</span>&nbsp;
-                  holding the designation of &nbsp;
-                  <input type="text" id="ofu-certifier_designation" style="display:inline-block;width:180px;font-size:12px;padding:2px 6px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--text);" placeholder="Designation">
-                  &nbsp; certify that the above mentioned particulars are authentic and validated to the best of my knowledge.
-                </div>
-              </div>
-              <div id="ofu-save-row" style="display:none;margin-top:8px;text-align:right;">
-                <button class="ofu-save-btn" onclick="saveOfficeUse()">Save Office Use Data</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
           <button class="btn btn-ghost" onclick="showList()">Cancel</button>
           <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
@@ -1188,7 +1065,7 @@ function showNewForm(){
     toast('You do not have permission to create applications.','error');
     return;
   }
-  editId=null;resetForm();var _s=document.getElementById('ofu-section');if(_s)_s.style.display='none';
+  editId=null;resetForm();
   ['btn-print-form','btn-excel-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('fv-title').textContent='New Application';
   document.getElementById('app-no-disp').style.display='none';
@@ -1205,7 +1082,7 @@ function editApp(id){
     toast('You do not have permission to edit this application.','error');
     return;
   }
-  editId=id;resetForm();fillForm(app);setupOfficeUse(app);
+  editId=id;resetForm();fillForm(app);
   ['btn-print-form','btn-excel-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-block';});
   document.getElementById('fv-title').textContent='Edit Application';
   if(app.app_number){document.getElementById('app-no-disp').textContent=app.app_number;document.getElementById('app-no-disp').style.display='inline-block';}
@@ -2028,62 +1905,86 @@ function buildPrintContent(app){
       </ol>
     </div>
   </div></div>`;
-  // ── For Office Use (separate page) ──
-  var _ofuSec=document.getElementById('ofu-section');
-  if(_ofuSec && _ofuSec.style.display!=='none'){
-    var _ou=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
-    var _brands=[
-      _ou.brand_duro?'Duro':'',_ou.brand_tower?'Tower':'',
-      _ou.brand_ntd?'NTD':'',_ou.brand_other?(_ou.brand_other_name||'Other'):''
-    ].filter(Boolean).join(', ')||'—';
-    var _total=((parseFloat(_ou.qtr1)||0)+(parseFloat(_ou.qtr2)||0)+(parseFloat(_ou.qtr3)||0)+(parseFloat(_ou.qtr4)||0)).toFixed(2);
 
-    html+=`<div style="page-break-before:always;"></div>
-    <div class="pr-header" style="margin-top:0;">
-      <div class="pr-company" style="font-size:14px;">FOR OFFICE USE ONLY</div>
-      <div class="pr-subtitle">${xe(app.party_name||'')} &nbsp;|&nbsp; ${xe(app.app_number||'')}</div>
-    </div>
-    <div class="pr-section"><div class="pr-sec-hd">Verification &amp; Recommendation</div><div class="pr-sec-body"><div class="pr-grid">
-      ${pf('Name of the Dealer',app.party_name,3)}
-      ${pf('2. Details Verified by (Name & Designation)',_ou.verified_by,3)}
-      ${pf('3. Appointment Recommended by',_ou.recommended_by,3)}
-    </div></div></div>
-    <div class="pr-section"><div class="pr-sec-hd">4. Approved by</div><div class="pr-sec-body"><div class="pr-grid">
-      ${pf('SM / BM / DBM',_ou.approved_bm)}
-      ${pf('RM / GM / VP',_ou.approved_rm)}
-      ${pf('Managing Director',_ou.approved_md)}
-    </div></div></div>
-    <div class="pr-section"><div class="pr-sec-hd">5 &amp; 6. Sales Person &amp; Expected Brands</div><div class="pr-sec-body"><div class="pr-grid">
-      ${pf('5. Sales Person Mapped',_ou.sales_person,3)}
-      ${pf('6. Expected Brands',_brands,3)}
-    </div></div></div>
-    <div class="pr-section"><div class="pr-sec-hd">7. Expected Business (Rs. in Lacs)</div><div class="pr-sec-body"><div class="pr-grid">
-      ${pf('Qtr I (Apr-Jun)',_ou.qtr1)}
-      ${pf('Qtr II (Jul-Sep)',_ou.qtr2)}
-      ${pf('Qtr III (Oct-Dec)',_ou.qtr3)}
-      ${pf('Qtr IV (Jan-Mar)',_ou.qtr4)}
-      ${pf('Total (Lacs)',_total)}
-    </div></div></div>
-    <div class="pr-section"><div class="pr-sec-hd">8. Credit Limit</div><div class="pr-sec-body"><div class="pr-grid">
-      ${pf('Amount (Rs.)',_ou.credit_limit)}
-      ${pf('No. of Days',_ou.credit_days)}
-    </div></div></div>
-    <div class="pr-section"><div class="pr-sec-hd">9 &amp; 10. Commitments &amp; Cheques</div><div class="pr-sec-body"><div class="pr-grid">
-      ${pf('Exclusive Commitment',_ou.exclusive)}
-      ${_ou.exclusive==='Yes'?pf('Brand',_ou.excl_brand):''}
-      ${_ou.exclusive==='Yes'?pf('Terms',_ou.excl_terms):''}
-      ${_ou.exclusive==='Yes'?pf('Period',_ou.excl_period):''}
-      ${pf('Cheques Given',_ou.cheque_given)}
-      ${_ou.cheque_given==='Yes'?pf('Receipt No.',_ou.cheque_receipt):''}
-      ${_ou.cheque_given==='Yes'?pf('Receipt Date',_ou.cheque_date):''}
-    </div></div></div>
-    <div class="pr-section"><div class="pr-sec-hd">11. Certification</div><div class="pr-sec-body">
-      <div style="font-size:11px;line-height:1.8;">I ________________________ holding the designation of <strong>${pv(_ou.certifier_desig)}</strong> certify that the above mentioned particulars are authentic and validated to the best of my knowledge.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:20px;">
-        <div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Date: ___________________</div>
-        <div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Signature with Seal</div>
-      </div>
-    </div></div>`;
+  // ── For Office Use — separate page ──────────────────────
+  // Include OFU in PDF if app has been saved (Draft or beyond)
+  var _showOfu=['Draft','New','Approved By LAO','Approved By Management',
+    'Disapproved By LAO','Disapproved By Management','Sent To HO','Certificate Issued']
+    .indexOf(app.status||'')>=0;
+  if(_showOfu){
+    var _ou={};
+    if(app.office_use){
+      try{ _ou=typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use; }catch(e){}
+    }
+    var _brands=[
+      _ou.brand_duro?'Duro':'',
+      _ou.brand_tower?'Tower':'',
+      _ou.brand_ntd?'NTD':'',
+      _ou.brand_other?(_ou.brand_other_name||'Other'):''
+    ].filter(Boolean).join(', ')||'—';
+    var _total=(
+      (parseFloat(_ou.qtr1)||0)+
+      (parseFloat(_ou.qtr2)||0)+
+      (parseFloat(_ou.qtr3)||0)+
+      (parseFloat(_ou.qtr4)||0)
+    ).toFixed(2);
+
+    html += '<div style="page-break-before:always;"></div>';
+    html += '<div class="pr-header" style="margin-top:0;">';
+    html += '<div class="pr-company" style="font-size:14px;">FOR OFFICE USE ONLY</div>';
+    html += '<div class="pr-subtitle">' + pv(app.party_name) + ' &nbsp;|&nbsp; ' + pv(app.app_number) + '</div>';
+    html += '</div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">Verification &amp; Recommendation</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Name of Dealer', app.party_name, 3);
+    html += pf('2. Details Verified by', _ou.verified_by, 3);
+    html += pf('3. Appointment Recommended by', _ou.recommended_by, 3);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">4. Approved by</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('SM / BM / DBM', _ou.approved_bm);
+    html += pf('RM / GM / VP', _ou.approved_rm);
+    html += pf('Managing Director', _ou.approved_md);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">5 &amp; 6. Sales Person &amp; Expected Brands</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('5. Sales Person Mapped', _ou.sales_person, 3);
+    html += pf('6. Expected Brands', _brands, 3);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">7. Expected Business (Rs. in Lacs)</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Qtr I (Apr-Jun)', _ou.qtr1);
+    html += pf('Qtr II (Jul-Sep)', _ou.qtr2);
+    html += pf('Qtr III (Oct-Dec)', _ou.qtr3);
+    html += pf('Qtr IV (Jan-Mar)', _ou.qtr4);
+    html += pf('Total (Lacs)', _total, 2);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">8. Credit Limit</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Amount (Rs.)', _ou.credit_limit);
+    html += pf('No. of Days', _ou.credit_days);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">9. Exclusive Commitment &amp; 10. Cheques</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('9. Exclusive Commitment', _ou.exclusive);
+    if(_ou.exclusive==='Yes'){
+      html += pf('Brand', _ou.excl_brand);
+      html += pf('Terms', _ou.excl_terms);
+      html += pf('Period', _ou.excl_period);
+    }
+    html += pf('10. Cheques Given', _ou.cheque_given);
+    if(_ou.cheque_given==='Yes'){
+      html += pf('Receipt No.', _ou.cheque_receipt);
+      html += pf('Receipt Date', _ou.cheque_date);
+    }
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">11. Certification</div><div class="pr-sec-body">';
+    html += '<div style="font-size:11px;line-height:1.8;margin-bottom:20px;">I ________________________ holding the designation of <strong>' + pv(_ou.certifier_desig) + '</strong> certify that the above mentioned particulars are authentic and validated to the best of my knowledge.</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">';
+    html += '<div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Date: ___________________</div>';
+    html += '<div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Authorised Signatory with Seal</div>';
+    html += '</div></div></div>';
   }
 
   document.getElementById('print-content').innerHTML=html;
@@ -2478,124 +2379,6 @@ async function generateExcel(app){
   toast('Excel downloaded: '+filename,'success');
 }
 // ════════════════════════════════════════════════════════════
-// ══ FOR OFFICE USE ════════════════════════════════════════════
-function ofuToggleExclusive(){
-  var yes=document.getElementById('ofu-exclusive_yes');
-  var d=document.getElementById('ofu-exclusive-details');
-  if(d) d.style.display=(yes&&yes.checked)?'block':'none';
-}
-function ofuToggleCheque(){
-  var yes=document.getElementById('ofu-cheque_yes');
-  var d=document.getElementById('ofu-cheque-details');
-  if(d) d.style.display=(yes&&yes.checked)?'block':'none';
-}
-function ofuG(id){var el=document.getElementById(id);return el?el.value||''  :'';}
-function ofuS(id,v){var el=document.getElementById(id);if(el)el.value=v||'';}
-function ofuChk(id,v){var el=document.getElementById(id);if(el)el.checked=!!v;}
-function ofuRad(name,v){document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){r.checked=(r.value===v);});}
-
-function collectOfficeUse(){
-  return {
-    sales_person:    ofuG('ofu-sales_person'),
-    verified_by:     ofuG('ofu-verified_by'),
-    recommended_by:  ofuG('ofu-recommended_by'),
-    approved_bm:     ofuG('ofu-approved_bm'),
-    approved_rm:     ofuG('ofu-approved_rm'),
-    approved_md:     ofuG('ofu-approved_md'),
-    brand_duro:      !!(document.getElementById('ofu-brand_duro')&&document.getElementById('ofu-brand_duro').checked),
-    brand_tower:     !!(document.getElementById('ofu-brand_tower')&&document.getElementById('ofu-brand_tower').checked),
-    brand_ntd:       !!(document.getElementById('ofu-brand_ntd')&&document.getElementById('ofu-brand_ntd').checked),
-    brand_other:     !!(document.getElementById('ofu-brand_other')&&document.getElementById('ofu-brand_other').checked),
-    brand_other_name:ofuG('ofu-brand_other_name'),
-    qtr1:            parseFloat(ofuG('ofu-qtr1'))||0,
-    qtr2:            parseFloat(ofuG('ofu-qtr2'))||0,
-    qtr3:            parseFloat(ofuG('ofu-qtr3'))||0,
-    qtr4:            parseFloat(ofuG('ofu-qtr4'))||0,
-    credit_limit:    parseFloat(ofuG('ofu-credit_limit_ofu'))||0,
-    credit_days:     parseInt(ofuG('ofu-credit_days_ofu'))||0,
-    exclusive:       (document.getElementById('ofu-exclusive_yes')&&document.getElementById('ofu-exclusive_yes').checked)?'Yes':'No',
-    excl_brand:      ofuG('ofu-excl_brand'),
-    excl_terms:      ofuG('ofu-excl_terms'),
-    excl_period:     ofuG('ofu-excl_period'),
-    cheque_given:    (document.getElementById('ofu-cheque_yes')&&document.getElementById('ofu-cheque_yes').checked)?'Yes':'No',
-    cheque_receipt:  ofuG('ofu-cheque_receipt'),
-    cheque_date:     ofuG('ofu-cheque_date'),
-    certifier_desig: ofuG('ofu-certifier_designation')
-  };
-}
-
-function fillOfficeUse(app){
-  var raw=app.office_use;
-  var d=raw?(typeof raw==='string'?JSON.parse(raw):raw):{};
-  ofuS('ofu-dealer_name', app.party_name||'');
-  var _spName = d.sales_person||'';
-  if(!_spName && app.sales_person_id){
-    var _spSel=document.getElementById('f-sales_person');
-    if(_spSel){
-      var _spOpt=Array.from(_spSel.options).find(function(o){return String(o.value)===String(app.sales_person_id);});
-      if(_spOpt) _spName=_spOpt.textContent.replace(/\s*[(][^)]*[)]\s*$/,'').trim();
-    }
-  }
-  ofuS('ofu-sales_person', _spName);
-  ofuS('ofu-verified_by',     d.verified_by||'');
-  ofuS('ofu-recommended_by',  d.recommended_by||'');
-  ofuS('ofu-approved_bm',     d.approved_bm||'');
-  ofuS('ofu-approved_rm',     d.approved_rm||'');
-  ofuS('ofu-approved_md',     d.approved_md||'');
-  ofuChk('ofu-brand_duro',    d.brand_duro);
-  ofuChk('ofu-brand_tower',   d.brand_tower);
-  ofuChk('ofu-brand_ntd',     d.brand_ntd);
-  ofuChk('ofu-brand_other',   d.brand_other);
-  ofuS('ofu-brand_other_name',d.brand_other_name||'');
-  ofuS('ofu-qtr1', d.qtr1||'');
-  ofuS('ofu-qtr2', d.qtr2||'');
-  ofuS('ofu-qtr3', d.qtr3||'');
-  ofuS('ofu-qtr4', d.qtr4||'');
-  ofuS('ofu-credit_limit_ofu', d.credit_limit||'');
-  ofuS('ofu-credit_days_ofu',  d.credit_days||'');
-  ofuRad('ofu_exclusive', d.exclusive||'No');
-  ofuS('ofu-excl_brand',  d.excl_brand||'');
-  ofuS('ofu-excl_terms',  d.excl_terms||'');
-  ofuS('ofu-excl_period', d.excl_period||'');
-  ofuRad('ofu_cheque', d.cheque_given||'No');
-  ofuS('ofu-cheque_receipt', d.cheque_receipt||'');
-  ofuS('ofu-cheque_date',    d.cheque_date||'');
-  ofuS('ofu-certifier_designation', d.certifier_desig||'');
-  ofuToggleExclusive();
-  ofuToggleCheque();
-}
-
-function setupOfficeUse(app){
-  var section=document.getElementById('ofu-section');
-  if(!section) return;
-  var validStatuses=['Draft','New','Approved By LAO','Approved By Management',
-    'Disapproved By LAO','Disapproved By Management','Sent To HO','Certificate Issued'];
-  var show=app&&validStatuses.indexOf(app.status)>=0;
-  section.style.display=show?'block':'none';
-  if(!show) return;
-  var canEdit=(window.userRole==='super_admin');
-  var badge=document.getElementById('ofu-access-badge');
-  var saveRow=document.getElementById('ofu-save-row');
-  var banner=document.getElementById('ofu-readonly-banner');
-  if(badge)   badge.textContent=canEdit?'Editable':'View Only';
-  if(saveRow) saveRow.style.display=canEdit?'block':'none';
-  if(banner)  banner.style.display=canEdit?'none':'block';
-  section.querySelectorAll('input,select').forEach(function(el){
-    if(el.id==='ofu-dealer_name'){el.disabled=true;return;}
-    el.disabled=!canEdit;
-  });
-  fillOfficeUse(app);
-}
-
-async function saveOfficeUse(){
-  if(!editId){toast('Please save the main form first','error');return;}
-  if(window.userRole!=='super_admin'){toast('Access denied','error');return;}
-  var payload={office_use:JSON.stringify(collectOfficeUse())};
-  var res=await sb.from('cvr_applications').update(payload).eq('id',editId);
-  if(res.error){toast('Save failed: '+res.error.message,'error');return;}
-  toast('Office use data saved successfully','success');
-}
-
 </script>
 </body>
 </html>
