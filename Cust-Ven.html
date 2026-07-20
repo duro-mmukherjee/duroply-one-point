@@ -1339,6 +1339,17 @@ function collect(){
     pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
     gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
     gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
+    shipping_addresses:JSON.stringify(
+      Array.from(document.getElementById('ship-body').querySelectorAll('.ship-block')).map(b=>{
+        const inputs=b.querySelectorAll('input[type=text],input[type=email]');
+        const sel=b.querySelector('select');
+        return {
+          addr1:inputs[0]?.value||'',addr2:inputs[1]?.value||'',addr3:inputs[2]?.value||'',
+          city:inputs[3]?.value||'',pin:inputs[4]?.value||'',state:sel?.value||'',
+          gst:inputs[5]?.value||'',email:inputs[6]?.value||'',mobile:inputs[7]?.value||''
+        };
+      })
+    ),
     ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
 
   };
@@ -1449,6 +1460,34 @@ function fillForm(app){
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
   // Cheque images come from inside the cheques JSON (handled below)
   window._pendingChequeImgs=[];
+
+  // ── Restore Shipping Addresses ──────────────────────
+  const _shipBody=document.getElementById('ship-body');
+  if(_shipBody){
+    const _shipData=safeParseJSON(app.shipping_addresses)||[];
+    if(_shipData.length){
+      _shipBody.innerHTML='';
+      _shipData.forEach((s,i)=>{
+        const div=document.createElement('div');
+        div.className='ship-block';
+        div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div>
+<button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button>
+<div class="fg" style="grid-template-columns:1fr 1fr;">
+  <div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}" placeholder="Line 1"></div>
+  <div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}" placeholder="Line 2 (optional)"></div>
+  <div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}" placeholder="Line 3 (optional)"></div>
+  <div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}" placeholder="City"></div>
+  <div class="fld"><label>Pincode</label><input type="text" maxlength="6" value="${(s.pin||'').replace(/"/g,'&quot;')}" placeholder="PIN"></div>
+  <div class="fld"><label>State</label><select><option value="">— Select —</option>${SELLING_BRANCHES.map(b=>`<option${s.state===b?' selected':''}>${xe(b)}</option>`).join('')}</select></div>
+  <div class="fld"><label>GST No.</label><input type="text" maxlength="15" value="${(s.gst||'').replace(/"/g,'&quot;')}" placeholder="GST (optional)"></div>
+  <div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}" placeholder="Email (optional)"></div>
+  <div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" value="${(s.mobile||'').replace(/"/g,'&quot;')}" placeholder="Mobile (optional)"></div>
+</div>`;
+        _shipBody.appendChild(div);
+      });
+    }
+  }
+
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
   cheqTb.innerHTML='';
@@ -1840,7 +1879,13 @@ function buildPrintContent(app){
     <tbody>${sigs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.capacity)}</td><td>${pv(r.signature)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
   ${ships.length?`<div class="pr-section"><div class="pr-sec-hd">9. Shipping Addresses</div><div class="pr-sec-body">
-    ${ships.map((s,i)=>`<div style="margin-bottom:5px;padding:4px 8px;border:1px solid #334155;border-radius:4px;font-size:10.5px;"><b>Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
+    ${ships.map((s,i)=>`<div style="margin-bottom:8px;padding:6px 8px;border:1px solid #334155;border-radius:4px;">
+      <div style="font-weight:700;font-size:11px;margin-bottom:4px;">Address ${i+1}</div>
+      <div class="pr-grid">
+        ${pf('Address Line 1',s.addr1,3)}${pf('Address Line 2',s.addr2,3)}${pf('Address Line 3',s.addr3,3)}
+        ${pf('City',s.city)}${pf('Pincode',s.pin)}${pf('State',s.state)}
+        ${pf('GST No.',s.gst)}${pf('Email',s.email)}${pf('Mobile',s.mobile)}
+      </div></div>`).join('')}
   </div></div>`:''}
   ${banks.length?`<div class="pr-section"><div class="pr-sec-hd">10. Bank Details</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Bank Name</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Account Name</th><th>Branch Address</th></tr></thead>
