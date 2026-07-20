@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Customer / Vendor Requisition — Duroply</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1919,7 +1919,9 @@ function downloadExcelCurrent(){
   downloadExcel(editId);
 }
 
-function generateExcel(app){
+async function generateExcel(app){
+  if(typeof ExcelJS==='undefined'){toast('ExcelJS not loaded','error');return;}
+
   const cheqs = safeParseJSON(app.cheques)||[];
   const ships = safeParseJSON(app.shipping_addresses)||[];
   const banks = safeParseJSON(app.bank_details)||[];
@@ -1929,146 +1931,334 @@ function generateExcel(app){
   const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
   const fname = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
 
-  const xe=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Duroply CVR Portal';
+  const ws = wb.addWorksheet('MASTER');
 
-  // Border styles — these ARE read by xlsx table_to_sheet
-  const bs = 'border:1.5px solid #000;padding:4px 6px;font-family:Arial;font-size:9pt;';
-  const S  = 'background:#1E3A8A;color:#FFF;font-weight:bold;font-size:10pt;'+bs+'border:2px solid #1E3A8A;';
-  const L  = 'background:#D9E1F2;font-weight:normal;'+bs;
-  const V  = 'background:#FFFFFF;'+bs;
-  const H  = 'background:#BDD7EE;font-weight:bold;text-align:center;'+bs;
-  const SH = 'background:#E2EFDA;font-weight:bold;'+bs;
-  const N  = 'font-style:italic;font-size:8pt;color:#666;font-family:Arial;';
+  // 8 cols: [LBL:A | VAL:B-D] [LBL:E | VAL:F-H]
+  ws.columns = [
+    {width:22},{width:16},{width:14},{width:12},
+    {width:22},{width:16},{width:14},{width:12}
+  ];
 
-  const sec  = t =>`<tr><td colspan="8" style="${S}">${xe(t)}</td></tr>`;
-  const full = (l,v)=>`<tr><td style="${L}">${xe(l)}</td><td colspan="7" style="${V}">${xe(v)}</td></tr>`;
-  const two  = (l1,v1,l2,v2)=>`<tr><td style="${L}">${xe(l1)}</td><td colspan="3" style="${V}">${xe(v1)}</td><td style="${l2?L:V}">${xe(l2||'')}</td><td colspan="3" style="${V}">${xe(v2||'')}</td></tr>`;
-  const blank= ()=>`<tr><td colspan="8" style="border:none;padding:2px;"></td></tr>`;
+  // ── Style helpers ──────────────────────────────────────────
+  const THIN = {style:'thin', color:{argb:'FF000000'}};
+  const MED  = {style:'medium',color:{argb:'FF1E3A8A'}};
+  const AB   = {top:THIN,bottom:THIN,left:THIN,right:THIN};
+  const MB   = {top:MED, bottom:MED, left:MED, right:MED};
 
-  let html = `<table border="1" style="border-collapse:collapse;width:100%;">`;
-  html += `<tr><td colspan="8" style="text-align:center;font-size:13pt;font-weight:bold;color:#1E3A8A;font-family:Arial;padding:6px;">DUROPLY INDUSTRIES LIMITED</td></tr>`;
-  html += `<tr><td colspan="8" style="text-align:center;font-size:10pt;font-family:Arial;padding:4px;">Customer / Vendor Requisition Form</td></tr>`;
-  html += `<tr><td colspan="4" style="text-align:center;font-weight:bold;color:#1E3A8A;font-family:Arial;padding:4px;${bs}">${xe(app.app_number||'')}</td><td colspan="4" style="text-align:right;font-family:Arial;padding:4px;${bs}">Date: ${today}</td></tr>`;
-  html += blank();
+  function applySecStyle(cell){
+    cell.font      = {bold:true,size:10,color:{argb:'FFFFFFFF'},name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FF1E3A8A'}};
+    cell.border    = MB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+  function applyLblStyle(cell){
+    cell.font      = {size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E1F2'}};
+    cell.border    = AB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+  function applyValStyle(cell){
+    cell.font      = {size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFFFF'}};
+    cell.border    = AB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
+  function applyHdrStyle(cell){
+    cell.font      = {bold:true,size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFBDD7EE'}};
+    cell.border    = AB;
+    cell.alignment = {horizontal:'center',vertical:'middle',wrapText:true};
+  }
+  function applyShpStyle(cell){
+    cell.font      = {bold:true,size:9,name:'Arial'};
+    cell.fill      = {type:'pattern',pattern:'solid',fgColor:{argb:'FFE2EFDA'}};
+    cell.border    = AB;
+    cell.alignment = {vertical:'middle',wrapText:true};
+  }
 
-  html += sec('1.  PARTY & BASIC INFORMATION');
-  html += two('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
-  html += two('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
-  html += full('Party / Firm Name',app.party_name||'');
-  html += two('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
-  html += blank();
+  let rowNum = 1;
+
+  // Merge A..H on current row, set value+style, increment
+  function secRow(title){
+    const row = ws.getRow(rowNum);
+    row.height = 18;
+    ws.mergeCells(rowNum,1,rowNum,8);
+    const cell = ws.getCell(rowNum,1);
+    cell.value = title;
+    applySecStyle(cell);
+    // Fill merged cells with same border
+    for(let c=2;c<=8;c++){const cc=ws.getCell(rowNum,c);applySecStyle(cc);}
+    rowNum++;
+  }
+
+  // Full row: col1=label, col2-8=value
+  function fullRow(lbl,val){
+    const row = ws.getRow(rowNum);
+    row.height = 16;
+    const lc = ws.getCell(rowNum,1);
+    lc.value = lbl; applyLblStyle(lc);
+    ws.mergeCells(rowNum,2,rowNum,8);
+    const vc = ws.getCell(rowNum,2);
+    vc.value = val==null?'':val; applyValStyle(vc);
+    for(let c=3;c<=8;c++){const cc=ws.getCell(rowNum,c);applyValStyle(cc);}
+    rowNum++;
+  }
+
+  // Two-block row: [L1:col1 | V1:col2-4] [L2:col5 | V2:col6-8]
+  function twoRow(l1,v1,l2,v2){
+    const row = ws.getRow(rowNum);
+    row.height = 16;
+    // Left block
+    const ll = ws.getCell(rowNum,1);
+    ll.value = l1; applyLblStyle(ll);
+    ws.mergeCells(rowNum,2,rowNum,4);
+    const vl = ws.getCell(rowNum,2);
+    vl.value = v1==null?'':v1; applyValStyle(vl);
+    for(let c=3;c<=4;c++){const cc=ws.getCell(rowNum,c);applyValStyle(cc);}
+    // Right block
+    const lr = ws.getCell(rowNum,5);
+    lr.value = l2||'';
+    if(l2) applyLblStyle(lr); else applyValStyle(lr);
+    ws.mergeCells(rowNum,6,rowNum,8);
+    const vr = ws.getCell(rowNum,6);
+    vr.value = v2==null?'':v2; applyValStyle(vr);
+    for(let c=7;c<=8;c++){const cc=ws.getCell(rowNum,c);applyValStyle(cc);}
+    rowNum++;
+  }
+
+  function blankRow(){ ws.getRow(rowNum).height=6; rowNum++; }
+
+  // ── TITLE ──────────────────────────────────────────────────
+  ws.mergeCells(rowNum,1,rowNum,8);
+  const ttl = ws.getCell(rowNum,1);
+  ttl.value = 'DUROPLY INDUSTRIES LIMITED';
+  ttl.font  = {bold:true,size:13,color:{argb:'FF1E3A8A'},name:'Arial'};
+  ttl.alignment = {horizontal:'center',vertical:'middle'};
+  ws.getRow(rowNum).height = 26; rowNum++;
+
+  ws.mergeCells(rowNum,1,rowNum,8);
+  const sub = ws.getCell(rowNum,1);
+  sub.value = 'Customer / Vendor Requisition Form';
+  sub.font  = {size:10,name:'Arial'};
+  sub.alignment = {horizontal:'center',vertical:'middle'};
+  ws.getRow(rowNum).height = 15; rowNum++;
+
+  ws.mergeCells(rowNum,1,rowNum,4);
+  const apn = ws.getCell(rowNum,1);
+  apn.value = app.app_number||'';
+  apn.font  = {bold:true,size:10,color:{argb:'FF1E3A8A'},name:'Arial'};
+  apn.alignment = {horizontal:'center',vertical:'middle'};
+  ws.mergeCells(rowNum,5,rowNum,8);
+  const dte = ws.getCell(rowNum,5);
+  dte.value = 'Date: '+today;
+  dte.font  = {size:9,name:'Arial'};
+  dte.alignment = {horizontal:'right',vertical:'middle'};
+  ws.getRow(rowNum).height = 15; rowNum++;
+  blankRow();
+
+  // ── 1. Party & Basic ───────────────────────────────────────
+  secRow('1.  PARTY & BASIC INFORMATION');
+  twoRow('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
+  twoRow('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
+  fullRow('Party / Firm Name',app.party_name||'');
+  twoRow('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
+  blankRow();
 
   if(app.dealership_area||app.dealership_state){
-    html += sec('1b. AREA / DISTRICT DETAILS');
-    html += full('Area / District for Dealership',app.dealership_area||'');
-    html += two('State',app.dealership_state||'','','');
-    html += blank();
+    secRow('1b. AREA / DISTRICT DETAILS');
+    fullRow('Area / District for Dealership',app.dealership_area||'');
+    twoRow('State',app.dealership_state||'','','');
+    blankRow();
   }
 
-  html += sec('2.  ZONE, MARKET & TERRITORY');
-  html += two('Zone',app.zone||'','Market Name',app.market_name||'');
-  html += two('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
-  html += blank();
+  // ── 2. Zone ────────────────────────────────────────────────
+  secRow('2.  ZONE, MARKET & TERRITORY');
+  twoRow('Zone',app.zone||'','Market Name',app.market_name||'');
+  twoRow('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
+  blankRow();
 
-  html += sec('3.  BILLING ADDRESS');
-  html += full('Address Line 1',app.billing_addr1||'');
-  html += full('Address Line 2',app.billing_addr2||'');
-  html += full('Address Line 3',app.billing_addr3||'');
-  html += two('City',app.billing_city||'','State',app.billing_state||'');
-  html += two('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
-  html += blank();
+  // ── 3. Billing ─────────────────────────────────────────────
+  secRow('3.  BILLING ADDRESS');
+  fullRow('Address Line 1',app.billing_addr1||'');
+  fullRow('Address Line 2',app.billing_addr2||'');
+  fullRow('Address Line 3',app.billing_addr3||'');
+  twoRow('City',app.billing_city||'','State',app.billing_state||'');
+  twoRow('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
+  blankRow();
 
-  html += sec('4.  CONTACT DETAILS');
-  html += two('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
-  html += two('Email ID',app.email||'','Alt. Mobile',app.alt_mobile||'');
-  html += two('WhatsApp No.',app.whatsapp||'','','');
-  html += blank();
+  // ── 4. Contact ─────────────────────────────────────────────
+  secRow('4.  CONTACT DETAILS');
+  twoRow('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
+  twoRow('Email ID',app.email||'','Alt. Mobile',app.alt_mobile||'');
+  twoRow('WhatsApp No.',app.whatsapp||'','','');
+  blankRow();
 
-  html += sec('5.  TAX & COMPLIANCE');
-  html += two('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
-  html += two('GST No.',app.gst_no||'','GST State',app.gst_state||'');
-  html += two('PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
-  html += two('Vendor GST Category',app.vendor_gst_category||'','','');
-  html += full('TDS Section',app.tds_section||'');
-  html += blank();
+  // ── 5. Tax ─────────────────────────────────────────────────
+  secRow('5.  TAX & COMPLIANCE');
+  twoRow('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
+  twoRow('GST No.',app.gst_no||'','GST State',app.gst_state||'');
+  twoRow('PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
+  twoRow('Vendor GST Category',app.vendor_gst_category||'','','');
+  fullRow('TDS Section',app.tds_section||'');
+  blankRow();
 
-  html += sec('6.  CUSTOMER / VENDOR DETAILS');
-  html += two('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
-  html += two('Sales Person',fname,'Employee Code',currentUser?.userid||'');
-  html += blank();
+  // ── 6. Customer/Vendor ─────────────────────────────────────
+  secRow('6.  CUSTOMER / VENDOR DETAILS');
+  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
+  twoRow('Sales Person',fname,'Employee Code',currentUser?.userid||'');
+  blankRow();
 
+  // ── 7. Proprietors ─────────────────────────────────────────
   if(props.length){
-    html += sec('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
-    html += `<tr>${['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.'].map(h=>`<td style="${H}">${h}</td>`).join('')}</tr>`;
-    props.forEach((p,i)=>{ html += `<tr>${[i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''].map(v=>`<td style="${V}">${xe(v)}</td>`).join('')}</tr>`; });
-    html += blank();
-  }
-
-  if(sigs.length){
-    html += sec('8.  AUTHORIZED SIGNATORIES');
-    html += `<tr><td style="${H}">#</td><td style="${H}">Full Name</td><td style="${H}">Capacity / Role</td><td colspan="5" style="${H}">Signature Reference</td></tr>`;
-    sigs.forEach((s,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(s.name||'')}</td><td style="${V}">${xe(s.capacity||'')}</td><td colspan="5" style="${V}">${xe(s.signature||'')}</td></tr>`; });
-    html += blank();
-  }
-
-  if(ships.length){
-    html += sec('9.  SHIPPING ADDRESS (Customer Only)');
-    ships.forEach((s,idx)=>{
-      html += `<tr><td colspan="8" style="${SH}">Shipping Address ${idx+1}</td></tr>`;
-      html += full('Address Line 1',s.addr1||'');
-      html += full('Address Line 2',s.addr2||'');
-      html += two('City',s.city||'','Pincode',s.pin||'');
-      html += two('GST No.',s.gst||'','Email',s.email||'');
-      html += two('Mobile',s.mobile||'','','');
+    secRow('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
+    const hdrRow = ws.addRow(['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.']);
+    hdrRow.height = 16;
+    hdrRow.eachCell(c=>applyHdrStyle(c));
+    rowNum++;
+    props.forEach((p,i)=>{
+      const r = ws.addRow([i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||'']);
+      r.height = 16;
+      r.eachCell(c=>applyValStyle(c));
+      rowNum++;
     });
-    html += blank();
+    blankRow();
   }
 
+  // ── 8. Signatories ─────────────────────────────────────────
+  if(sigs.length){
+    secRow('8.  AUTHORIZED SIGNATORIES');
+    ws.mergeCells(rowNum,4,rowNum,8);
+    const sh = ws.getRow(rowNum);
+    sh.height = 16;
+    ['#','Full Name','Capacity / Role','Signature Reference'].forEach((h,i)=>{
+      const c = ws.getCell(rowNum,i+1); c.value=h; applyHdrStyle(c);
+    });
+    for(let c=5;c<=8;c++){applyHdrStyle(ws.getCell(rowNum,c));}
+    rowNum++;
+    sigs.forEach((s,i)=>{
+      ws.mergeCells(rowNum,4,rowNum,8);
+      const r=ws.getRow(rowNum); r.height=16;
+      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
+      ws.getCell(rowNum,2).value=s.name||''; applyValStyle(ws.getCell(rowNum,2));
+      ws.getCell(rowNum,3).value=s.capacity||''; applyValStyle(ws.getCell(rowNum,3));
+      ws.getCell(rowNum,4).value=s.signature||''; applyValStyle(ws.getCell(rowNum,4));
+      for(let c=5;c<=8;c++){applyValStyle(ws.getCell(rowNum,c));}
+      rowNum++;
+    });
+    blankRow();
+  }
+
+  // ── 9. Shipping ────────────────────────────────────────────
+  if(ships.length){
+    secRow('9.  SHIPPING ADDRESS (Customer Only)');
+    ships.forEach((s,idx)=>{
+      ws.mergeCells(rowNum,1,rowNum,8);
+      ws.getCell(rowNum,1).value='Shipping Address '+(idx+1);
+      applyShpStyle(ws.getCell(rowNum,1));
+      for(let c=2;c<=8;c++) applyShpStyle(ws.getCell(rowNum,c));
+      ws.getRow(rowNum).height=16; rowNum++;
+      fullRow('Address Line 1',s.addr1||'');
+      fullRow('Address Line 2',s.addr2||'');
+      twoRow('City',s.city||'','Pincode',s.pin||'');
+      twoRow('GST No.',s.gst||'','Email',s.email||'');
+      twoRow('Mobile',s.mobile||'','','');
+    });
+    blankRow();
+  }
+
+  // ── 10. Bank ───────────────────────────────────────────────
   if(banks.length){
-    html += sec('10. BANK DETAILS');
-    html += `<tr><td style="${H}">#</td><td style="${H}">Bank Name</td><td style="${H}">Account No.</td><td style="${H}">IFSC</td><td style="${H}">Type</td><td style="${H}">Account Name</td><td colspan="2" style="${H}">Branch Address</td></tr>`;
-    banks.forEach((b,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(b.bank_name||'')}</td><td style="${V}">${xe(b.account_no||'')}</td><td style="${V}">${xe(b.ifsc||'')}</td><td style="${V}">${xe(b.account_type||'')}</td><td style="${V}">${xe(b.account_name||'')}</td><td colspan="2" style="${V}">${xe(b.address||'')}</td></tr>`; });
-    html += blank();
+    secRow('10. BANK DETAILS');
+    ws.mergeCells(rowNum,7,rowNum,8);
+    const bh=['#','Bank Name','Account No.','IFSC','Type','Account Name','Branch Address'];
+    bh.forEach((h,i)=>{ const c=ws.getCell(rowNum,i+1); c.value=h; applyHdrStyle(c); });
+    applyHdrStyle(ws.getCell(rowNum,8));
+    ws.getRow(rowNum).height=16; rowNum++;
+    banks.forEach((b,i)=>{
+      ws.mergeCells(rowNum,7,rowNum,8);
+      const vals=[i+1,b.bank_name||'',b.account_no||'',b.ifsc||'',b.account_type||'',b.account_name||'',b.address||''];
+      vals.forEach((v,ci)=>{ const c=ws.getCell(rowNum,ci+1); c.value=v; applyValStyle(c); });
+      applyValStyle(ws.getCell(rowNum,8));
+      ws.getRow(rowNum).height=16; rowNum++;
+    });
+    blankRow();
   }
 
+  // ── 11. MSME ───────────────────────────────────────────────
   if(app.msme_registered){
-    html += sec('11. MSME DETAILS');
-    html += two('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
-    html += two('Udyam Registration No.',app.udyam_no||'','Udyam Reg. Date',app.udyam_date||'');
-    html += blank();
+    secRow('11. MSME DETAILS');
+    twoRow('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
+    twoRow('Udyam Registration No.',app.udyam_no||'','Udyam Reg. Date',app.udyam_date||'');
+    blankRow();
   }
 
-  html += sec('12. DETAILS OF EXISTING BUSINESS');
-  html += full('Nature of Business',app.biz_nature||'');
-  html += two('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
-  html += two('Godown Area (sq.ft)',app.godown_area||'','Shop',app.shop_type||'');
-  html += two('Godown',app.godown_type||'','Residence',app.residence_type||'');
-  html += blank();
+  // ── 12. Existing Business ──────────────────────────────────
+  secRow('12. DETAILS OF EXISTING BUSINESS');
+  fullRow('Nature of Business',app.biz_nature||'');
+  twoRow('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
+  twoRow('Godown Area (sq.ft)',app.godown_area||'','Shop',app.shop_type||'');
+  twoRow('Godown',app.godown_type||'','Residence',app.residence_type||'');
+  blankRow();
 
-  html += sec('15. ADDITIONAL INFORMATION');
-  html += two('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
-  html += two('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'');
-  html += two('Convicted / Insolvent',app.convicted||'','','');
-  if(app.remarks) html += full('Remarks',app.remarks||'');
-  html += blank();
+  // ── 15. Additional ─────────────────────────────────────────
+  secRow('15. ADDITIONAL INFORMATION');
+  twoRow('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
+  twoRow('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'');
+  twoRow('Convicted / Insolvent',app.convicted||'','','');
+  if(app.remarks) fullRow('Remarks',app.remarks||'');
+  blankRow();
 
+  // ── 16. Cheques ────────────────────────────────────────────
   if(cheqs.length){
-    html += sec('16. CHEQUES ENCLOSED');
-    html += `<tr><td style="${H}">#</td><td style="${H}">Cheque No.</td><td colspan="6" style="${H}">Name of Bank</td></tr>`;
-    cheqs.forEach((c,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(c.cheque_no||'')}</td><td colspan="6" style="${V}">${xe(c.bank_name||'')}</td></tr>`; });
-    html += blank();
+    secRow('16. CHEQUES ENCLOSED');
+    ws.mergeCells(rowNum,3,rowNum,8);
+    ws.getCell(rowNum,1).value='#';      applyHdrStyle(ws.getCell(rowNum,1));
+    ws.getCell(rowNum,2).value='Cheque No.'; applyHdrStyle(ws.getCell(rowNum,2));
+    ws.getCell(rowNum,3).value='Name of Bank'; applyHdrStyle(ws.getCell(rowNum,3));
+    for(let c=4;c<=8;c++) applyHdrStyle(ws.getCell(rowNum,c));
+    ws.getRow(rowNum).height=16; rowNum++;
+    cheqs.forEach((c,i)=>{
+      ws.mergeCells(rowNum,3,rowNum,8);
+      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
+      ws.getCell(rowNum,2).value=c.cheque_no||''; applyValStyle(ws.getCell(rowNum,2));
+      ws.getCell(rowNum,3).value=c.bank_name||''; applyValStyle(ws.getCell(rowNum,3));
+      for(let cc=4;cc<=8;cc++) applyValStyle(ws.getCell(rowNum,cc));
+      ws.getRow(rowNum).height=16; rowNum++;
+    });
+    blankRow();
   }
 
+  // ── 17. References ─────────────────────────────────────────
   if(refs.length){
-    html += sec('17. REFERENCES');
-    html += `<tr><td style="${H}">#</td><td style="${H}">Name</td><td colspan="4" style="${H}">Address</td><td colspan="2" style="${H}">Relationship</td></tr>`;
-    refs.forEach((rf,i)=>{ html += `<tr><td style="${V}">${i+1}</td><td style="${V}">${xe(rf.name||'')}</td><td colspan="4" style="${V}">${xe(rf.address||'')}</td><td colspan="2" style="${V}">${xe(rf.relationship||'')}</td></tr>`; });
-    html += blank();
+    secRow('17. REFERENCES');
+    ws.mergeCells(rowNum,3,rowNum,6); ws.mergeCells(rowNum,7,rowNum,8);
+    ['#','Name','Address','Relationship'].forEach((h,i)=>{
+      const c=ws.getCell(rowNum,[1,2,3,7][i]); c.value=h; applyHdrStyle(c);
+    });
+    for(let c=4;c<=6;c++) applyHdrStyle(ws.getCell(rowNum,c));
+    applyHdrStyle(ws.getCell(rowNum,8));
+    ws.getRow(rowNum).height=16; rowNum++;
+    refs.forEach((rf,i)=>{
+      ws.mergeCells(rowNum,3,rowNum,6); ws.mergeCells(rowNum,7,rowNum,8);
+      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
+      ws.getCell(rowNum,2).value=rf.name||''; applyValStyle(ws.getCell(rowNum,2));
+      ws.getCell(rowNum,3).value=rf.address||''; applyValStyle(ws.getCell(rowNum,3));
+      for(let c=4;c<=6;c++) applyValStyle(ws.getCell(rowNum,c));
+      ws.getCell(rowNum,7).value=rf.relationship||''; applyValStyle(ws.getCell(rowNum,7));
+      applyValStyle(ws.getCell(rowNum,8));
+      ws.getRow(rowNum).height=16; rowNum++;
+    });
+    blankRow();
   }
 
-  html += sec('DECLARATION & SIGNATURE');
-  html += two('DATE',today,'Requisition By',fname);
-  html += blank();
+  // ── Declaration ────────────────────────────────────────────
+  secRow('DECLARATION & SIGNATURE');
+  twoRow('DATE',today,'Requisition By',fname);
+  blankRow();
+
+  // ── Notes ──────────────────────────────────────────────────
   ['Note:',
    '1) Selling Branch to be chosen from the List provided, if Party type is Customer.',
    '2) Scanned copies of GST, PAN and Service tax registration to be given along with requisition.',
@@ -2078,26 +2268,32 @@ function generateExcel(app){
    '6) Name of Employee who introduced this customer needed to be filled up.',
    '7) Party Code will be allotted only after online verification of applicable registrations.',
    '8) Sales Person name is with whom customer is to be mapped.',
-  ].forEach(n=>{ html+=`<tr><td colspan="8" style="${N}">${xe(n)}</td></tr>`; });
-  html += '</table>';
+  ].forEach(n=>{
+    ws.mergeCells(rowNum,1,rowNum,8);
+    const c=ws.getCell(rowNum,1);
+    c.value=n; c.font={size:8,italic:true,color:{argb:'FF666666'},name:'Arial'};
+    c.alignment={wrapText:true};
+    ws.getRow(rowNum).height=14; rowNum++;
+  });
 
-  // Inject table into hidden DOM element and convert
-  const div = document.createElement('div');
-  div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
-  div.innerHTML = html;
-  document.body.appendChild(div);
+  // ── Page setup ─────────────────────────────────────────────
+  ws.pageSetup = {
+    paperSize:9, orientation:'portrait',
+    fitToPage:true, fitToWidth:1, fitToHeight:0,
+    margins:{left:0.4,right:0.4,top:0.6,bottom:0.6,header:0.2,footer:0.2}
+  };
 
-  const ws = XLSX.utils.table_to_sheet(div.querySelector('table'), {raw:true, display:false});
-  document.body.removeChild(div);
+  // ── Download ───────────────────────────────────────────────
+  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()
+    +'-'+(app.app_number||'REQ')+'.xlsx';
 
-  ws['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:22},{wch:16},{wch:14},{wch:12}];
-  ws['!pageSetup'] = {paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,left:0.4,right:0.4,top:0.6,bottom:0.6};
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'MASTER');
-
-  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()+'-'+(app.app_number||'REQ')+'.xlsx';
-  XLSX.writeFile(wb, filename);
+  const buf  = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
   toast('Excel downloaded: '+filename,'success');
 }
 // ════════════════════════════════════════════════════════════
