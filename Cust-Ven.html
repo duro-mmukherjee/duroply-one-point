@@ -1922,7 +1922,7 @@ function buildPrintContent(app){
   const ships=safeParseJSON(app.shipping_addresses)||[];
   const sc={Draft:'pr-badge-draft',New:'pr-badge-new','Approved By LAO':'pr-badge-approved','Approved By Management':'pr-badge-approved','Disapproved By LAO':'pr-badge-dis','Disapproved By Management':'pr-badge-dis','Sent To HO':'pr-badge-new','Certificate Issued':'pr-badge-approved'};
   const dateStr=app.created_at?new Date(app.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
-  const html=`
+  let html=`
   <div class="pr-header">
     <div class="pr-company">DUROPLY INDUSTRIES LIMITED</div>
     <div class="pr-subtitle">Customer / Vendor Requisition Form</div>
