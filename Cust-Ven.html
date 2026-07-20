@@ -1929,232 +1929,185 @@ function generateExcel(app){
   const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
   const fname = [currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||'';
 
-  const THIN={style:'thin',color:{rgb:'000000'}};
-  const MED ={style:'medium',color:{rgb:'1E3A8A'}};
-  const AB  ={top:THIN,bottom:THIN,left:THIN,right:THIN};
-  const MB  ={top:MED,bottom:MED,left:MED,right:MED};
-  const WA  ={wrapText:true,vertical:'center'};
+  // ── CSS style strings ──────────────────────────────────────
+  const B  = 'border:1px solid #000;';
+  const MB = 'border:2px solid #1E3A8A;';
+  const BG_SEC = 'background:#1E3A8A;color:#fff;font-weight:bold;font-size:10pt;'+MB;
+  const BG_LBL = 'background:#D9E1F2;font-size:9pt;'+B;
+  const BG_VAL = 'background:#fff;font-size:9pt;'+B;
+  const BG_HDR = 'background:#BDD7EE;font-weight:bold;font-size:9pt;text-align:center;'+B;
+  const BG_SHP = 'background:#E2EFDA;font-weight:bold;font-size:9pt;'+B;
+  const BG_TTL = 'font-size:13pt;font-weight:bold;color:#1E3A8A;text-align:center;';
+  const BG_SUB = 'font-size:10pt;text-align:center;';
+  const BG_NOT = 'font-size:8pt;font-style:italic;color:#666;';
 
-  const ST={
-    TTL:{font:{bold:true,name:'Arial',sz:13,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center',vertical:'center'}},
-    SUB:{font:{name:'Arial',sz:10},alignment:{horizontal:'center',vertical:'center'}},
-    APN:{font:{bold:true,name:'Arial',sz:10,color:{rgb:'1E3A8A'}},alignment:{horizontal:'center',vertical:'center'}},
-    DTE:{font:{name:'Arial',sz:9},alignment:{horizontal:'right',vertical:'center'}},
-    SEC:{font:{bold:true,name:'Arial',sz:10,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'1E3A8A'}},border:MB,alignment:{horizontal:'left',vertical:'center',wrapText:true}},
-    LBL:{font:{name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'D9E1F2'}},border:AB,alignment:WA},
-    VAL:{font:{name:'Arial',sz:9},border:AB,alignment:WA},
-    HDR:{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},border:AB,alignment:{horizontal:'center',vertical:'center',wrapText:true}},
-    SHP:{font:{bold:true,name:'Arial',sz:9},fill:{patternType:'solid',fgColor:{rgb:'E2EFDA'}},border:AB,alignment:WA},
-    NOT:{font:{name:'Arial',sz:8,italic:true,color:{rgb:'666666'}},alignment:{wrapText:true}},
-  };
+  const xe = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // 8 columns (0-7):
-  // Two-block: [LBL col0 | VAL col1-3] [LBL col4 | VAL col5-7]
-  const ws={}, merges=[];
-  let R=0;
-  const MAXC=7;
-  const enc=(r,c)=>XLSX.utils.encode_cell({r,c});
+  // ── HTML table builder ─────────────────────────────────────
+  let html = '<table style="border-collapse:collapse;width:100%;">';
 
-  function sc(r,c,v,s){
-    ws[enc(r,c)]={v:v==null?'':v,t:typeof v==='number'?'n':'s',s:s||ST.VAL};
-  }
-  function mc(r,c1,c2,v,s){
-    sc(r,c1,v,s);
-    for(let c=c1+1;c<=c2;c++) sc(r,c,'',s);
-    if(c2>c1) merges.push({s:{r,c:c1},e:{r,c:c2}});
-  }
+  // Title rows
+  html += `<tr><td colspan="8" style="${BG_TTL}">DUROPLY INDUSTRIES LIMITED</td></tr>`;
+  html += `<tr><td colspan="8" style="${BG_SUB}">Customer / Vendor Requisition Form</td></tr>`;
+  html += `<tr><td colspan="4" style="font-weight:bold;color:#1E3A8A;text-align:center;">${xe(app.app_number||'')}</td>
+            <td colspan="4" style="text-align:right;">Date: ${today}</td></tr>`;
+  html += `<tr><td colspan="8"></td></tr>`;
 
-  // Section header — full width navy
-  function secRow(t){ mc(R,0,MAXC,t,ST.SEC); R++; }
-
-  // Full-width: label(col0) + value(col1-7)
-  function fullRow(lbl,val){ sc(R,0,lbl,ST.LBL); mc(R,1,MAXC,val,ST.VAL); R++; }
-
-  // Two-block: left[label col0 | value col1-3] right[label col4 | value col5-7]
-  function twoRow(l1,v1,l2,v2){
-    sc(R,0,l1,ST.LBL); mc(R,1,3,v1,ST.VAL);
-    sc(R,4,l2,ST.LBL); mc(R,5,7,v2,ST.VAL);
-    R++;
-  }
-
-  // Single left block only (right side empty)
-  function oneRow(lbl,val){
-    sc(R,0,lbl,ST.LBL); mc(R,1,3,val,ST.VAL);
-    mc(R,4,MAXC,'',ST.VAL);
-    R++;
-  }
-
-  function blank(){ R++; }
-
-  // ── TITLE ──
-  mc(R,0,MAXC,'DUROPLY INDUSTRIES LIMITED',ST.TTL); R++;
-  mc(R,0,MAXC,'Customer / Vendor Requisition Form',ST.SUB); R++;
-  mc(R,0,3,app.app_number||'',ST.APN);
-  mc(R,4,MAXC,'Date: '+today,ST.DTE); R++;
-  blank();
+  // Section header helper
+  const sec  = t => `<tr><td colspan="8" style="${BG_SEC}">${xe(t)}</td></tr>`;
+  // Full-width: label(1col) + value(7col)
+  const full = (l,v) => `<tr><td style="${BG_LBL}">${xe(l)}</td><td colspan="7" style="${BG_VAL}">${xe(v)}</td></tr>`;
+  // Two-block: [lbl(1)|val(3)] [lbl(1)|val(3)]
+  const two  = (l1,v1,l2,v2) => `<tr>
+    <td style="${BG_LBL}">${xe(l1)}</td><td colspan="3" style="${BG_VAL}">${xe(v1)}</td>
+    <td style="${l2?BG_LBL:BG_VAL}">${xe(l2||'')}</td><td colspan="3" style="${BG_VAL}">${xe(v2||'')}</td></tr>`;
+  const blank = () => `<tr><td colspan="8"></td></tr>`;
 
   // ── 1. Party & Basic ──
-  secRow('1.  PARTY & BASIC INFORMATION');
-  twoRow('Party Type',       app.party_type||'',       'Enterprise Type', app.enterprise_type||'');
-  twoRow('Category',         app.category||'',          'Constitution',    (app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
-  fullRow('Party / Firm Name', app.party_name||'');
-  twoRow('Selling Branch',   app.selling_branch_id||'', 'Type of City',    app.type_of_city||'');
-  blank();
+  html += sec('1.  PARTY & BASIC INFORMATION');
+  html += two('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
+  html += two('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
+  html += full('Party / Firm Name',app.party_name||'');
+  html += two('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
+  html += blank();
 
   // ── 1b. Area / District ──
   if(app.dealership_area||app.dealership_state){
-    secRow('1b. AREA / DISTRICT DETAILS');
-    fullRow('Area / District for Dealership', app.dealership_area||'');
-    oneRow('State', app.dealership_state||'');
-    blank();
+    html += sec('1b. AREA / DISTRICT DETAILS');
+    html += full('Area / District for Dealership',app.dealership_area||'');
+    html += two('State',app.dealership_state||'','','');
+    html += blank();
   }
 
   // ── 2. Zone ──
-  secRow('2.  ZONE, MARKET & TERRITORY');
-  twoRow('Zone',         app.zone||'',         'Market Name',  app.market_name||'');
-  twoRow('Cluster Name', app.cluster_name||'', 'Type of City', app.type_of_city||'');
-  blank();
+  html += sec('2.  ZONE, MARKET & TERRITORY');
+  html += two('Zone',app.zone||'','Market Name',app.market_name||'');
+  html += two('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
+  html += blank();
 
   // ── 3. Billing Address ──
-  secRow('3.  BILLING ADDRESS');
-  fullRow('Address Line 1', app.billing_addr1||'');
-  fullRow('Address Line 2', app.billing_addr2||'');
-  fullRow('Address Line 3', app.billing_addr3||'');
-  twoRow('City',  app.billing_city||'',  'State',   app.billing_state||'');
-  twoRow('Pincode', app.billing_pin||'', 'Selling Branch', app.selling_branch_id||'');
-  blank();
+  html += sec('3.  BILLING ADDRESS');
+  html += full('Address Line 1',app.billing_addr1||'');
+  html += full('Address Line 2',app.billing_addr2||'');
+  html += full('Address Line 3',app.billing_addr3||'');
+  html += two('City',app.billing_city||'','State',app.billing_state||'');
+  html += two('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
+  html += blank();
 
   // ── 4. Contact ──
-  secRow('4.  CONTACT DETAILS');
-  twoRow('Contact Person', app.contact_person||'', 'Mobile No.',  app.mobile||'');
-  twoRow('Email ID',       app.email||'',           'Alt. Mobile', app.alt_mobile||'');
-  twoRow('WhatsApp No.',   app.whatsapp||'',         '',            '');
-  blank();
+  html += sec('4.  CONTACT DETAILS');
+  html += two('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
+  html += two('Email ID',app.email||'','Alt. Mobile',app.alt_mobile||'');
+  html += two('WhatsApp No.',app.whatsapp||'','','');
+  html += blank();
 
   // ── 5. Tax & Compliance ──
-  secRow('5.  TAX & COMPLIANCE');
-  twoRow('GST Type',   app.gst_type||'',   'GST Status',          app.gst_status||'');
-  twoRow('GST No.',    app.gst_no||'',     'GST State',            app.gst_state||'');
-  twoRow('PAN No.',    app.pan||'',         'Vendor TDS Type',      app.tds_type||'');
-  twoRow('Vendor GST Category', app.vendor_gst_category||'', '', '');
-  fullRow('TDS Section', app.tds_section||'');
-  blank();
+  html += sec('5.  TAX & COMPLIANCE');
+  html += two('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
+  html += two('GST No.',app.gst_no||'','GST State',app.gst_state||'');
+  html += two('PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
+  html += two('Vendor GST Category',app.vendor_gst_category||'','','');
+  html += full('TDS Section',app.tds_section||'');
+  html += blank();
 
   // ── 6. Customer / Vendor Details ──
-  secRow('6.  CUSTOMER / VENDOR DETAILS');
-  twoRow('Credit Limit',  app.credit_limit||'',    'Credit Days',    app.credit_days||'');
-  twoRow('Sales Person',  fname,                    'Employee Code',  currentUser?.userid||'');
-  blank();
+  html += sec('6.  CUSTOMER / VENDOR DETAILS');
+  html += two('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
+  html += two('Sales Person',fname,'Employee Code',currentUser?.userid||'');
+  html += blank();
 
   // ── 7. Proprietors ──
   if(props.length){
-    secRow('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
-    ['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.'].forEach((h,c)=>sc(R,c,h,ST.HDR));
-    R++;
+    html += sec('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
+    html += `<tr>${['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.'].map(h=>`<td style="${BG_HDR}">${h}</td>`).join('')}</tr>`;
     props.forEach((p,i)=>{
-      [i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''].forEach((v,c)=>sc(R,c,v,ST.VAL));
-      R++;
+      html += `<tr>${[i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||''].map(v=>`<td style="${BG_VAL}">${xe(v)}</td>`).join('')}</tr>`;
     });
-    blank();
+    html += blank();
   }
 
   // ── 8. Signatories ──
   if(sigs.length){
-    secRow('8.  AUTHORIZED SIGNATORIES');
-    sc(R,0,'#',ST.HDR); sc(R,1,'Full Name',ST.HDR); sc(R,2,'Capacity / Role',ST.HDR);
-    mc(R,3,MAXC,'Signature Reference',ST.HDR); R++;
+    html += sec('8.  AUTHORIZED SIGNATORIES');
+    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Full Name</td><td style="${BG_HDR}">Capacity / Role</td><td colspan="5" style="${BG_HDR}">Signature Reference</td></tr>`;
     sigs.forEach((s,i)=>{
-      sc(R,0,i+1,ST.VAL); sc(R,1,s.name||'',ST.VAL); sc(R,2,s.capacity||'',ST.VAL);
-      mc(R,3,MAXC,s.signature||'',ST.VAL); R++;
+      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(s.name||'')}</td><td style="${BG_VAL}">${xe(s.capacity||'')}</td><td colspan="5" style="${BG_VAL}">${xe(s.signature||'')}</td></tr>`;
     });
-    blank();
+    html += blank();
   }
 
   // ── 9. Shipping ──
   if(ships.length){
-    secRow('9.  SHIPPING ADDRESS (Customer Only)');
+    html += sec('9.  SHIPPING ADDRESS (Customer Only)');
     ships.forEach((s,idx)=>{
-      mc(R,0,MAXC,'Shipping Address '+(idx+1),ST.SHP); R++;
-      fullRow('Address Line 1', s.addr1||'');
-      fullRow('Address Line 2', s.addr2||'');
-      fullRow('Address Line 3', s.addr3||'');
-      twoRow('City',    s.city||'',  'Pincode',  s.pin||'');
-      twoRow('GST No.', s.gst||'',   'Email',    s.email||'');
-      twoRow('Mobile',  s.mobile||'','',          '');
+      html += `<tr><td colspan="8" style="${BG_SHP}">Shipping Address ${idx+1}</td></tr>`;
+      html += full('Address Line 1',s.addr1||'');
+      html += full('Address Line 2',s.addr2||'');
+      html += two('City',s.city||'','Pincode',s.pin||'');
+      html += two('GST No.',s.gst||'','Email',s.email||'');
+      html += two('Mobile',s.mobile||'','','');
     });
-    blank();
+    html += blank();
   }
 
   // ── 10. Bank Details ──
   if(banks.length){
-    secRow('10. BANK DETAILS');
-    sc(R,0,'#',ST.HDR); sc(R,1,'Bank Name',ST.HDR);
-    sc(R,2,'Account No.',ST.HDR); sc(R,3,'IFSC',ST.HDR);
-    sc(R,4,'Type',ST.HDR); sc(R,5,'Account Name',ST.HDR);
-    mc(R,6,MAXC,'Branch Address',ST.HDR); R++;
+    html += sec('10. BANK DETAILS');
+    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Bank Name</td><td style="${BG_HDR}">Account No.</td><td style="${BG_HDR}">IFSC</td><td style="${BG_HDR}">Type</td><td style="${BG_HDR}">Account Name</td><td colspan="2" style="${BG_HDR}">Branch Address</td></tr>`;
     banks.forEach((b,i)=>{
-      sc(R,0,i+1,ST.VAL); sc(R,1,b.bank_name||'',ST.VAL);
-      sc(R,2,b.account_no||'',ST.VAL); sc(R,3,b.ifsc||'',ST.VAL);
-      sc(R,4,b.account_type||'',ST.VAL); sc(R,5,b.account_name||'',ST.VAL);
-      mc(R,6,MAXC,b.address||'',ST.VAL); R++;
+      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(b.bank_name||'')}</td><td style="${BG_VAL}">${xe(b.account_no||'')}</td><td style="${BG_VAL}">${xe(b.ifsc||'')}</td><td style="${BG_VAL}">${xe(b.account_type||'')}</td><td style="${BG_VAL}">${xe(b.account_name||'')}</td><td colspan="2" style="${BG_VAL}">${xe(b.address||'')}</td></tr>`;
     });
-    blank();
+    html += blank();
   }
 
   // ── 11. MSME ──
   if(app.msme_registered){
-    secRow('11. MSME DETAILS');
-    twoRow('Registered under MSME?', app.msme_registered||'', 'MSME Category',        app.msme_category||'');
-    twoRow('Udyam Registration No.', app.udyam_no||'',         'Udyam Reg. Date',      app.udyam_date||'');
-    blank();
+    html += sec('11. MSME DETAILS');
+    html += two('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
+    html += two('Udyam Registration No.',app.udyam_no||'','Udyam Reg. Date',app.udyam_date||'');
+    html += blank();
   }
 
   // ── 12. Existing Business ──
-  secRow('12. DETAILS OF EXISTING BUSINESS');
-  fullRow('Nature of Business', app.biz_nature||'');
-  twoRow('Date of Starting', app.biz_date||'',   'Year',     app.biz_year||'');
-  twoRow('Godown Area (sq.ft)', app.godown_area||'', 'Shop', app.shop_type||'');
-  twoRow('Godown',   app.godown_type||'',   'Residence', app.residence_type||'');
-  blank();
+  html += sec('12. DETAILS OF EXISTING BUSINESS');
+  html += full('Nature of Business',app.biz_nature||'');
+  html += two('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
+  html += two('Godown Area (sq.ft)',app.godown_area||'','Shop',app.shop_type||'');
+  html += two('Godown',app.godown_type||'','Residence',app.residence_type||'');
+  html += blank();
 
   // ── 15. Additional Info ──
-  secRow('15. ADDITIONAL INFORMATION');
-  twoRow('Expected Business (Rs.)',    app.expected_business||'', 'Payment Terms',         app.payment_terms||'');
-  twoRow('Capacity to Invest (Lacs)',  app.capacity_invest||'',   'Total Investment (Lacs)',app.total_invest||'');
-  twoRow('Convicted / Insolvent',      app.convicted||'',          '',                      '');
-  if(app.remarks) fullRow('Remarks', app.remarks||'');
-  blank();
+  html += sec('15. ADDITIONAL INFORMATION');
+  html += two('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
+  html += two('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'');
+  html += two('Convicted / Insolvent',app.convicted||'','','');
+  if(app.remarks) html += full('Remarks',app.remarks||'');
+  html += blank();
 
   // ── 16. Cheques ──
   if(cheqs.length){
-    secRow('16. CHEQUES ENCLOSED');
-    sc(R,0,'#',ST.HDR); sc(R,1,'Cheque No.',ST.HDR);
-    mc(R,2,MAXC,'Name of Bank',ST.HDR); R++;
+    html += sec('16. CHEQUES ENCLOSED');
+    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Cheque No.</td><td colspan="6" style="${BG_HDR}">Name of Bank</td></tr>`;
     cheqs.forEach((c,i)=>{
-      sc(R,0,i+1,ST.VAL); sc(R,1,c.cheque_no||'',ST.VAL);
-      mc(R,2,MAXC,c.bank_name||'',ST.VAL); R++;
+      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(c.cheque_no||'')}</td><td colspan="6" style="${BG_VAL}">${xe(c.bank_name||'')}</td></tr>`;
     });
-    blank();
+    html += blank();
   }
 
   // ── 17. References ──
   if(refs.length){
-    secRow('17. REFERENCES');
-    sc(R,0,'#',ST.HDR); sc(R,1,'Name',ST.HDR);
-    mc(R,2,5,'Address',ST.HDR);
-    mc(R,6,MAXC,'Relationship',ST.HDR); R++;
+    html += sec('17. REFERENCES');
+    html += `<tr><td style="${BG_HDR}">#</td><td style="${BG_HDR}">Name</td><td colspan="4" style="${BG_HDR}">Address</td><td colspan="2" style="${BG_HDR}">Relationship</td></tr>`;
     refs.forEach((rf,i)=>{
-      sc(R,0,i+1,ST.VAL); sc(R,1,rf.name||'',ST.VAL);
-      mc(R,2,5,rf.address||'',ST.VAL);
-      mc(R,6,MAXC,rf.relationship||'',ST.VAL); R++;
+      html += `<tr><td style="${BG_VAL}">${i+1}</td><td style="${BG_VAL}">${xe(rf.name||'')}</td><td colspan="4" style="${BG_VAL}">${xe(rf.address||'')}</td><td colspan="2" style="${BG_VAL}">${xe(rf.relationship||'')}</td></tr>`;
     });
-    blank();
+    html += blank();
   }
 
   // ── Declaration ──
-  secRow('DECLARATION & SIGNATURE');
-  twoRow('DATE', today, 'Requisition By', fname);
-  blank();
+  html += sec('DECLARATION & SIGNATURE');
+  html += two('DATE',today,'Requisition By',fname);
+  html += blank();
 
   // ── Notes ──
   ['Note:',
@@ -2166,28 +2119,34 @@ function generateExcel(app){
    '6) Name of Employee who introduced this customer needed to be filled up.',
    '7) Party Code will be allotted only after online verification of applicable registrations.',
    '8) Sales Person name is with whom customer is to be mapped.',
-  ].forEach(n=>{ mc(R,0,MAXC,n,ST.NOT); R++; });
+  ].forEach(n=>{ html += `<tr><td colspan="8" style="${BG_NOT}">${xe(n)}</td></tr>`; });
 
-  // ── Sheet config ──
-  ws['!ref']    = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:R,c:MAXC}});
-  ws['!merges'] = merges;
-  ws['!cols']   = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:22},{wch:16},{wch:14},{wch:12}];
-  ws['!rows']   = Array(R+1).fill(null).map(()=>({hpt:16}));
-  ws['!rows'][0]= {hpt:26};
-  ws['!rows'][1]= {hpt:15};
+  html += '</table>';
 
-  ws['!pageSetup']={
+  // ── Convert HTML table to sheet ────────────────────────────
+  // Create a temporary DOM element
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const table = div.querySelector('table');
+
+  const ws = XLSX.utils.table_to_sheet(table, {raw:false});
+
+  // Column widths
+  ws['!cols'] = [{wch:22},{wch:16},{wch:14},{wch:12},{wch:22},{wch:16},{wch:14},{wch:12}];
+
+  // Fit to 1 page wide
+  ws['!pageSetup'] = {
     paperSize:9, orientation:'portrait',
     fitToPage:true, fitToWidth:1, fitToHeight:0,
-    left:0.4, right:0.4, top:0.6, bottom:0.6, header:0.2, footer:0.2
+    left:0.4, right:0.4, top:0.6, bottom:0.6
   };
-  ws['!printOptions']={gridLines:false};
 
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'MASTER');
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'MASTER');
 
-  const filename=(app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()+'-'+(app.app_number||'REQ')+'.xlsx';
-  XLSX.writeFile(wb,filename);
+  const filename = (app.party_name||'CVR').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase()
+    + '-' + (app.app_number||'REQ') + '.xlsx';
+  XLSX.writeFile(wb, filename);
   toast('Excel downloaded: '+filename,'success');
 }
 // ════════════════════════════════════════════════════════════
