@@ -299,6 +299,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
         <div class="nav-dot"></div>
         Vendor Requisition
       </div>
+      <div class="nav-item" id="nav-7" onclick="loadApp('Cust-Ven.html','Customer / Vendor Requisition',7)">
+        <div class="nav-dot"></div>
+        Customer / Vendor Requisition
+      </div>
       <div class="nav-item" id="nav-5" onclick="loadApp('it-peripherals.html','IT Peripherals Requisition',5)">
         <div class="nav-dot"></div>
         IT Peripherals Requisition
@@ -343,14 +347,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
       </div>
 
       <div class="apps-grid">
-        <div class="app-card" id="card-0" onclick="loadApp('Cust-Ven-C.html','Customer Requisition',0)">
+        <div class="app-card" id="card-0" onclick="loadApp('Cust-Ven.html','Customer / Vendor Requisition',0)">
           <div class="card-top"></div>
           <div class="card-body">
-            <div class="card-icon">🤝</div>
-            <div class="card-title">Customer Requisition</div>
-            <div class="card-desc">Submit and manage new customer onboarding requests. Track status from Draft to Approval.</div>
+            <div class="card-icon">📋</div>
+            <div class="card-title">Customer / Vendor Requisition</div>
+            <div class="card-desc">Submit and manage new customer or vendor onboarding requests. Track status from Draft to Approval.</div>
             <div class="card-footer">
-              <span class="card-tag">Customer Portal</span>
+              <span class="card-tag">CVR Portal</span>
               <div class="card-arrow">
                 <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/>
@@ -359,15 +363,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
             </div>
           </div>
         </div>
-
-        <div class="app-card" id="card-6" onclick="loadApp('Cust-Ven-V.html','Vendor Requisition',6)">
+	
+	<div class="apps-grid">
+        <div class="app-card" id="card-7" onclick="loadApp('Cust-Ven.html','Customer / Vendor Requisition',7)">
           <div class="card-top"></div>
           <div class="card-body">
-            <div class="card-icon">🏭</div>
-            <div class="card-title">Vendor Requisition</div>
-            <div class="card-desc">Submit and manage new vendor onboarding requests. Track status from Draft to Approval.</div>
+            <div class="card-icon">📋</div>
+            <div class="card-title">Customer / Vendor Requisition</div>
+            <div class="card-desc">Combined customer and vendor onboarding requisition form (legacy).</div>
             <div class="card-footer">
-              <span class="card-tag">Vendor Portal</span>
+              <span class="card-tag">CVR Portal</span>
               <div class="card-arrow">
                 <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/>
