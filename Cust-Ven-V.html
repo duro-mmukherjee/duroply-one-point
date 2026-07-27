@@ -1162,7 +1162,7 @@ async function loadApps(){
   // Always get full reportee tree first (includes self)
   const reporteeIds=await getReporteeIds(myId);
 
-  let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
+  let query=sb.from('cvr_applications').select('*').eq('party_type','Vendor').order('created_at',{ascending:false});
 
   if(scope==='all'){
     // no filter — super_admin sees everything
