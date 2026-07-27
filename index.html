@@ -347,14 +347,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
       </div>
 
       <div class="apps-grid">
-        <div class="app-card" id="card-0" onclick="loadApp('Cust-Ven.html','Customer / Vendor Requisition',0)">
+        <div class="app-card" id="card-0" onclick="loadApp('Cust-Ven-C.html','Customer Requisition',0)">
           <div class="card-top"></div>
           <div class="card-body">
-            <div class="card-icon">📋</div>
-            <div class="card-title">Customer / Vendor Requisition</div>
-            <div class="card-desc">Submit and manage new customer or vendor onboarding requests. Track status from Draft to Approval.</div>
+            <div class="card-icon">🤝</div>
+            <div class="card-title">Customer Requisition</div>
+            <div class="card-desc">Submit and manage new customer onboarding requests. Track status from Draft to Approval.</div>
             <div class="card-footer">
-              <span class="card-tag">CVR Portal</span>
+              <span class="card-tag">Customer Portal</span>
               <div class="card-arrow">
                 <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/>
@@ -363,14 +363,30 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
             </div>
           </div>
         </div>
-	
-	<div class="apps-grid">
+
+        <div class="app-card" id="card-6" onclick="loadApp('Cust-Ven-V.html','Vendor Requisition',6)">
+          <div class="card-top"></div>
+          <div class="card-body">
+            <div class="card-icon">🏭</div>
+            <div class="card-title">Vendor Requisition</div>
+            <div class="card-desc">Submit and manage new vendor onboarding requests. Track status from Draft to Approval.</div>
+            <div class="card-footer">
+              <span class="card-tag">Vendor Portal</span>
+              <div class="card-arrow">
+                <svg width="11" height="11" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M7 7h10v10"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="app-card" id="card-7" onclick="loadApp('Cust-Ven.html','Customer / Vendor Requisition',7)">
           <div class="card-top"></div>
           <div class="card-body">
             <div class="card-icon">📋</div>
             <div class="card-title">Customer / Vendor Requisition</div>
-            <div class="card-desc">Combined customer and vendor onboarding requisition form (legacy).</div>
+            <div class="card-desc">Combined customer and vendor onboarding requisition form.</div>
             <div class="card-footer">
               <span class="card-tag">CVR Portal</span>
               <div class="card-arrow">
@@ -489,7 +505,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 
   // App registry — file, name, nav index, app_key (must match app_permissions)
   const APP_REGISTRY = [
-    {file:'Cust-Ven.html',                    name:'Customer / Vendor Requisition', idx:0, key:'customer_vendor'},
+    {file:'Cust-Ven-C.html',                  name:'Customer Requisition',          idx:0, key:'customer_requisition'},
+    {file:'Cust-Ven-V.html',                  name:'Vendor Requisition',            idx:6, key:'vendor_requisition'},
+    {file:'Cust-Ven.html',                    name:'Customer / Vendor Requisition', idx:7, key:'customer_vendor'},
     {file:'branch-master.html',               name:'Branch Master',                 idx:1, key:'branch_master'},
     {file:'Duroply_MIS_Dashboard_V139.html',  name:'SRC-MIS Dashboard',             idx:2, key:'mis_dashboard'},
     {file:'Duroply_SCM_Platform_v33.html',    name:'SRC-SCM Platform',              idx:3, key:'scm_platform'},
