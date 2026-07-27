@@ -380,7 +380,7 @@ tbody tr:hover td{background:var(--surface2);}
               </div>
               <div class="fld" style="pointer-events:none;opacity:.7;">
                 <label>Party Type</label>
-                <input type="text" value="Customer" disabled style="font-weight:600;color:var(--accent);">
+                <input type="text" id="f-party_type-display" value="Customer" disabled style="font-weight:600;color:var(--accent);">
               </div>
               <div class="fld" id="w-enterprise">
                 <label>Type of Enterprise</label>
@@ -1162,7 +1162,7 @@ async function loadApps(){
   // Always get full reportee tree first (includes self)
   const reporteeIds=await getReporteeIds(myId);
 
-  let query=sb.from('cvr_applications').select('*').eq('party_type','Customer').order('created_at',{ascending:false});
+  let query=sb.from('cvr_applications').select('*').order('created_at',{ascending:false});
 
   if(scope==='all'){
     // no filter — super_admin sees everything
@@ -1583,6 +1583,7 @@ function resetForm(){
 function fillForm(app){
   const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
   s('f-party_type',app.party_type);onPartyType();
+  var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value=app.party_type||'Customer';
   s('f-enterprise_type',app.enterprise_type);s('f-category',app.category);onCategory();
   s('f-party_name',app.party_name);s('f-constitution',app.constitution);onConstitution();
   s('f-constitution_other',app.constitution_other);s('f-selling_branch',app.selling_branch_id);
