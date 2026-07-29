@@ -2040,7 +2040,17 @@ function buildPrintContent(app){
     <tbody>${sigs.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.name)}</td><td>${pv(r.capacity)}</td><td>${pv(r.signature)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
   ${ships.length?`<div class="pr-section"><div class="pr-sec-hd">9. Shipping Addresses</div><div class="pr-sec-body">
-    ${ships.map((s,i)=>`<div style="margin-bottom:5px;padding:4px 8px;border:1px solid #334155;border-radius:4px;font-size:10.5px;"><b>Address ${i+1}:</b> ${[s.addr1,s.addr2,s.addr3,s.city,s.pin].filter(Boolean).join(', ')}</div>`).join('')}
+    ${ships.map((s,i)=>`
+      <div style="margin-bottom:8px;">
+        <div style="font-size:10px;font-weight:700;color:#1e3a8a;margin-bottom:4px;">Address ${i+1}</div>
+        <div class="pr-grid">
+          ${s.addr1?pf('Address Line 1',s.addr1,3):''}
+          ${s.addr2?pf('Address Line 2',s.addr2,3):''}
+          ${s.addr3?pf('Address Line 3',s.addr3,3):''}
+          ${pf('City',s.city)}${pf('Pincode',s.pin)}${pf('State',s.state||'')}
+          ${s.gst?pf('GST No.',s.gst):''}${s.email?pf('Email',s.email):''}${s.mobile?pf('Mobile',s.mobile):''}
+        </div>
+      </div>`).join('')}
   </div></div>`:''}
   ${banks.length?`<div class="pr-section"><div class="pr-sec-hd">10. Bank Details</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Bank Name</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Account Name</th><th>Branch Address</th></tr></thead>
@@ -2105,6 +2115,87 @@ function buildPrintContent(app){
       </ol>
     </div>
   </div></div>`;
+
+  // ── For Office Use — separate page ──────────────────────
+  // Include OFU in PDF if app has been saved (Draft or beyond)
+  var _showOfu=['Draft','New','Approved By LAO','Approved By Management',
+    'Disapproved By LAO','Disapproved By Management','Sent To HO','Certificate Issued']
+    .indexOf(app.status||'')>=0;
+  if(_showOfu){
+    var _ou={};
+    if(app.office_use){
+      try{ _ou=typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use; }catch(e){}
+    }
+    var _brands=[
+      _ou.brand_duro?'Duro':'',
+      _ou.brand_tower?'Tower':'',
+      _ou.brand_ntd?'NTD':'',
+      _ou.brand_other?(_ou.brand_other_name||'Other'):''
+    ].filter(Boolean).join(', ')||'—';
+    var _total=(
+      (parseFloat(_ou.qtr1)||0)+
+      (parseFloat(_ou.qtr2)||0)+
+      (parseFloat(_ou.qtr3)||0)+
+      (parseFloat(_ou.qtr4)||0)
+    ).toFixed(2);
+
+    html += '<div style="page-break-before:always;"></div>';
+    html += '<div class="pr-header" style="margin-top:0;">';
+    html += '<div class="pr-company" style="font-size:14px;">FOR OFFICE USE ONLY</div>';
+    html += '<div class="pr-subtitle">' + pv(app.party_name) + ' &nbsp;|&nbsp; ' + pv(app.app_number) + '</div>';
+    html += '</div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">Verification &amp; Recommendation</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Name of Dealer', app.party_name, 3);
+    html += pf('2. Details Verified by', _ou.verified_by, 3);
+    html += pf('3. Appointment Recommended by', _ou.recommended_by, 3);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">4. Approved by</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('SM / BM / DBM', _ou.approved_bm);
+    html += pf('RM / GM / VP', _ou.approved_rm);
+    html += pf('Managing Director', _ou.approved_md);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">5 &amp; 6. Sales Person &amp; Expected Brands</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('5. Sales Person Mapped', _ou.sales_person, 3);
+    html += pf('6. Expected Brands', _brands, 3);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">7. Expected Business (Rs. in Lacs)</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Qtr I (Apr-Jun)', _ou.qtr1);
+    html += pf('Qtr II (Jul-Sep)', _ou.qtr2);
+    html += pf('Qtr III (Oct-Dec)', _ou.qtr3);
+    html += pf('Qtr IV (Jan-Mar)', _ou.qtr4);
+    html += pf('Total (Lacs)', _total, 2);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">8. Credit Limit</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Amount (Rs.)', _ou.credit_limit);
+    html += pf('No. of Days', _ou.credit_days);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">9. Exclusive Commitment &amp; 10. Cheques</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('9. Exclusive Commitment', _ou.exclusive);
+    if(_ou.exclusive==='Yes'){
+      html += pf('Brand', _ou.excl_brand);
+      html += pf('Terms', _ou.excl_terms);
+      html += pf('Period', _ou.excl_period);
+    }
+    html += pf('10. Cheques Given', _ou.cheque_given);
+    if(_ou.cheque_given==='Yes'){
+      html += pf('Receipt No.', _ou.cheque_receipt);
+      html += pf('Receipt Date', _ou.cheque_date);
+    }
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">11. Certification</div><div class="pr-sec-body">';
+    html += '<div style="font-size:11px;line-height:1.8;margin-bottom:20px;">I ________________________ holding the designation of <strong>' + pv(_ou.certifier_desig) + '</strong> certify that the above mentioned particulars are authentic and validated to the best of my knowledge.</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">';
+    html += '<div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Date: ___________________</div>';
+    html += '<div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Authorised Signatory with Seal</div>';
+    html += '</div></div></div>';
+  }
 
   // ── For Office Use — separate page ──────────────────────
   var _showOfu=['Draft','New','Approved By LAO','Approved By Management',
