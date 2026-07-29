@@ -1473,6 +1473,8 @@ function resetForm(){
   ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
+  var _pt=document.getElementById('f-party_type');if(_pt)_pt.value='Vendor';
+  var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value='Vendor';
   onPartyType();
   const mn=document.querySelector('input[name=msme][value=No]');if(mn)mn.checked=true;
   onMsme();
