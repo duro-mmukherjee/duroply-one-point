@@ -1574,6 +1574,9 @@ function resetForm(){
   ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques','tb-refs'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
+  // Re-set fixed party type after reset clears all fields
+  var _pt=document.getElementById('f-party_type');if(_pt)_pt.value='Customer';
+  var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value='Customer';
   onPartyType();
   const mn=document.querySelector('input[name=msme][value=No]');if(mn)mn.checked=true;
   onMsme();
@@ -1617,6 +1620,35 @@ function fillForm(app){
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
   // Cheque images come from inside the cheques JSON (handled below)
   window._pendingChequeImgs=[];
+
+  // ── Block 7: Proprietors ──────────────────────────────
+  const propTb=document.getElementById('tb-prop');
+  if(propTb){propTb.innerHTML='';(safeParseJSON(app.proprietors)||[]).forEach((p,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(p.name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.son_wife_of||'').replace(/"/g,'&quot;')}" placeholder="Father/Husband name"></td><td><input type="number" value="${p.age||''}" placeholder="Age" style="width:70px"></td><td><input type="text" value="${(p.designation||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.din_pan||'').replace(/"/g,'&quot;')}"></td><td><input type="number" value="${p.share||''}" placeholder="%" style="width:80px"></td><td><input type="text" value="${(p.specimen_signature||'').replace(/"/g,'&quot;')}" placeholder="Sign description"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;propTb.appendChild(tr);});}
+
+  // ── Block 8: Signatories ──────────────────────────────
+  const sigTb=document.getElementById('tb-sig');
+  if(sigTb){sigTb.innerHTML='';(safeParseJSON(app.signatories)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Full name"></td><td><input type="text" value="${(r.capacity||'').replace(/"/g,'&quot;')}" placeholder="Capacity/Role"></td><td><input type="text" value="${(r.signature||'').replace(/"/g,'&quot;')}" placeholder="Signature reference"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-sig')">✕</button></td>`;sigTb.appendChild(tr);});}
+
+  // ── Block 9: Shipping Addresses ───────────────────────
+  const _shipBody=document.getElementById('ship-body');
+  if(_shipBody){const _shipData=safeParseJSON(app.shipping_addresses)||[];if(_shipData.length){_shipBody.innerHTML='';_shipData.forEach((s,i)=>{const div=document.createElement('div');div.className='ship-block';div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div><button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button><div class="fg" style="grid-template-columns:1fr 1fr;"><div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}" placeholder="Line 1"></div><div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}" placeholder="Line 2 (optional)"></div><div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}" placeholder="Line 3 (optional)"></div><div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}" placeholder="City"></div><div class="fld"><label>Pincode</label><input type="text" maxlength="6" value="${(s.pin||'').replace(/"/g,'&quot;')}" placeholder="PIN"></div><div class="fld"><label>GST No.</label><input type="text" maxlength="15" value="${(s.gst||'').replace(/"/g,'&quot;')}" placeholder="GST (optional)"></div><div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}" placeholder="Email (optional)"></div><div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" value="${(s.mobile||'').replace(/"/g,'&quot;')}" placeholder="Mobile (optional)"></div></div>`;_shipBody.appendChild(div);});}}
+
+  // ── Block 10: Bank Details ────────────────────────────
+  const bankTb=document.getElementById('tb-bank');
+  if(bankTb){bankTb.innerHTML='';(safeParseJSON(app.bank_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.bank_name||'').replace(/"/g,'&quot;')}" placeholder="Bank name"></td><td><input type="text" value="${(r.account_no||'').replace(/"/g,'&quot;')}" placeholder="Account no."></td><td><input type="text" value="${(r.ifsc||'').replace(/"/g,'&quot;')}" placeholder="IFSC"></td><td><input type="text" value="${(r.account_type||'').replace(/"/g,'&quot;')}" placeholder="Savings/Current"></td><td><input type="text" value="${(r.account_name||'').replace(/"/g,'&quot;')}" placeholder="Account name"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Branch address"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-bank')">✕</button></td>`;bankTb.appendChild(tr);});}
+
+  // ── Block 13: Other Brands ────────────────────────────
+  const brandTb=document.getElementById('tb-brands');
+  if(brandTb){brandTb.innerHTML='';(safeParseJSON(app.other_brands)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand name"></td><td><input type="text" value="${(r.since_when||'').replace(/"/g,'&quot;')}" placeholder="Since when"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-brands')">✕</button></td>`;brandTb.appendChild(tr);});}
+
+  // ── Block 14: Stockists ───────────────────────────────
+  const stockTb=document.getElementById('tb-stock');
+  if(stockTb){stockTb.innerHTML='';(safeParseJSON(app.stockists)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.firm_name||'').replace(/"/g,'&quot;')}" placeholder="Firm name"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}" placeholder="Brand"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}" placeholder="Monthly sale"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;stockTb.appendChild(tr);});}
+
+  // ── Block 17: References ──────────────────────────────
+  const refTb=document.getElementById('tb-refs');
+  if(refTb){refTb.innerHTML='';(safeParseJSON(app.ref_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" maxlength="40" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="Name"></td><td><input type="text" maxlength="100" value="${(r.address||'').replace(/"/g,'&quot;')}" placeholder="Address"></td><td><input type="text" maxlength="20" value="${(r.relationship||'').replace(/"/g,'&quot;')}" placeholder="Relationship"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;refTb.appendChild(tr);});}
+
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
   cheqTb.innerHTML='';
