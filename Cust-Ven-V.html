@@ -429,65 +429,6 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <!-- ① Area / District -->
-        <div class="fc" id="card-area">
-          <div class="fc-hd"><div class="fc-title"><span class="fc-num">1b</span> Area / District Details</div></div>
-          <div class="fc-body">
-            <div class="fg c3">
-              <div class="fld" style="grid-column:span 2">
-                <label>Area or District for which Dealership is applied <span class="req">*</span></label>
-                <input type="text" id="f-dealership_area" placeholder="e.g. South Delhi, Gurugram, Patna East">
-                <span class="emsg">Required</span>
-              </div>
-              <div class="fld">
-                <label>State</label>
-                <input type="text" id="f-dealership_state" placeholder="State name">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ② Zone / Market / Cluster / City -->
-        <div class="fc">
-          <div class="fc-hd"><div class="fc-title"><span class="fc-num">2</span> Zone, Market & Territory</div></div>
-          <div class="fc-body">
-            <div class="fg c4">
-              <div class="fld">
-                <label>Zone <span class="req" id="zone-req">*</span></label>
-                <select id="f-zone" onchange="onZone()">
-                  <option value="">— Select Zone —</option>
-                  <option>NORTH</option><option>SOUTH</option><option>EAST</option>
-                  <option>WEST</option><option>CENTRAL</option>
-                </select>
-                <span class="emsg">Required</span>
-              </div>
-              <div class="fld">
-                <label>Market Name <span class="req" id="mkt-req">*</span></label>
-                <select id="f-market_name" onchange="onMarket()">
-                  <option value="">— Select Zone First —</option>
-                </select>
-                <span class="emsg">Required</span>
-              </div>
-              <div class="fld">
-                <label>Cluster Name <span class="req" id="cls-req">*</span></label>
-                <select id="f-cluster_name">
-                  <option value="">— Select Market First —</option>
-                </select>
-                <span class="emsg">Required</span>
-              </div>
-              <div class="fld">
-                <label>Type of City <span class="req" id="city-type-req">*</span></label>
-                <select id="f-type_of_city">
-                  <option value="">— Select —</option>
-                  <option>D-HQ</option><option>Metro</option>
-                  <option>Mini Metro</option><option>Others</option>
-                </select>
-                <span class="emsg">Required</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- ③ Billing Address -->
         <div class="fc" id="card-billing">
           <div class="fc-hd"><div class="fc-title"><span class="fc-num">3</span> Billing Address <span id="bill-lbl" style="font-size:11px;font-weight:400;color:var(--success);">(Mandatory for Customer)</span></div></div>
@@ -809,26 +750,6 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <!-- ⑮ Additional Info -->
-        <div class="fc">
-          <div class="fc-hd"><div class="fc-title"><span class="fc-num">15</span> Additional Information</div></div>
-          <div class="fc-body">
-            <div class="fg c3">
-              <div class="fld" id="w-exp-biz"><label>Expected Business in FY (₹)</label><input id="f-expected_business" type="number" placeholder="Amount"></div>
-              <div class="fld"><label>Terms of Payment (100c)</label><input id="f-payment_terms" maxlength="100" placeholder="Payment terms"></div>
-              <div class="fld" id="w-cap1"><label>Capacity to Invest in Products (Lacs)</label><input id="f-capacity_invest" type="number"></div>
-              <div class="fld" id="w-cap2"><label>Total Capacity to Invest (Lacs)</label><input id="f-total_invest" type="number"></div>
-              <div class="fld">
-                <label>Convicted / Insolvent?</label>
-                <div class="radio-row">
-                  <label><input type="radio" name="convicted" value="Yes"> Yes</label>
-                  <label><input type="radio" name="convicted" value="No" checked> No</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- ⑯ Cheques -->
         <div class="fc" id="card-cheques">
           <div class="fc-hd">
@@ -844,19 +765,6 @@ tbody tr:hover td{background:var(--surface2);}
         </div>
 
         <!-- ⑰ References -->
-        <div class="fc">
-          <div class="fc-hd">
-            <div class="fc-title"><span class="fc-num">17</span> References <span style="font-size:11px;font-weight:400;color:var(--text3);">(Both · Optional · max 3)</span></div>
-            <button class="add-row" onclick="addRef()">+ Add Reference</button>
-          </div>
-          <div class="fc-body">
-            <table class="dyn-tbl">
-              <thead><tr><th>#</th><th>Name * (40c)</th><th>Address * (100c)</th><th>Relationship * (20c)</th><th></th></tr></thead>
-              <tbody id="tb-refs"></tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- ⑱ Remarks -->
         <div class="fc">
           <div class="fc-hd"><div class="fc-title"><span class="fc-num">18</span> Remarks</div></div>
@@ -1277,9 +1185,9 @@ function onPartyType(){
   document.getElementById('cp-req').style.display=isC?'inline':'none';
   document.getElementById('mob-req').style.display=isC?'inline':'none';
   document.getElementById('sb-req').style.display=isC?'inline':'none';
-  document.getElementById('zone-req').style.display=isC?'inline':'none';
-  document.getElementById('mkt-req').style.display=isC?'inline':'none';
-  document.getElementById('cls-req').style.display=isC?'inline':'none';
+  var _zr=document.getElementById('zone-req');if(_zr)_zr.style.display=isC?'inline':'none';
+  var _mr=document.getElementById('mkt-req');if(_mr)_mr.style.display=isC?'inline':'none';
+  var _cr=document.getElementById('cls-req');if(_cr)_cr.style.display=isC?'inline':'none';
   document.getElementById('city-type-req').style.display=isC?'inline':'none';
 }
 
@@ -1413,14 +1321,6 @@ function addCheque(savedImgData){
   tb.appendChild(tr);
   if(savedImgData){restoreChequeImg(uid,savedImgData);}
 }
-function addRef(){
-  const tb=document.getElementById('tb-refs');
-  if(tb.rows.length>=3){toast('Max 3 references','error');return;}
-  const n=tb.rows.length+1;
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${n}</td><td><input type="text" maxlength="40" placeholder="Name"></td><td><input type="text" maxlength="100" placeholder="Address"></td><td><input type="text" maxlength="20" placeholder="Relationship"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;
-  tb.appendChild(tr);
-}
 function renum(tbId){Array.from(document.getElementById(tbId).rows).forEach((r,i)=>r.cells[0].textContent=i+1);}
 
 // ── Validate ───────────────────────────────────────────
@@ -1435,7 +1335,7 @@ function validate(){
   if(pt==='Customer'){
     req('f-billing_addr1');req('f-billing_city');req('f-billing_pin');req('f-billing_state');
     req('f-contact_person');req('f-mobile');req('f-sales_person');
-    req('f-zone');req('f-market_name');req('f-cluster_name');req('f-type_of_city');
+    if(document.getElementById('f-zone'))req('f-zone');if(document.getElementById('f-market_name'))req('f-market_name');if(document.getElementById('f-cluster_name'))req('f-cluster_name');req('f-type_of_city');
     if(!document.getElementById('tb-prop').rows.length){toast('At least one Proprietor/Partner row required','error');ok=false;}
   }
   // PAN
@@ -1506,7 +1406,6 @@ function collect(){
     pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
     gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
     gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
-    ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
 
   };
 }
@@ -1571,11 +1470,9 @@ function resetForm(){
   document.querySelectorAll('#form-view input[type=file]').forEach(el=>{el.value='';el._savedB64=null;el._savedName=null;});
   clearImg('f-pan-img','prev-pan','dz-pan');
   clearImg('f-gst-img','prev-gst','dz-gst');
-  ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques','tb-refs'].forEach(id=>document.getElementById(id).innerHTML='');
+  ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
-  var _pt=document.getElementById('f-party_type');if(_pt)_pt.value='Vendor';
-  var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value='Vendor';
   onPartyType();
   const mn=document.querySelector('input[name=msme][value=No]');if(mn)mn.checked=true;
   onMsme();
@@ -1619,35 +1516,6 @@ function fillForm(app){
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
   // Cheque images come from inside the cheques JSON (handled below)
   window._pendingChequeImgs=[];
-
-  // ── Block 7: Proprietors ──
-  const _propTb=document.getElementById('tb-prop');
-  if(_propTb){_propTb.innerHTML='';(safeParseJSON(app.proprietors)||[]).forEach((p,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(p.name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.son_wife_of||'').replace(/"/g,'&quot;')}"></td><td><input type="number" value="${p.age||''}" style="width:70px"></td><td><input type="text" value="${(p.designation||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(p.din_pan||'').replace(/"/g,'&quot;')}"></td><td><input type="number" value="${p.share||''}" style="width:80px"></td><td><input type="text" value="${(p.specimen_signature||'').replace(/"/g,'&quot;')}"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-prop')">✕</button></td>`;_propTb.appendChild(tr);});}
-
-  // ── Block 8: Signatories ──
-  const _sigTb=document.getElementById('tb-sig');
-  if(_sigTb){_sigTb.innerHTML='';(safeParseJSON(app.signatories)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.capacity||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.signature||'').replace(/"/g,'&quot;')}"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-sig')">✕</button></td>`;_sigTb.appendChild(tr);});}
-
-  // ── Block 9: Shipping ──
-  const _shipBody=document.getElementById('ship-body');
-  if(_shipBody){const _sd=safeParseJSON(app.shipping_addresses)||[];if(_sd.length){_shipBody.innerHTML='';_sd.forEach((s,i)=>{const div=document.createElement('div');div.className='ship-block';div.innerHTML=`<div class="ship-block-hd">Shipping Address ${i+1}</div><button class="ship-del" onclick="this.closest('.ship-block').remove()">✕</button><div class="fg" style="grid-template-columns:1fr 1fr;"><div class="fld full"><label>Address Line 1</label><input type="text" value="${(s.addr1||'').replace(/"/g,'&quot;')}"></div><div class="fld full"><label>Address Line 2</label><input type="text" value="${(s.addr2||'').replace(/"/g,'&quot;')}"></div><div class="fld full"><label>Address Line 3</label><input type="text" value="${(s.addr3||'').replace(/"/g,'&quot;')}"></div><div class="fld"><label>City</label><input type="text" value="${(s.city||'').replace(/"/g,'&quot;')}"></div><div class="fld"><label>Pincode</label><input type="text" value="${(s.pin||'').replace(/"/g,'&quot;')}"></div><div class="fld"><label>GST No.</label><input type="text" value="${(s.gst||'').replace(/"/g,'&quot;')}"></div><div class="fld"><label>Email ID</label><input type="email" value="${(s.email||'').replace(/"/g,'&quot;')}"></div><div class="fld"><label>Mobile No.</label><input type="text" value="${(s.mobile||'').replace(/"/g,'&quot;')}"></div></div>`;_shipBody.appendChild(div);});}}
-
-  // ── Block 10: Bank Details ──
-  const _bankTb=document.getElementById('tb-bank');
-  if(_bankTb){_bankTb.innerHTML='';(safeParseJSON(app.bank_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.bank_name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.account_no||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.ifsc||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.account_type||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.account_name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-bank')">✕</button></td>`;_bankTb.appendChild(tr);});}
-
-  // ── Block 13: Other Brands ──
-  const _brandTb=document.getElementById('tb-brands');
-  if(_brandTb){_brandTb.innerHTML='';(safeParseJSON(app.other_brands)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.since_when||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-brands')">✕</button></td>`;_brandTb.appendChild(tr);});}
-
-  // ── Block 14: Stockists ──
-  const _stockTb=document.getElementById('tb-stock');
-  if(_stockTb){_stockTb.innerHTML='';(safeParseJSON(app.stockists)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" value="${(r.firm_name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.address||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.brand||'').replace(/"/g,'&quot;')}"></td><td><input type="text" value="${(r.monthly_sale||'').replace(/"/g,'&quot;')}"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-stock')">✕</button></td>`;_stockTb.appendChild(tr);});}
-
-  // ── Block 17: References ──
-  const _refTb=document.getElementById('tb-refs');
-  if(_refTb){_refTb.innerHTML='';(safeParseJSON(app.ref_details)||[]).forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input type="text" maxlength="40" value="${(r.name||'').replace(/"/g,'&quot;')}"></td><td><input type="text" maxlength="100" value="${(r.address||'').replace(/"/g,'&quot;')}"></td><td><input type="text" maxlength="20" value="${(r.relationship||'').replace(/"/g,'&quot;')}"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;_refTb.appendChild(tr);});}
-
   // Restore cheques with images
   const cheqTb=document.getElementById('tb-cheques');
   cheqTb.innerHTML='';
