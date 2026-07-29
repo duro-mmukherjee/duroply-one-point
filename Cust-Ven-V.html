@@ -1193,9 +1193,9 @@ function onPartyType(){
   document.getElementById('cp-req').style.display=isC?'inline':'none';
   document.getElementById('mob-req').style.display=isC?'inline':'none';
   document.getElementById('sb-req').style.display=isC?'inline':'none';
-  document.getElementById('zone-req').style.display=isC?'inline':'none';
-  document.getElementById('mkt-req').style.display=isC?'inline':'none';
-  document.getElementById('cls-req').style.display=isC?'inline':'none';
+  if(document.getElementById('zone-req'))document.getElementById('zone-req').style.display=isC?'inline':'none';
+  if(document.getElementById('mkt-req'))document.getElementById('mkt-req').style.display=isC?'inline':'none';
+  if(document.getElementById('cls-req'))document.getElementById('cls-req').style.display=isC?'inline':'none';
   document.getElementById('city-type-req').style.display=isC?'inline':'none';
 }
 
@@ -1329,14 +1329,7 @@ function addCheque(savedImgData){
   tb.appendChild(tr);
   if(savedImgData){restoreChequeImg(uid,savedImgData);}
 }
-function addRef(){
-  const tb=document.getElementById('tb-refs');
-  if(tb.rows.length>=3){toast('Max 3 references','error');return;}
-  const n=tb.rows.length+1;
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${n}</td><td><input type="text" maxlength="40" placeholder="Name"></td><td><input type="text" maxlength="100" placeholder="Address"></td><td><input type="text" maxlength="20" placeholder="Relationship"></td><td><button class="drow-del" onclick="this.closest('tr').remove();renum('tb-refs')">✕</button></td>`;
-  tb.appendChild(tr);
-}
+
 function renum(tbId){Array.from(document.getElementById(tbId).rows).forEach((r,i)=>r.cells[0].textContent=i+1);}
 
 // ── Validate ───────────────────────────────────────────
@@ -1351,7 +1344,7 @@ function validate(){
   if(pt==='Customer'){
     req('f-billing_addr1');req('f-billing_city');req('f-billing_pin');req('f-billing_state');
     req('f-contact_person');req('f-mobile');req('f-sales_person');
-    req('f-zone');req('f-market_name');req('f-cluster_name');req('f-type_of_city');
+    if(document.getElementById('f-zone'))req('f-zone');if(document.getElementById('f-market_name'))req('f-market_name');if(document.getElementById('f-cluster_name'))req('f-cluster_name');req('f-type_of_city');
     if(!document.getElementById('tb-prop').rows.length){toast('At least one Proprietor/Partner row required','error');ok=false;}
   }
   // PAN
@@ -1422,7 +1415,6 @@ function collect(){
     pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
     gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
     gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
-    ref_details:JSON.stringify(dyn('tb-refs',['name','address','relationship'])),
 
   };
 }
@@ -1487,7 +1479,7 @@ function resetForm(){
   document.querySelectorAll('#form-view input[type=file]').forEach(el=>{el.value='';el._savedB64=null;el._savedName=null;});
   clearImg('f-pan-img','prev-pan','dz-pan');
   clearImg('f-gst-img','prev-gst','dz-gst');
-  ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques','tb-refs'].forEach(id=>document.getElementById(id).innerHTML='');
+  ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
   // Re-set fixed party type after reset clears all fields
