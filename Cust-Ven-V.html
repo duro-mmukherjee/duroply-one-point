@@ -764,6 +764,7 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
+        <!-- ⑰ References -->
         <!-- ⑱ Remarks -->
         <div class="fc">
           <div class="fc-hd"><div class="fc-title"><span class="fc-num">18</span> Remarks</div></div>
@@ -1176,18 +1177,18 @@ function onPartyType(){
   ['card-cust','card-prop','card-sig','card-ship','card-biz','card-brands','card-stock','card-cheques'].forEach(id=>document.getElementById(id).style.display=isC?'block':'none');
   document.getElementById('card-msme').style.display=isV?'block':'none';
   document.getElementById('w-enterprise').style.display=isV?'block':'none';
-  var _w_exp_biz=document.getElementById('w-exp-biz');if(_w_exp_biz)_w_exp_biz.style.display=isC?'block':'none';
-  var _w_cap1=document.getElementById('w-cap1');if(_w_cap1)_w_cap1.style.display=isC?'block':'none';
-  var _w_cap2=document.getElementById('w-cap2');if(_w_cap2)_w_cap2.style.display=isC?'block':'none';
+  var _wev=document.getElementById('w-exp-biz');if(_wev)_wev.style.display=isC?'block':'none';
+  var _wc1=document.getElementById('w-cap1');if(_wc1)_wc1.style.display=isC?'block':'none';
+  var _wc2=document.getElementById('w-cap2');if(_wc2)_wc2.style.display=isC?'block':'none';
   // required markers
   ['ba1-req','bc-req','bp-req','bs-req'].forEach(id=>document.getElementById(id).style.display=isC?'inline':'none');
   document.getElementById('cp-req').style.display=isC?'inline':'none';
   document.getElementById('mob-req').style.display=isC?'inline':'none';
   document.getElementById('sb-req').style.display=isC?'inline':'none';
-  var _zone_req=document.getElementById('zone-req');if(_zone_req)_zone_req.style.display=isC?'inline':'none';
-  var _mkt_req=document.getElementById('mkt-req');if(_mkt_req)_mkt_req.style.display=isC?'inline':'none';
-  var _cls_req=document.getElementById('cls-req');if(_cls_req)_cls_req.style.display=isC?'inline':'none';
-  document.getElementById('city-type-req').style.display=isC?'inline':'none';
+  var _zr=document.getElementById('zone-req');if(_zr)_zr.style.display=isC?'inline':'none';
+  var _mr=document.getElementById('mkt-req');if(_mr)_mr.style.display=isC?'inline':'none';
+  var _cr=document.getElementById('cls-req');if(_cr)_cr.style.display=isC?'inline':'none';
+  var _ctr=document.getElementById('city-type-req');if(_ctr)_ctr.style.display=isC?'inline':'none';
 }
 
 function onCategory(){
@@ -1217,21 +1218,19 @@ function onBizDate(){
 }
 
 function onZone(){
-  const zoneEl=document.getElementById('f-zone');
-  if(!zoneEl) return;
-  const zone=zoneEl.value;
+  var _fz=document.getElementById('f-zone');if(!_fz)return;const zone=_fz.value;
   const mkt=document.getElementById('f-market_name');
   mkt.innerHTML='<option value="">— Select Market —</option>';
-  document.getElementById('f-cluster_name').innerHTML='<option value="">— Select Market First —</option>';
+  var _fcn=document.getElementById('f-cluster_name');if(_fcn)_fcn.innerHTML='<option value="">— Select Market First —</option>';
   if(zone&&MARKETS[zone]){MARKETS[zone].forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;mkt.appendChild(o);});}
 }
 
 function onMarket(){
   // Cluster data not provided in V11 for all combos — load from DB or leave as text
-  const cl=document.getElementById('f-cluster_name');
+  var cl=document.getElementById('f-cluster_name');if(!cl)return;
   cl.innerHTML='<option value="">— Select Cluster —</option>';
   // placeholder: same as market for now
-  const mkt=document.getElementById('f-market_name').value;
+  var _fmn=document.getElementById('f-market_name');if(!_fmn)return;const mkt=_fmn.value;
   if(mkt){const o=document.createElement('option');o.value=mkt;o.textContent=mkt+' (default cluster)';cl.appendChild(o);}
 }
 
