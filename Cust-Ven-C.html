@@ -781,6 +781,20 @@ tbody tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
+        <!-- ⑫a Expected Brands -->
+        <div class="fc" id="card-exp-brands">
+          <div class="fc-hd"><div class="fc-title"><span class="fc-num">12a</span> Expected Brands to be Dealt In</div></div>
+          <div class="fc-body">
+            <div class="checkbox-row" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:4px 0;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="f-brand_duro"> Duro</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="f-brand_tower"> Tower</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="f-brand_ntd"> NTD</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="f-brand_other"> Other</label>
+              <div class="fld" style="flex:1;min-width:150px;margin:0;"><input type="text" id="f-brand_other_name" placeholder="Specify other brand"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- ⑬ Other Plywood Brands -->
         <div class="fc" id="card-brands">
           <div class="fc-hd">
@@ -887,8 +901,8 @@ tbody tr:hover td{background:var(--surface2);}
               <div class="ofu-sec">
                 <div class="ofu-sec-title">Verification &amp; Recommendation</div>
                 <div class="ofu-row c2">
-                  <div class="ofu-fld"><label>2. Details Verified by (Name &amp; Designation)</label><input type="text" id="ofu-verified_by" placeholder="Name, Designation"></div>
-                  <div class="ofu-fld"><label>3. Appointment Recommended by</label><input type="text" id="ofu-recommended_by" placeholder="Name"></div>
+                  <div class="ofu-fld"><label>2. Details Verified by (Name &amp; Designation)</label><select id="ofu-verified_by"><option value="">— Select User —</option></select></div>
+                  <div class="ofu-fld"><label>3. Appointment Recommended by</label><select id="ofu-recommended_by"><option value="">— Select User —</option></select></div>
                 </div>
               </div>
               <!-- 4. Approved by -->
@@ -1020,8 +1034,8 @@ tbody tr:hover td{background:var(--surface2);}
 
 <script>
 // ── Reference data ──────────────────────────────────────
-const SELLING_BRANCHES = ["ANDHRA PRADESH - S2","ASSAM - E1","BIHAR - E3","CENTRAL U.P. - NA","CHHATTISGARH - C1","DELHI CORPORATE OFFICE - N9","EAST U.P. - N1","GUJARAT - W1","HARYANA - N4","HP-TRICITY - N7","INSTITUTIONAL - Z0","JAMMU - N8","JHARKHAND - E2","KERALA - S3","KOLKATA CORPORATE OFFICE - E6","MADHYA PRADESH - C0","MAHARASHTRA - W0","NCR - N0","NIODA AND GREATER NOIDA - NB","NORTH KARNATAKA - S5","ODISHA - E4","PUNE - W2","PUNJAB - N3","RAJASTHAN - N5","RAJKOT FACTORY - F0","SOUTH KARNATAKA - S0","TAMIL NADU - S4","TELANGANA - S1","TRIPURA - E5","UTTARAKHAND - N6","VIDARBHA - W3","WEST BENGAL - E0","WEST U.P. - N2"];
-
+// const SELLING_BRANCHES = ["ANDHRA PRADESH - S2","ASSAM - E1","BIHAR - E3","CENTRAL U.P. - NA","CHHATTISGARH - C1","DELHI CORPORATE OFFICE - N9","EAST U.P. - N1","GUJARAT - W1","HARYANA - N4","HP-TRICITY - N7","INSTITUTIONAL - Z0","JAMMU - N8","JHARKHAND - E2","KERALA - S3","KOLKATA CORPORATE OFFICE - E6","MADHYA PRADESH - C0","MAHARASHTRA - W0","NCR - N0","NIODA AND GREATER NOIDA - NB","NORTH KARNATAKA - S5","ODISHA - E4","PUNE - W2","PUNJAB - N3","RAJASTHAN - N5","RAJKOT FACTORY - F0","SOUTH KARNATAKA - S0","TAMIL NADU - S4","TELANGANA - S1","TRIPURA - E5","UTTARAKHAND - N6","VIDARBHA - W3","WEST BENGAL - E0","WEST U.P. - N2"];
+const SELLING_BRANCHES = ["MADHYA PRADESH - C0","CHHATTISGARH - C1","WEST BENGAL - E0","ASSAM - E1","JHARKHAND - E2","BIHAR - E3","ODISHA - E4","TRIPURA - E5","KOLKATA CORPORATE OFFICE - E6","RAJKOT FACTORY - F0","NCR - N0","EAST U.P. - N1","WEST U.P. - N2","PUNJAB - N3","HARYANA - N4","RAJASTHAN - N5","UTTARAKHAND - N6","HP-TRICITY - N7","JAMMU - N8","DELHI CORPORATE OFFICE - N9","CENTRAL U.P. - NA","NOIDA AND GREATER NOIDA - NB","SOUTH KARNATAKA - S0","TELANGANA - S1","ANDHRA PRADESH - S2","KERALA - S3","TAMIL NADU - S4","NORTH KARNATAKA - S5","MAHARASHTRA - W0","GUJARAT - W1","PUNE - W2","VIDARBHA - W3","INSTITUTIONAL - Z0"];
 const GST_STATES = ["ANDAMAN & NICOBAR ISLANDS -35","ANDHRA PRADESH (NEW) -37","ANDHRA PRADESH (OLD) -28","ARUNACHAL PRADESH -12","ASSAM -18","BIHAR -10","CHANDIGARH -04","CHHATTISGARH -22","DADRA & NAGAR HAVELI -26","DAMAN & DIU -25","DELHI -07","GOA -30","GUJARAT -24","HARYANA -06","HIMACHAL PRADESH -02","JAMMU & KASHMIR -01","JHARKHAND -20","KARNATAKA -29","KERALA -32","LAKSHADWEEP -31","MADHYA PRADESH -23","MAHARASHTRA -27","MANIPUR -14","MEGHALAYA -17","MIZORAM -15","NAGALAND -13","ORISSA -21","PUDUCHERRY -34","PUNJAB -03","RAJASTHAN -08","SIKKIM -11","TAMIL NADU -33","TELENGANA -36","TRIPURA -16","UTTAR PRADESH -09","UTTARAKHAND -05","WEST BENGAL -19"];
 
 const CUSTOMER_CATS = ["Dealer- (01311)","Distributor- (01311)","OEM- (01311)","Project- (01311)","Other- (01311)","Sub Dealer- (01311)"];
@@ -1148,9 +1162,22 @@ function doLogout(){
 
 async function loadSalesPersons(){
   try{
-    const{data}=await sb.from('users').select('id,userid,fname,lname').eq('status',1).order('fname');
+    const{data}=await sb.from('users').select('id,userid,fname,lname,designation_id').eq('status',1).order('fname');
     const s=document.getElementById('f-sales_person');
-    if(data)data.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=([u.fname,u.lname].filter(Boolean).join(' ')||u.userid)+' ('+u.userid+')';s.appendChild(o);});
+    if(data){
+      data.forEach(u=>{
+        const name=([u.fname,u.lname].filter(Boolean).join(' ')||u.userid);
+        const nameWithId=name+' ('+u.userid+')';
+        // Sales person dropdown
+        const o=document.createElement('option');o.value=u.id;o.textContent=nameWithId;s.appendChild(o);
+        // OFU verified_by dropdown (name + designation_id as label)
+        const vb=document.getElementById('ofu-verified_by');
+        if(vb){const ov=document.createElement('option');ov.value=nameWithId;ov.textContent=name+(u.designation_id?' — '+u.designation_id:'');vb.appendChild(ov);}
+        // OFU recommended_by dropdown (name only)
+        const rb=document.getElementById('ofu-recommended_by');
+        if(rb){const or2=document.createElement('option');or2.value=name;or2.textContent=name;rb.appendChild(or2);}
+      });
+    }
   }catch(e){}
 }
 
@@ -1462,6 +1489,11 @@ function collect(){
     constitution:g('f-constitution'),constitution_other:g('f-constitution_other'),
     selling_branch_id:g('f-selling_branch')||null,
     dealership_area:g('f-dealership_area'),dealership_state:g('f-dealership_state'),
+    exp_brand_duro:  !!(document.getElementById('f-brand_duro')&&document.getElementById('f-brand_duro').checked),
+    exp_brand_tower: !!(document.getElementById('f-brand_tower')&&document.getElementById('f-brand_tower').checked),
+    exp_brand_ntd:   !!(document.getElementById('f-brand_ntd')&&document.getElementById('f-brand_ntd').checked),
+    exp_brand_other: !!(document.getElementById('f-brand_other')&&document.getElementById('f-brand_other').checked),
+    exp_brand_other_name: g('f-brand_other_name'),
     zone:g('f-zone'),market_name:g('f-market_name'),
     cluster_name:g('f-cluster_name'),type_of_city:g('f-type_of_city'),
     billing_addr1:g('f-billing_addr1'),billing_addr2:g('f-billing_addr2'),
@@ -1574,6 +1606,8 @@ function resetForm(){
   clearImg('f-gst-img','prev-gst','dz-gst');
   ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques','tb-refs'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
+  ['f-brand_duro','f-brand_tower','f-brand_ntd','f-brand_other'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
+  var _fbon=document.getElementById('f-brand_other_name');if(_fbon)_fbon.value='';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
   // Re-set fixed party type after reset clears all fields
   var _pt=document.getElementById('f-party_type');if(_pt)_pt.value='Customer';
@@ -1592,6 +1626,11 @@ function fillForm(app){
   s('f-party_name',app.party_name);s('f-constitution',app.constitution);onConstitution();
   s('f-constitution_other',app.constitution_other);s('f-selling_branch',app.selling_branch_id);
   s('f-dealership_area',app.dealership_area||'');s('f-dealership_state',app.dealership_state||'');
+  var _fd=document.getElementById('f-brand_duro');    if(_fd) _fd.checked=!!app.exp_brand_duro;
+  var _ft=document.getElementById('f-brand_tower');   if(_ft) _ft.checked=!!app.exp_brand_tower;
+  var _fn=document.getElementById('f-brand_ntd');     if(_fn) _fn.checked=!!app.exp_brand_ntd;
+  var _fo=document.getElementById('f-brand_other');   if(_fo) _fo.checked=!!app.exp_brand_other;
+  s('f-brand_other_name', app.exp_brand_other_name||'');
   s('f-zone',app.zone);onZone();s('f-market_name',app.market_name);onMarket();
   s('f-cluster_name',app.cluster_name);s('f-type_of_city',app.type_of_city);
   s('f-billing_addr1',app.billing_addr1);s('f-billing_addr2',app.billing_addr2);
@@ -2032,9 +2071,6 @@ function buildPrintContent(app){
     ${pf('GST State',app.gst_state)}${pf('PAN',app.pan)}${pf('TDS Type',app.tds_type)}
     ${pf('TDS Section',app.tds_section,2)}${pf('Vendor GST Category',app.vendor_gst_category)}
   </div></div></div>
-  <div class="pr-section"><div class="pr-sec-hd">6. Customer Details</div><div class="pr-sec-body"><div class="pr-grid">
-    ${pf('Credit Limit (Rs.)',app.credit_limit)}${pf('Credit Days',app.credit_days)}${pf('Sales Person',app.sales_person_id)}
-  </div></div></div>
   ${props.length?`<div class="pr-section"><div class="pr-sec-hd">7. Proprietor / Partner / Karta / Member / Director</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of/Wife of</th><th>Age</th><th>Designation</th><th>DIN/PAN</th><th>Share%</th><th>Specimen Sig.</th></tr></thead>
     <tbody>${props.map((p,i)=>`<tr><td>${i+1}</td><td>${pv(p.name)}</td><td>${pv(p.son_wife_of)}</td><td>${pv(p.age)}</td><td>${pv(p.designation)}</td><td>${pv(p.din_pan)}</td><td>${pv(p.share)}</td><td>${pv(p.specimen_signature)}</td></tr>`).join('')}</tbody>
@@ -2062,6 +2098,9 @@ function buildPrintContent(app){
     </table></div></div>`:''}
   ${app.msme_registered?`<div class="pr-section"><div class="pr-sec-hd">11. MSME Details</div><div class="pr-sec-body"><div class="pr-grid">
     ${pf('MSME Registered',app.msme_registered)}${pf('Category',app.msme_category)}${pf('Udyam No.',app.udyam_no)}${pf('Udyam Date',app.udyam_date)}
+  </div></div></div>`:''}
+  ${(app.exp_brand_duro||app.exp_brand_tower||app.exp_brand_ntd||app.exp_brand_other)?`<div class="pr-section"><div class="pr-sec-hd">12a. Expected Brands to be Dealt In</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Expected Brands',[app.exp_brand_duro?'Duro':'',app.exp_brand_tower?'Tower':'',app.exp_brand_ntd?'NTD':'',app.exp_brand_other?(app.exp_brand_other_name||'Other'):''].filter(Boolean).join(', ')||'—',3)}
   </div></div></div>`:''}
   <div class="pr-section"><div class="pr-sec-hd">12. Details of Existing Business</div><div class="pr-sec-body"><div class="pr-grid">
     ${pf('Nature of Business',app.biz_nature,3)}${pf('Since Date',app.biz_date)}${pf('Year',app.biz_year)}${pf('Godown Area sq.ft',app.godown_area)}
@@ -2119,6 +2158,87 @@ function buildPrintContent(app){
       </ol>
     </div>
   </div></div>`;
+
+  // ── For Office Use — separate page ──────────────────────
+  // Include OFU in PDF if app has been saved (Draft or beyond)
+  var _showOfu=['Draft','New','Approved By LAO','Approved By Management',
+    'Disapproved By LAO','Disapproved By Management','Sent To HO','Certificate Issued']
+    .indexOf(app.status||'')>=0;
+  if(_showOfu){
+    var _ou={};
+    if(app.office_use){
+      try{ _ou=typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use; }catch(e){}
+    }
+    var _brands=[
+      _ou.brand_duro?'Duro':'',
+      _ou.brand_tower?'Tower':'',
+      _ou.brand_ntd?'NTD':'',
+      _ou.brand_other?(_ou.brand_other_name||'Other'):''
+    ].filter(Boolean).join(', ')||'—';
+    var _total=(
+      (parseFloat(_ou.qtr1)||0)+
+      (parseFloat(_ou.qtr2)||0)+
+      (parseFloat(_ou.qtr3)||0)+
+      (parseFloat(_ou.qtr4)||0)
+    ).toFixed(2);
+
+    html += '<div style="page-break-before:always;"></div>';
+    html += '<div class="pr-header" style="margin-top:0;">';
+    html += '<div class="pr-company" style="font-size:14px;">FOR OFFICE USE ONLY</div>';
+    html += '<div class="pr-subtitle">' + pv(app.party_name) + ' &nbsp;|&nbsp; ' + pv(app.app_number) + '</div>';
+    html += '</div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">Verification &amp; Recommendation</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Name of Dealer', app.party_name, 3);
+    html += pf('2. Details Verified by', _ou.verified_by, 3);
+    html += pf('3. Appointment Recommended by', _ou.recommended_by, 3);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">4. Approved by</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('SM / BM / DBM', _ou.approved_bm);
+    html += pf('RM / GM / VP', _ou.approved_rm);
+    html += pf('Managing Director', _ou.approved_md);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">5 &amp; 6. Sales Person &amp; Expected Brands</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('5. Sales Person Mapped', _ou.sales_person, 3);
+    html += pf('6. Expected Brands', _brands, 3);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">7. Expected Business (Rs. in Lacs)</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Qtr I (Apr-Jun)', _ou.qtr1);
+    html += pf('Qtr II (Jul-Sep)', _ou.qtr2);
+    html += pf('Qtr III (Oct-Dec)', _ou.qtr3);
+    html += pf('Qtr IV (Jan-Mar)', _ou.qtr4);
+    html += pf('Total (Lacs)', _total, 2);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">8. Credit Limit</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('Amount (Rs.)', _ou.credit_limit);
+    html += pf('No. of Days', _ou.credit_days);
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">9. Exclusive Commitment &amp; 10. Cheques</div><div class="pr-sec-body"><div class="pr-grid">';
+    html += pf('9. Exclusive Commitment', _ou.exclusive);
+    if(_ou.exclusive==='Yes'){
+      html += pf('Brand', _ou.excl_brand);
+      html += pf('Terms', _ou.excl_terms);
+      html += pf('Period', _ou.excl_period);
+    }
+    html += pf('10. Cheques Given', _ou.cheque_given);
+    if(_ou.cheque_given==='Yes'){
+      html += pf('Receipt No.', _ou.cheque_receipt);
+      html += pf('Receipt Date', _ou.cheque_date);
+    }
+    html += '</div></div></div>';
+
+    html += '<div class="pr-section"><div class="pr-sec-hd">11. Certification</div><div class="pr-sec-body">';
+    html += '<div style="font-size:11px;line-height:1.8;margin-bottom:20px;">I ________________________ holding the designation of <strong>' + pv(_ou.certifier_desig) + '</strong> certify that the above mentioned particulars are authentic and validated to the best of my knowledge.</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">';
+    html += '<div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Date: ___________________</div>';
+    html += '<div style="border-top:1px solid #999;padding-top:6px;font-size:10px;">Authorised Signatory with Seal</div>';
+    html += '</div></div></div>';
+  }
 
   // ── For Office Use — separate page ──────────────────────
   var _showOfu=['Draft','New','Approved By LAO','Approved By Management',
@@ -2753,6 +2873,20 @@ function setupOfficeUse(app){
     el.disabled=!canEdit;
   });
   fillOfficeUse(app);
+  // Auto-fill OFU Point 6 brands from Block 12a (if not already saved in office_use)
+  var _ou=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
+  if(!_ou.brand_duro&&!_ou.brand_tower&&!_ou.brand_ntd&&!_ou.brand_other){
+    ofuChk('ofu-brand_duro',  app.exp_brand_duro);
+    ofuChk('ofu-brand_tower', app.exp_brand_tower);
+    ofuChk('ofu-brand_ntd',   app.exp_brand_ntd);
+    ofuChk('ofu-brand_other', app.exp_brand_other);
+    ofuS('ofu-brand_other_name', app.exp_brand_other_name||'');
+  }
+  // Auto-fill OFU Point 8 credit from Block 6 (if not already saved)
+  if(!_ou.credit_limit&&!_ou.credit_days){
+    ofuS('ofu-credit_limit_ofu', app.credit_limit||'');
+    ofuS('ofu-credit_days_ofu',  app.credit_days||'');
+  }
 }
 
 // ── Save OFU data to Supabase ──────────────────────────────
