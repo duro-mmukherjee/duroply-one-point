@@ -2032,6 +2032,9 @@ function buildPrintContent(app){
     ${pf('GST State',app.gst_state)}${pf('PAN',app.pan)}${pf('TDS Type',app.tds_type)}
     ${pf('TDS Section',app.tds_section,2)}${pf('Vendor GST Category',app.vendor_gst_category)}
   </div></div></div>
+  <div class="pr-section"><div class="pr-sec-hd">6. Customer Details</div><div class="pr-sec-body"><div class="pr-grid">
+    ${pf('Credit Limit (Rs.)',app.credit_limit)}${pf('Credit Days',app.credit_days)}${pf('Sales Person',app.sales_person_id)}
+  </div></div></div>
   ${props.length?`<div class="pr-section"><div class="pr-sec-hd">7. Proprietor / Partner / Karta / Member / Director</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of/Wife of</th><th>Age</th><th>Designation</th><th>DIN/PAN</th><th>Share%</th><th>Specimen Sig.</th></tr></thead>
     <tbody>${props.map((p,i)=>`<tr><td>${i+1}</td><td>${pv(p.name)}</td><td>${pv(p.son_wife_of)}</td><td>${pv(p.age)}</td><td>${pv(p.designation)}</td><td>${pv(p.din_pan)}</td><td>${pv(p.share)}</td><td>${pv(p.specimen_signature)}</td></tr>`).join('')}</tbody>
