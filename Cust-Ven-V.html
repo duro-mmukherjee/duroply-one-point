@@ -384,7 +384,12 @@ tbody tr:hover td{background:var(--surface2);}
               </div>
               <div class="fld" id="w-enterprise">
                 <label>Type of Enterprise</label>
-                <select id="f-enterprise_type">
+                <div class="radio-row">
+                  <label><input type="radio" name="enterprise_type" value="Manufacturing" onchange="document.getElementById('f-enterprise_type').value=this.value"> Manufacturing</label>
+                  <label><input type="radio" name="enterprise_type" value="Trading" onchange="document.getElementById('f-enterprise_type').value=this.value"> Trading</label>
+                  <label><input type="radio" name="enterprise_type" value="Services" onchange="document.getElementById('f-enterprise_type').value=this.value"> Services</label>
+                </div>
+                <select id="f-enterprise_type" style="display:none">
                   <option value="">— Select —</option>
                   <option>Manufacturing</option><option>Trading</option><option>Services</option>
                 </select>
@@ -531,6 +536,19 @@ tbody tr:hover td{background:var(--surface2);}
                   <img class="img-preview-thumb" id="prev-pan-thumb" src="" alt="" style="display:none;">
                   <a class="img-preview-name" id="prev-pan-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
                   <button class="img-preview-clear" onclick="clearImg('f-pan-img','prev-pan','dz-pan')" title="Remove">&#10005;</button>
+                </div>
+              </div>
+              <div class="fld img-upload-wrap">
+                <label class="img-upload-label">Aadhaar Card <span style="color:var(--text3)">(Optional)</span></label>
+                <label for="f-aadhaar-img" class="img-drop-zone" id="dz-aadhaar" style="cursor:pointer;">
+                  <input type="file" id="f-aadhaar-img" accept="image/*,.pdf" onchange="onImgSelect('f-aadhaar-img','prev-aadhaar','dz-aadhaar')">
+                  <span class="img-drop-icon">&#128196;</span>
+                  <div class="img-drop-text"><b>Upload Aadhaar Card</b>JPG, PNG or PDF</div>
+                </label>
+                <div class="img-preview-wrap" id="prev-aadhaar">
+                  <img class="img-preview-thumb" id="prev-aadhaar-thumb" src="" alt="" style="display:none;">
+                  <a class="img-preview-name" id="prev-aadhaar-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
+                  <button class="img-preview-clear" onclick="clearImg('f-aadhaar-img','prev-aadhaar','dz-aadhaar')" title="Remove">&#10005;</button>
                 </div>
               </div>
               <div class="fld img-upload-wrap">
@@ -687,6 +705,19 @@ tbody tr:hover td{background:var(--surface2);}
               <div class="fld" id="w-udyam-date">
                 <label>UDYAM Registration Date <span class="req">*</span></label>
                 <input id="f-udyam_date" type="date">
+              </div>
+              <div class="fld img-upload-wrap" id="w-msme-attach" style="display:none;">
+                <label class="img-upload-label">MSME / UDYAM Certificate <span style="color:var(--text3)">(Optional)</span></label>
+                <label for="f-msme-img" class="img-drop-zone" id="dz-msme" style="cursor:pointer;">
+                  <input type="file" id="f-msme-img" accept="image/*,.pdf" onchange="onImgSelect('f-msme-img','prev-msme','dz-msme')">
+                  <span class="img-drop-icon">&#128196;</span>
+                  <div class="img-drop-text"><b>Upload MSME Certificate</b>JPG, PNG or PDF</div>
+                </label>
+                <div class="img-preview-wrap" id="prev-msme">
+                  <img class="img-preview-thumb" id="prev-msme-thumb" src="" alt="" style="display:none;">
+                  <a class="img-preview-name" id="prev-msme-name" target="_blank" href="#" style="font-size:11px;color:var(--accent);text-decoration:none;display:none;"></a>
+                  <button class="img-preview-clear" onclick="clearImg('f-msme-img','prev-msme','dz-msme')" title="Remove">&#10005;</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1211,7 +1242,7 @@ function onGstStatus(){
 function onMsme(){
   const v=document.querySelector('input[name=msme]:checked').value;
   const show=v==='Yes';
-  ['w-msme-cat','w-udyam-no','w-udyam-date'].forEach(id=>document.getElementById(id).style.display=show?'block':'none');
+  ['w-msme-cat','w-udyam-no','w-udyam-date','w-msme-attach'].forEach(id=>{var el=document.getElementById(id);if(el)el.style.display=show?'block':'none';});
 }
 
 function onBizDate(){
@@ -1406,8 +1437,12 @@ function collect(){
     ),
     pan_image_b64:(document.getElementById('f-pan-img')?._savedB64)||'',
     pan_image_name:(document.getElementById('f-pan-img')?._savedName)||'',
+    aadhaar_image_b64:(document.getElementById('f-aadhaar-img')?._savedB64)||'',
+    aadhaar_image_name:(document.getElementById('f-aadhaar-img')?._savedName)||'',
     gst_image_b64:(document.getElementById('f-gst-img')?._savedB64)||'',
     gst_image_name:(document.getElementById('f-gst-img')?._savedName)||'',
+    msme_image_b64:(document.getElementById('f-msme-img')?._savedB64)||'',
+    msme_image_name:(document.getElementById('f-msme-img')?._savedName)||'',
 
   };
 }
@@ -1471,7 +1506,9 @@ function resetForm(){
   // Clear file inputs and their saved state
   document.querySelectorAll('#form-view input[type=file]').forEach(el=>{el.value='';el._savedB64=null;el._savedName=null;});
   clearImg('f-pan-img','prev-pan','dz-pan');
+  clearImg('f-aadhaar-img','prev-aadhaar','dz-aadhaar');
   clearImg('f-gst-img','prev-gst','dz-gst');
+  clearImg('f-msme-img','prev-msme','dz-msme');
   ['tb-prop','tb-sig','tb-bank','tb-brands','tb-stock','tb-cheques'].forEach(id=>document.getElementById(id).innerHTML='');
   document.getElementById('ship-body').innerHTML='<div style="font-size:12px;color:var(--text3);">No shipping addresses added yet.</div>';
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
@@ -1487,7 +1524,9 @@ function fillForm(app){
   const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
   s('f-party_type',app.party_type);onPartyType();
   var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value=app.party_type||'Vendor';
-  s('f-enterprise_type',app.enterprise_type);s('f-category',app.category);onCategory();
+  s('f-enterprise_type',app.enterprise_type);
+  // Restore enterprise type radio
+  if(app.enterprise_type){var _er=document.querySelector('input[name=enterprise_type][value="'+app.enterprise_type+'"]');if(_er)_er.checked=true;}s('f-category',app.category);onCategory();
   s('f-party_name',app.party_name);s('f-constitution',app.constitution);onConstitution();
   s('f-constitution_other',app.constitution_other);s('f-selling_branch',app.selling_branch_id);
   s('f-dealership_area',app.dealership_area||'');s('f-dealership_state',app.dealership_state||'');
@@ -1517,7 +1556,9 @@ function fillForm(app){
   // Restore PAN image from DB
   if(app.pan_image_b64){restoreStaticImg('f-pan-img','prev-pan','dz-pan',app.pan_image_b64,app.pan_image_name);}
   // Restore GST image from DB
+  if(app.aadhaar_image_b64){restoreStaticImg('f-aadhaar-img','prev-aadhaar','dz-aadhaar',app.aadhaar_image_b64,app.aadhaar_image_name);}
   if(app.gst_image_b64){restoreStaticImg('f-gst-img','prev-gst','dz-gst',app.gst_image_b64,app.gst_image_name);}
+  if(app.msme_image_b64){restoreStaticImg('f-msme-img','prev-msme','dz-msme',app.msme_image_b64,app.msme_image_name);}
   // Cheque images come from inside the cheques JSON (handled below)
   window._pendingChequeImgs=[];
   // Restore cheques with images
@@ -2705,6 +2746,21 @@ async function saveOfficeUse(){
   if(idx>=0) apps[idx].office_use=payload.office_use;
   toast('Office use data saved successfully','success');
 }
+
+// ── Force uppercase on all text inputs except email ─────────
+document.addEventListener('input', function(e){
+  var el = e.target;
+  if(!el) return;
+  var tag  = el.tagName;
+  var type = (el.type||'').toLowerCase();
+  if(type==='email'||type==='date'||type==='file'||type==='radio'||type==='checkbox'||type==='number') return;
+  if(tag==='SELECT') return;
+  if(tag==='INPUT'||tag==='TEXTAREA'){
+    var pos = el.selectionStart;
+    el.value = el.value.toUpperCase();
+    try{ el.setSelectionRange(pos, pos); }catch(e){}
+  }
+}, true);
 
 </script>
 </body>
