@@ -2329,54 +2329,20 @@ async function generateExcel(app){
   secRow('5.  TAX & COMPLIANCE');
   twoRow('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
   twoRow('GST No.',app.gst_no||'','GST State',app.gst_state||'');
-  twoRow('PAN No.',app.pan||'','','');
+  twoRow('PAN No.',app.pan||'','GST Category',app.vendor_gst_category||'');
   blankRow();
 
   // ── 6. Customer/Vendor ─────────────────────────────────────
   secRow('6.  CUSTOMER / VENDOR DETAILS');
   twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
-  twoRow('Sales Person',fname,'Employee Code',currentUser?.userid||'');
+  var _ofuData=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
+  var _ofuSP=_ofuData.sales_person||fname;
+  twoRow('Sales Person',_ofuSP,'Employee Code',currentUser?.userid||'');
   blankRow();
 
-  // ── 7. Proprietors ─────────────────────────────────────────
-  if(props.length){
-    secRow('7.  PROPRIETOR / PARTNER / KARTA / MEMBER / DIRECTOR');
-    const hdrRow = ws.addRow(['#','Full Name','Son of / Wife of','Age','Designation','DIN / PAN','Share %','Specimen Sig.']);
-    hdrRow.height = 16;
-    hdrRow.eachCell(c=>applyHdrStyle(c));
-    rowNum++;
-    props.forEach((p,i)=>{
-      const r = ws.addRow([i+1,p.name||'',p.son_wife_of||'',p.age||'',p.designation||'',p.din_pan||'',p.share||'',p.specimen_signature||'']);
-      r.height = 16;
-      r.eachCell(c=>applyValStyle(c));
-      rowNum++;
-    });
-    blankRow();
-  }
 
-  // ── 8. Signatories ─────────────────────────────────────────
-  if(sigs.length){
-    secRow('8.  AUTHORIZED SIGNATORIES');
-    ws.mergeCells(rowNum,4,rowNum,8);
-    const sh = ws.getRow(rowNum);
-    sh.height = 16;
-    ['#','Full Name','Capacity / Role','Signature Reference'].forEach((h,i)=>{
-      const c = ws.getCell(rowNum,i+1); c.value=h; applyHdrStyle(c);
-    });
-    for(let c=5;c<=8;c++){applyHdrStyle(ws.getCell(rowNum,c));}
-    rowNum++;
-    sigs.forEach((s,i)=>{
-      ws.mergeCells(rowNum,4,rowNum,8);
-      const r=ws.getRow(rowNum); r.height=16;
-      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
-      ws.getCell(rowNum,2).value=s.name||''; applyValStyle(ws.getCell(rowNum,2));
-      ws.getCell(rowNum,3).value=s.capacity||''; applyValStyle(ws.getCell(rowNum,3));
-      ws.getCell(rowNum,4).value=s.signature||''; applyValStyle(ws.getCell(rowNum,4));
-      for(let c=5;c<=8;c++){applyValStyle(ws.getCell(rowNum,c));}
-      rowNum++;
-    });
-    blankRow();
-  }
+
+
 
   // ── 9. Shipping ────────────────────────────────────────────
   if(ships.length){
@@ -2414,16 +2380,7 @@ async function generateExcel(app){
     blankRow();
   }
 
-  // ── 11. MSME ───────────────────────────────────────────────
 
-
-  // ── 12. Existing Business ──────────────────────────────────
-  secRow('12. DETAILS OF EXISTING BUSINESS');
-  fullRow('Nature of Business',app.biz_nature||'');
-  twoRow('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
-  twoRow('Godown Area (sq.ft)',app.godown_area||'','Shop',app.shop_type||'');
-  twoRow('Godown',app.godown_type||'','Residence',app.residence_type||'');
-  blankRow();
 
   // ── 15. Additional ─────────────────────────────────────────
   secRow('15. ADDITIONAL INFORMATION');
@@ -2453,33 +2410,9 @@ async function generateExcel(app){
     blankRow();
   }
 
-  // ── 17. References ─────────────────────────────────────────
-  if(refs.length){
-    secRow('17. REFERENCES');
-    ws.mergeCells(rowNum,3,rowNum,6); ws.mergeCells(rowNum,7,rowNum,8);
-    ['#','Name','Address','Relationship'].forEach((h,i)=>{
-      const c=ws.getCell(rowNum,[1,2,3,7][i]); c.value=h; applyHdrStyle(c);
-    });
-    for(let c=4;c<=6;c++) applyHdrStyle(ws.getCell(rowNum,c));
-    applyHdrStyle(ws.getCell(rowNum,8));
-    ws.getRow(rowNum).height=16; rowNum++;
-    refs.forEach((rf,i)=>{
-      ws.mergeCells(rowNum,3,rowNum,6); ws.mergeCells(rowNum,7,rowNum,8);
-      ws.getCell(rowNum,1).value=i+1; applyValStyle(ws.getCell(rowNum,1));
-      ws.getCell(rowNum,2).value=rf.name||''; applyValStyle(ws.getCell(rowNum,2));
-      ws.getCell(rowNum,3).value=rf.address||''; applyValStyle(ws.getCell(rowNum,3));
-      for(let c=4;c<=6;c++) applyValStyle(ws.getCell(rowNum,c));
-      ws.getCell(rowNum,7).value=rf.relationship||''; applyValStyle(ws.getCell(rowNum,7));
-      applyValStyle(ws.getCell(rowNum,8));
-      ws.getRow(rowNum).height=16; rowNum++;
-    });
-    blankRow();
-  }
 
-  // ── Declaration ────────────────────────────────────────────
-  secRow('DECLARATION & SIGNATURE');
-  twoRow('DATE',today,'Requisition By',fname);
-  blankRow();
+
+
 
   // ── Notes ──────────────────────────────────────────────────
   ['Note:',
