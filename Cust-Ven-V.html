@@ -1174,7 +1174,9 @@ function onPartyType(){
   cat.innerHTML='<option value="">— Select —</option>';
   (isC?CUSTOMER_CATS:isV?VENDOR_CATS:[]).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;cat.appendChild(o);});
   // show/hide sections
-  ['card-cust','card-prop','card-sig','card-ship','card-biz','card-brands','card-stock','card-cheques'].forEach(id=>document.getElementById(id).style.display=isC?'block':'none');
+  ['card-cust','card-prop','card-sig','card-biz','card-brands','card-stock'].forEach(id=>document.getElementById(id).style.display=isC?'block':'none');
+  // Block 9 and 16 always visible for Vendor
+  ['card-ship','card-cheques'].forEach(id=>{var el=document.getElementById(id);if(el)el.style.display='block';});
   document.getElementById('card-msme').style.display=isV?'block':'none';
   document.getElementById('w-enterprise').style.display=isV?'block':'none';
   var _wev=document.getElementById('w-exp-biz');if(_wev)_wev.style.display=isC?'block':'none';
