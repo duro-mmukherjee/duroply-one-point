@@ -2653,6 +2653,20 @@ async function saveOfficeUse(){
   toast('Office use data saved successfully','success');
 }
 
+// ── Force uppercase on all text inputs except email ─────────
+document.addEventListener('input', function(e){
+  var el=e.target;
+  if(!el) return;
+  var tag=el.tagName, type=(el.type||'').toLowerCase();
+  if(type==='email'||type==='date'||type==='file'||type==='radio'||type==='checkbox'||type==='number') return;
+  if(tag==='SELECT') return;
+  if(tag==='INPUT'||tag==='TEXTAREA'){
+    var pos=el.selectionStart;
+    el.value=el.value.toUpperCase();
+    try{el.setSelectionRange(pos,pos);}catch(e){}
+  }
+},true);
+
 </script>
 </body>
 </html>
