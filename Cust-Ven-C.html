@@ -1164,7 +1164,7 @@ async function loadSalesPersons(){
   try{
     // Load users + designations joined via designation_id → designations.id → designations.name
     const{data:users}=await sb.from('users').select('id,userid,fname,lname,designation_id').eq('status',1).order('fname');
-    const{data:desigs, error:desigErr}=await sb.from('designations').select('id,name');
+    const{data:desigs, error:desigErr}=await sb.from('designation').select('id,name');
     if(desigErr) console.warn('designations table error:',desigErr.message);
     // Build designation map: id → name
     const desigMap={};
