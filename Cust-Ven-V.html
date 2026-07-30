@@ -2271,10 +2271,7 @@ async function generateExcel(app){
   }
 
   // ── 2. Zone ────────────────────────────────────────────────
-  secRow('2.  ZONE, MARKET & TERRITORY');
-  twoRow('Zone',app.zone||'','Market Name',app.market_name||'');
-  twoRow('Cluster Name',app.cluster_name||'','Type of City',app.type_of_city||'');
-  blankRow();
+
 
   // ── 3. Billing ─────────────────────────────────────────────
   secRow('3.  BILLING ADDRESS');
@@ -2302,10 +2299,7 @@ async function generateExcel(app){
   blankRow();
 
   // ── 6. Customer/Vendor ─────────────────────────────────────
-  secRow('6.  CUSTOMER / VENDOR DETAILS');
-  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
-  twoRow('Sales Person',fname,'Employee Code',currentUser?.userid||'');
-  blankRow();
+
 
   // ── 7. Proprietors ─────────────────────────────────────────
   if(props.length){
@@ -2392,12 +2386,7 @@ async function generateExcel(app){
   }
 
   // ── 12. Existing Business ──────────────────────────────────
-  secRow('12. DETAILS OF EXISTING BUSINESS');
-  fullRow('Nature of Business',app.biz_nature||'');
-  twoRow('Date of Starting',app.biz_date||'','Year',app.biz_year||'');
-  twoRow('Godown Area (sq.ft)',app.godown_area||'','Shop',app.shop_type||'');
-  twoRow('Godown',app.godown_type||'','Residence',app.residence_type||'');
-  blankRow();
+
 
   // ── 15. Additional ─────────────────────────────────────────
 
@@ -2446,9 +2435,7 @@ async function generateExcel(app){
   }
 
   // ── Declaration ────────────────────────────────────────────
-  secRow('DECLARATION & SIGNATURE');
-  twoRow('DATE',today,'Requisition By',fname);
-  blankRow();
+
 
   // ── Notes ──────────────────────────────────────────────────
   ['Note:',
