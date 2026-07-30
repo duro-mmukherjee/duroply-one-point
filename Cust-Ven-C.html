@@ -256,6 +256,19 @@ tbody tr:hover td{background:var(--surface2);}
 .ofu-scan-dl{font-size:11px;background:var(--success);color:#fff;border:none;padding:4px 10px;border-radius:5px;cursor:pointer;text-decoration:none;}
 .ofu-scan-clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:0 4px;}
 
+/* ── Uppercase all text inputs except email ── */
+input[type=text]:not([type=email]),
+input[type=number],
+input:not([type=email]):not([type=date]):not([type=file]):not([type=radio]):not([type=checkbox]),
+textarea,
+select {
+  text-transform: none;
+}
+input[type=text].uc, textarea.uc {
+  text-transform: uppercase;
+}
+/* Apply uppercase via JS class instead - more reliable */
+
 </style>
 </head>
 <body>
@@ -2824,6 +2837,25 @@ async function saveOfficeUse(){
   if(idx>=0) apps[idx].office_use=payload.office_use;
   toast('Office use data saved successfully','success');
 }
+
+// ── Force uppercase on all text inputs except email ─────────
+document.addEventListener('input', function(e){
+  var el = e.target;
+  if(!el) return;
+  var tag  = el.tagName;
+  var type = (el.type||'').toLowerCase();
+  // Skip: email, date, file, radio, checkbox, select, number, OFU dropdowns
+  if(type==='email'||type==='date'||type==='file'||type==='radio'||type==='checkbox'||type==='number') return;
+  if(tag==='SELECT') return;
+  // Skip OFU verified_by and recommended_by (dropdown selects - already handled)
+  if(el.id==='ofu-verified_by'||el.id==='ofu-recommended_by') return;
+  // Apply uppercase
+  if(tag==='INPUT'||tag==='TEXTAREA'){
+    var pos = el.selectionStart;
+    el.value = el.value.toUpperCase();
+    try{ el.setSelectionRange(pos, pos); }catch(e){}
+  }
+}, true);
 
 </script>
 </body>
