@@ -1164,10 +1164,12 @@ async function loadSalesPersons(){
   try{
     // Load users + designations joined via designation_id → designations.id → designations.name
     const{data:users}=await sb.from('users').select('id,userid,fname,lname,designation_id').eq('status',1).order('fname');
-    const{data:desigs}=await sb.from('designations').select('id,name');
+    const{data:desigs, error:desigErr}=await sb.from('designations').select('id,name');
+    if(desigErr) console.warn('designations table error:',desigErr.message);
     // Build designation map: id → name
     const desigMap={};
     if(desigs) desigs.forEach(d=>{ desigMap[d.id]=d.name; });
+    console.log('Designations loaded:',Object.keys(desigMap).length,'entries');
 
     const s  = document.getElementById('f-sales_person');
     const vb = document.getElementById('ofu-verified_by');
@@ -2799,20 +2801,15 @@ function setupOfficeUse(app){
     el.disabled=!canEdit;
   });
   fillOfficeUse(app);
-  // Auto-fill OFU Point 6 brands from Block 12a (if not already saved in office_use)
-  var _ou=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
-  if(!_ou.brand_duro&&!_ou.brand_tower&&!_ou.brand_ntd&&!_ou.brand_other){
-    ofuChk('ofu-brand_duro',  app.exp_brand_duro);
-    ofuChk('ofu-brand_tower', app.exp_brand_tower);
-    ofuChk('ofu-brand_ntd',   app.exp_brand_ntd);
-    ofuChk('ofu-brand_other', app.exp_brand_other);
-    ofuS('ofu-brand_other_name', app.exp_brand_other_name||'');
-  }
-  // Auto-fill OFU Point 8 credit from Block 6 (if not already saved)
-  if(!_ou.credit_limit&&!_ou.credit_days){
-    ofuS('ofu-credit_limit_ofu', app.credit_limit||'');
-    ofuS('ofu-credit_days_ofu',  app.credit_days||'');
-  }
+  // Always auto-fill Point 6 brands from Block 12a of main form
+  ofuChk('ofu-brand_duro',  app.exp_brand_duro);
+  ofuChk('ofu-brand_tower', app.exp_brand_tower);
+  ofuChk('ofu-brand_ntd',   app.exp_brand_ntd);
+  ofuChk('ofu-brand_other', app.exp_brand_other);
+  ofuS('ofu-brand_other_name', app.exp_brand_other_name||'');
+  // Always auto-fill Point 8 credit from Block 6 of main form
+  ofuS('ofu-credit_limit_ofu', app.credit_limit||'');
+  ofuS('ofu-credit_days_ofu',  app.credit_days||'');
 }
 
 // ── Save OFU data to Supabase ──────────────────────────────
