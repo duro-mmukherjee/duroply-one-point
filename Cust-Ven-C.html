@@ -256,19 +256,6 @@ tbody tr:hover td{background:var(--surface2);}
 .ofu-scan-dl{font-size:11px;background:var(--success);color:#fff;border:none;padding:4px 10px;border-radius:5px;cursor:pointer;text-decoration:none;}
 .ofu-scan-clear{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:0 4px;}
 
-/* ── Uppercase all text inputs except email ── */
-input[type=text]:not([type=email]),
-input[type=number],
-input:not([type=email]):not([type=date]):not([type=file]):not([type=radio]):not([type=checkbox]),
-textarea,
-select {
-  text-transform: none;
-}
-input[type=text].uc, textarea.uc {
-  text-transform: uppercase;
-}
-/* Apply uppercase via JS class instead - more reliable */
-
 </style>
 </head>
 <body>
@@ -564,17 +551,7 @@ input[type=text].uc, textarea.uc {
                   <option>Registered</option><option>Unregistered</option><option>Not Applicable</option>
                 </select><span class="emsg">Required</span>
               </div>
-              <div class="fld">
-                <label>Vendor GST Category <span class="req">*</span></label>
-                <select id="f-vendor_gst_category">
-                  <option value="">— Select —</option>
-                  <option>Regular (Domestic Tarrif Area - DTA)</option>
-                  <option>Import (Foreign Supplier)</option><option>India Customs</option>
-                  <option>SEZ Unit or SEZ Developer - Bonded</option>
-                  <option>SEZ Unit or SEZ Developer - Non Bonded</option>
-                  <option>Deemed Imports</option><option>Composition Taxable Person</option>
-                </select><span class="emsg">Required</span>
-              </div>
+
               <div class="fld">
                 <label>GST No. <span class="req" id="gst-no-req" style="display:none">*</span></label>
                 <input id="f-gst_no" maxlength="15" placeholder="15-char GST number">
@@ -618,40 +595,7 @@ input[type=text].uc, textarea.uc {
                   <button class="img-preview-clear" onclick="clearImg('f-gst-img','prev-gst','dz-gst')" title="Remove">&#10005;</button>
                 </div>
               </div>
-              <div class="fld">
-                <label>Vendor TDS Type <span class="req">*</span></label>
-                <select id="f-tds_type">
-                  <option value="">— Select —</option>
-                  <option>Company</option><option>Other</option><option>Not Applicable</option>
-                </select><span class="emsg">Required</span>
-              </div>
-              <div class="fld full">
-                <label>TDS Section (WTax Name) <span class="req">*</span></label>
-                <select id="f-tds_section">
-                  <option value="">— Select —</option>
-                  <option>TD01-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
-                  <option>TD02-NON-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
-                  <option>TD03-NON-COM-TDS FOR PROF. SERVICE-194J@10%</option>
-                  <option>TD04-COM-TDS FOR PROF. SERVICE-194J@10%</option>
-                  <option>TD05-NON-COM-TDS FOR TECH. SERVICE-194J@2%</option>
-                  <option>TD06-COM-TDS FOR TECH. SERVICE-194J@2%</option>
-                  <option>TD07-NON-COM-TDS FOR COMMISSION OR BROKERAGE-194H@2%</option>
-                  <option>TD08-NON-COM-TDS FOR CONTRACTORS-194C@1%</option>
-                  <option>TD09-COM-TDS FOR CONTRACTORS-194C@2%</option>
-                  <option>TD10-COM-TDS FOR COMMISSION OR BROKERAGE-194H@2%</option>
-                  <option>TD11-COM-TDS FOR RENT ON LAND&amp;BUILDING,F&amp;F-194I@10%</option>
-                  <option>TD12-NON-COM-TDS FOR RENT ON LAND&amp;BUILDING,F&amp;F-194I@10%</option>
-                  <option>TD13-NON-COM-TDS FOR RENT ON P&amp;M AND EQUIPMENT-194I@2%</option>
-                  <option>TD14-COM-TDS FOR RENT ON P&amp;M AND EQUIPMENT-194I@2%</option>
-                  <option>TD15-NON-COM-TDS FOR INTEREST(OTHERS)-194A@10%</option>
-                  <option>TD16-COM-TDS FOR INTEREST(OTHERS)-194A@10%</option>
-                  <option>TD17-FIRM-TDS FOR CONTRACTORS-194C@2%</option>
-                  <option>TD18-NON-COM-TDS FOR GIFT-194R@10%</option>
-                  <option>TD19-COM-TDS FOR GIFT-194R@10%</option>
-                  <option>TD20-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
-                  <option>TD21-NON-COM-TDS FOR MATS. PURCHASE-194Q@0.1%</option>
-                </select><span class="emsg">Required</span>
-              </div>
+
             </div>
           </div>
         </div>
@@ -727,40 +671,6 @@ input[type=text].uc, textarea.uc {
               <thead><tr><th>#</th><th>Bank Name *</th><th>Account No. *</th><th>IFSC *</th><th>Acc. Type</th><th>Acc. Name</th><th>Address</th><th></th></tr></thead>
               <tbody id="tb-bank"></tbody>
             </table>
-          </div>
-        </div>
-
-        <!-- ⑪ MSME -->
-        <div class="fc" id="card-msme">
-          <div class="fc-hd"><div class="fc-title"><span class="fc-num">11</span> MSME Details <span style="font-size:11px;font-weight:400;color:var(--warn);">(Vendor only)</span></div></div>
-          <div class="fc-body">
-            <div class="fg c4">
-              <div class="fld">
-                <label>Registered under MSME? <span class="req">*</span></label>
-                <div class="radio-row">
-                  <label><input type="radio" name="msme" value="Yes" onchange="onMsme()"> Yes</label>
-                  <label><input type="radio" name="msme" value="No" onchange="onMsme()" checked> No</label>
-                  <label><input type="radio" name="msme" value="Unknown" onchange="onMsme()"> Unknown</label>
-                </div>
-              </div>
-              <div class="fld" id="w-msme-cat">
-                <label>MSME Category <span class="req">*</span></label>
-                <select id="f-msme_category">
-                  <option value="">— Select —</option>
-                  <option>Micro Enterprise</option><option>Small Enterprise</option>
-                  <option>Medium Enterprise</option><option>Others</option>
-                </select>
-              </div>
-              <div class="fld" id="w-udyam-no">
-                <label>UDYAM Registration No. <span class="req">*</span></label>
-                <input id="f-udyam_no" placeholder="XXXXX-XX-00-0000000">
-                <span class="hint">Format: 5 letters-2 letters-2 digits-7 digits</span>
-              </div>
-              <div class="fld" id="w-udyam-date">
-                <label>UDYAM Registration Date <span class="req">*</span></label>
-                <input id="f-udyam_date" type="date">
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1317,7 +1227,6 @@ function onPartyType(){
   (isC?CUSTOMER_CATS:isV?VENDOR_CATS:[]).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;cat.appendChild(o);});
   // show/hide sections
   ['card-cust','card-prop','card-sig','card-ship','card-biz','card-brands','card-stock','card-cheques'].forEach(id=>document.getElementById(id).style.display=isC?'block':'none');
-  document.getElementById('card-msme').style.display=isV?'block':'none';
   document.getElementById('w-enterprise').style.display=isV?'block':'none';
   document.getElementById('w-exp-biz').style.display=isC?'block':'none';
   document.getElementById('w-cap1').style.display=isC?'block':'none';
@@ -1346,12 +1255,6 @@ function onConstitution(){
 function onGstStatus(){
   const v=document.getElementById('f-gst_status').value;
   document.getElementById('gst-no-req').style.display=v==='Registered'?'inline':'none';
-}
-
-function onMsme(){
-  const v=document.querySelector('input[name=msme]:checked').value;
-  const show=v==='Yes';
-  ['w-msme-cat','w-udyam-no','w-udyam-date'].forEach(id=>document.getElementById(id).style.display=show?'block':'none');
 }
 
 function onBizDate(){
@@ -1479,8 +1382,8 @@ function validate(){
   document.querySelectorAll('.fld.has-err').forEach(f=>f.classList.remove('has-err'));
   const req=id=>{const el=document.getElementById(id);if(!el)return;if(!el.value.trim()){el.closest('.fld')&&el.closest('.fld').classList.add('has-err');ok=false;}};
   req('f-party_type');req('f-category');req('f-party_name');req('f-constitution');
-  req('f-email');req('f-gst_type');req('f-gst_status');req('f-vendor_gst_category');
-  req('f-pan');req('f-tds_type');req('f-tds_section');req('f-gst_state');
+  req('f-email');req('f-gst_type');req('f-gst_status');
+  req('f-pan');req('f-gst_state');
   const pt=document.getElementById('f-party_type').value;
   if(pt==='Customer'){
     req('f-billing_addr1');req('f-billing_city');req('f-billing_pin');req('f-billing_state');
@@ -1524,15 +1427,12 @@ function collect(){
     contact_person:g('f-contact_person'),email:g('f-email'),
     mobile:g('f-mobile'),alt_mobile:g('f-alt_mobile'),whatsapp:g('f-whatsapp'),
     gst_type:g('f-gst_type'),gst_status:g('f-gst_status'),
-    vendor_gst_category:g('f-vendor_gst_category'),gst_no:g('f-gst_no'),
+    gst_no:g('f-gst_no'),
     gst_state:g('f-gst_state'),pan:g('f-pan'),
-    tds_type:g('f-tds_type'),tds_section:g('f-tds_section'),
     dealer_code:g('f-dealer_code'),
     credit_limit:parseFloat(g('f-credit_limit'))||0,
     credit_days:parseInt(g('f-credit_days'))||0,
     sales_person_id:g('f-sales_person')||null,
-    msme_registered:gr('msme'),msme_category:g('f-msme_category'),
-    udyam_no:g('f-udyam_no'),udyam_date:g('f-udyam_date')||null,
     biz_nature:g('f-biz_nature'),biz_date:g('f-biz_date')||null,
     biz_year:g('f-biz_year'),godown_area:parseFloat(g('f-godown_area'))||null,
     shop_type:gr('shop_t'),godown_type:gr('godown_t'),residence_type:gr('res_t'),
@@ -1636,7 +1536,6 @@ function resetForm(){
   var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value='Customer';
   onPartyType();
   const mn=document.querySelector('input[name=msme][value=No]');if(mn)mn.checked=true;
-  onMsme();
   const cn=document.querySelector('input[name=convicted][value=No]');if(cn)cn.checked=true;
 }
 
@@ -1661,20 +1560,18 @@ function fillForm(app){
   s('f-contact_person',app.contact_person);s('f-email',app.email);
   s('f-mobile',app.mobile);s('f-alt_mobile',app.alt_mobile);s('f-whatsapp',app.whatsapp);
   s('f-gst_type',app.gst_type);s('f-gst_status',app.gst_status);onGstStatus();
-  s('f-vendor_gst_category',app.vendor_gst_category);s('f-gst_no',app.gst_no);
+  s('f-gst_no',app.gst_no);
   s('f-gst_state',app.gst_state);s('f-pan',app.pan);
-  s('f-tds_type',app.tds_type);s('f-tds_section',app.tds_section);
   s('f-dealer_code',app.dealer_code);s('f-credit_limit',app.credit_limit);
   s('f-credit_days',app.credit_days);s('f-sales_person',app.sales_person_id);
-  s('f-msme_category',app.msme_category);s('f-udyam_no',app.udyam_no);
-  s('f-udyam_date',app.udyam_date);s('f-biz_nature',app.biz_nature);
+  s('f-biz_nature',app.biz_nature);
   s('f-biz_date',app.biz_date);s('f-biz_year',app.biz_year);
   s('f-godown_area',app.godown_area);s('f-expected_business',app.expected_business);
   s('f-payment_terms',app.payment_terms);s('f-capacity_invest',app.capacity_invest);
   s('f-total_invest',app.total_invest);s('f-remarks',app.remarks);
-  ['msme','shop_t','godown_t','res_t','convicted'].forEach(n=>{
-    const v=app[{msme:'msme_registered',shop_t:'shop_type',godown_t:'godown_type',res_t:'residence_type',convicted:'convicted'}[n]];
-    if(v){const el=document.querySelector(`input[name=${n}][value="${v}"]`);if(el){el.checked=true;if(n==='msme')onMsme();}}
+  ['shop_t','godown_t','res_t','convicted'].forEach(n=>{
+    const v=app[{shop_t:'shop_type',godown_t:'godown_type',res_t:'residence_type',convicted:'convicted'}[n]];
+    if(v){const el=document.querySelector(`input[name=${n}][value="${v}"]`);if(el)el.checked=true;}
   });
   // Restore PAN image from DB
   if(app.pan_image_b64){restoreStaticImg('f-pan-img','prev-pan','dz-pan',app.pan_image_b64,app.pan_image_name);}
@@ -2090,8 +1987,7 @@ function buildPrintContent(app){
   </div></div></div>
   <div class="pr-section"><div class="pr-sec-hd">5. Tax &amp; Compliance</div><div class="pr-sec-body"><div class="pr-grid">
     ${pf('GST Type',app.gst_type)}${pf('GST Status',app.gst_status)}${pf('GST No.',app.gst_no)}
-    ${pf('GST State',app.gst_state)}${pf('PAN',app.pan)}${pf('TDS Type',app.tds_type)}
-    ${pf('TDS Section',app.tds_section,2)}${pf('Vendor GST Category',app.vendor_gst_category)}
+    ${pf('GST State',app.gst_state)}${pf('PAN',app.pan)}
   </div></div></div>
   ${props.length?`<div class="pr-section"><div class="pr-sec-hd">7. Proprietor / Partner / Karta / Member / Director</div><div class="pr-sec-body">
     <table class="pr-table"><thead><tr><th>#</th><th>Full Name</th><th>Son of/Wife of</th><th>Age</th><th>Designation</th><th>DIN/PAN</th><th>Share%</th><th>Specimen Sig.</th></tr></thead>
@@ -2118,9 +2014,6 @@ function buildPrintContent(app){
     <table class="pr-table"><thead><tr><th>#</th><th>Bank Name</th><th>Account No.</th><th>IFSC</th><th>Type</th><th>Account Name</th><th>Branch Address</th></tr></thead>
     <tbody>${banks.map((r,i)=>`<tr><td>${i+1}</td><td>${pv(r.bank_name)}</td><td>${pv(r.account_no)}</td><td>${pv(r.ifsc)}</td><td>${pv(r.account_type)}</td><td>${pv(r.account_name)}</td><td>${pv(r.address)}</td></tr>`).join('')}</tbody>
     </table></div></div>`:''}
-  ${app.msme_registered?`<div class="pr-section"><div class="pr-sec-hd">11. MSME Details</div><div class="pr-sec-body"><div class="pr-grid">
-    ${pf('MSME Registered',app.msme_registered)}${pf('Category',app.msme_category)}${pf('Udyam No.',app.udyam_no)}${pf('Udyam Date',app.udyam_date)}
-  </div></div></div>`:''}
   ${(app.exp_brand_duro||app.exp_brand_tower||app.exp_brand_ntd||app.exp_brand_other)?`<div class="pr-section"><div class="pr-sec-hd">12a. Expected Brands to be Dealt In</div><div class="pr-sec-body"><div class="pr-grid">
     ${pf('Expected Brands',[app.exp_brand_duro?'Duro':'',app.exp_brand_tower?'Tower':'',app.exp_brand_ntd?'NTD':'',app.exp_brand_other?(app.exp_brand_other_name||'Other'):''].filter(Boolean).join(', ')||'—',3)}
   </div></div></div>`:''}
@@ -2436,9 +2329,7 @@ async function generateExcel(app){
   secRow('5.  TAX & COMPLIANCE');
   twoRow('GST Type',app.gst_type||'','GST Status',app.gst_status||'');
   twoRow('GST No.',app.gst_no||'','GST State',app.gst_state||'');
-  twoRow('PAN No.',app.pan||'','Vendor TDS Type',app.tds_type||'');
-  twoRow('Vendor GST Category',app.vendor_gst_category||'','','');
-  fullRow('TDS Section',app.tds_section||'');
+  twoRow('PAN No.',app.pan||'','','');
   blankRow();
 
   // ── 6. Customer/Vendor ─────────────────────────────────────
@@ -2524,12 +2415,7 @@ async function generateExcel(app){
   }
 
   // ── 11. MSME ───────────────────────────────────────────────
-  if(app.msme_registered){
-    secRow('11. MSME DETAILS');
-    twoRow('Registered under MSME?',app.msme_registered||'','MSME Category',app.msme_category||'');
-    twoRow('Udyam Registration No.',app.udyam_no||'','Udyam Reg. Date',app.udyam_date||'');
-    blankRow();
-  }
+
 
   // ── 12. Existing Business ──────────────────────────────────
   secRow('12. DETAILS OF EXISTING BUSINESS');
@@ -2837,25 +2723,6 @@ async function saveOfficeUse(){
   if(idx>=0) apps[idx].office_use=payload.office_use;
   toast('Office use data saved successfully','success');
 }
-
-// ── Force uppercase on all text inputs except email ─────────
-document.addEventListener('input', function(e){
-  var el = e.target;
-  if(!el) return;
-  var tag  = el.tagName;
-  var type = (el.type||'').toLowerCase();
-  // Skip: email, date, file, radio, checkbox, select, number, OFU dropdowns
-  if(type==='email'||type==='date'||type==='file'||type==='radio'||type==='checkbox'||type==='number') return;
-  if(tag==='SELECT') return;
-  // Skip OFU verified_by and recommended_by (dropdown selects - already handled)
-  if(el.id==='ofu-verified_by'||el.id==='ofu-recommended_by') return;
-  // Apply uppercase
-  if(tag==='INPUT'||tag==='TEXTAREA'){
-    var pos = el.selectionStart;
-    el.value = el.value.toUpperCase();
-    try{ el.setSelectionRange(pos, pos); }catch(e){}
-  }
-}, true);
 
 </script>
 </body>
