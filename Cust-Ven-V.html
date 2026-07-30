@@ -1265,7 +1265,7 @@ function addShipping(){
     <div class="fld full"><label>Address Line 3</label><input type="text" placeholder="Line 3 (optional)"></div>
     <div class="fld"><label>City</label><input type="text" placeholder="City"></div>
     <div class="fld"><label>Pincode</label><input type="text" maxlength="6" placeholder="PIN"></div>
-    <div class="fld"><label>State</label><select><option value="">— Select —</option>${SELLING_BRANCHES.map(s=>`<option>${xe(s)}</option>`).join('')}</select></div>
+    <div class="fld"><label>State</label><select><option value="">— Select —</option>${GST_STATES.map(s=>`<option>${xe(s)}</option>`).join('')}</select></div>
     <div class="fld"><label>GST No.</label><input type="text" maxlength="15" placeholder="GST (optional)"></div>
     <div class="fld"><label>Email ID</label><input type="email" placeholder="Email (optional)"></div>
     <div class="fld"><label>Mobile No.</label><input type="text" maxlength="15" placeholder="Mobile (optional)"></div>
@@ -2260,7 +2260,7 @@ async function generateExcel(app){
   twoRow('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
   twoRow('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
   fullRow('Party / Firm Name',app.party_name||'');
-  twoRow('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
+
   blankRow();
 
   if(app.dealership_area||app.dealership_state){
@@ -2279,8 +2279,26 @@ async function generateExcel(app){
   fullRow('Address Line 2',app.billing_addr2||'');
   fullRow('Address Line 3',app.billing_addr3||'');
   twoRow('City',app.billing_city||'','State',app.billing_state||'');
-  twoRow('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
+  twoRow('Pincode',app.billing_pin||'','','');
   blankRow();
+
+  // ── 9. Shipping ────────────────────────────────────────────
+  if(ships.length){
+    secRow('9.  SHIPPING ADDRESS (Customer Only)');
+    ships.forEach((s,idx)=>{
+      ws.mergeCells(rowNum,1,rowNum,8);
+      ws.getCell(rowNum,1).value='Shipping Address '+(idx+1);
+      applyShpStyle(ws.getCell(rowNum,1));
+      for(let c=2;c<=8;c++) applyShpStyle(ws.getCell(rowNum,c));
+      ws.getRow(rowNum).height=16; rowNum++;
+      fullRow('Address Line 1',s.addr1||'');
+      fullRow('Address Line 2',s.addr2||'');
+      twoRow('City',s.city||'','Pincode',s.pin||'');
+      twoRow('GST No.',s.gst||'','Email',s.email||'');
+      twoRow('Mobile',s.mobile||'','','');
+    });
+    blankRow();
+  }
 
   // ── 4. Contact ─────────────────────────────────────────────
   secRow('4.  CONTACT DETAILS');
@@ -2341,23 +2359,7 @@ async function generateExcel(app){
     blankRow();
   }
 
-  // ── 9. Shipping ────────────────────────────────────────────
-  if(ships.length){
-    secRow('9.  SHIPPING ADDRESS (Customer Only)');
-    ships.forEach((s,idx)=>{
-      ws.mergeCells(rowNum,1,rowNum,8);
-      ws.getCell(rowNum,1).value='Shipping Address '+(idx+1);
-      applyShpStyle(ws.getCell(rowNum,1));
-      for(let c=2;c<=8;c++) applyShpStyle(ws.getCell(rowNum,c));
-      ws.getRow(rowNum).height=16; rowNum++;
-      fullRow('Address Line 1',s.addr1||'');
-      fullRow('Address Line 2',s.addr2||'');
-      twoRow('City',s.city||'','Pincode',s.pin||'');
-      twoRow('GST No.',s.gst||'','Email',s.email||'');
-      twoRow('Mobile',s.mobile||'','','');
-    });
-    blankRow();
-  }
+
 
   // ── 10. Bank ───────────────────────────────────────────────
   if(banks.length){
@@ -2670,6 +2672,20 @@ async function saveOfficeUse(){
   if(idx>=0) apps[idx].office_use=payload.office_use;
   toast('Office use data saved successfully','success');
 }
+
+// ── Force uppercase on all text inputs except email ─────────
+document.addEventListener('input', function(e){
+  var el=e.target;
+  if(!el) return;
+  var tag=el.tagName, type=(el.type||'').toLowerCase();
+  if(type==='email'||type==='date'||type==='file'||type==='radio'||type==='checkbox'||type==='number') return;
+  if(tag==='SELECT') return;
+  if(tag==='INPUT'||tag==='TEXTAREA'){
+    var pos=el.selectionStart;
+    el.value=el.value.toUpperCase();
+    try{el.setSelectionRange(pos,pos);}catch(e){}
+  }
+},true);
 
 </script>
 </body>
