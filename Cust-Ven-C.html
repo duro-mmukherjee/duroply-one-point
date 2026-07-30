@@ -2318,6 +2318,24 @@ async function generateExcel(app){
   twoRow('Pincode',app.billing_pin||'','Selling Branch',app.selling_branch_id||'');
   blankRow();
 
+  // ── 9. Shipping ────────────────────────────────────────────
+  if(ships.length){
+    secRow('9.  SHIPPING ADDRESS (Customer Only)');
+    ships.forEach((s,idx)=>{
+      ws.mergeCells(rowNum,1,rowNum,8);
+      ws.getCell(rowNum,1).value='Shipping Address '+(idx+1);
+      applyShpStyle(ws.getCell(rowNum,1));
+      for(let c=2;c<=8;c++) applyShpStyle(ws.getCell(rowNum,c));
+      ws.getRow(rowNum).height=16; rowNum++;
+      fullRow('Address Line 1',s.addr1||'');
+      fullRow('Address Line 2',s.addr2||'');
+      twoRow('City',s.city||'','Pincode',s.pin||'');
+      twoRow('GST No.',s.gst||'','Email',s.email||'');
+      twoRow('Mobile',s.mobile||'','','');
+    });
+    blankRow();
+  }
+
   // ── 4. Contact ─────────────────────────────────────────────
   secRow('4.  CONTACT DETAILS');
   twoRow('Contact Person',app.contact_person||'','Mobile No.',app.mobile||'');
@@ -2344,23 +2362,7 @@ async function generateExcel(app){
 
 
 
-  // ── 9. Shipping ────────────────────────────────────────────
-  if(ships.length){
-    secRow('9.  SHIPPING ADDRESS (Customer Only)');
-    ships.forEach((s,idx)=>{
-      ws.mergeCells(rowNum,1,rowNum,8);
-      ws.getCell(rowNum,1).value='Shipping Address '+(idx+1);
-      applyShpStyle(ws.getCell(rowNum,1));
-      for(let c=2;c<=8;c++) applyShpStyle(ws.getCell(rowNum,c));
-      ws.getRow(rowNum).height=16; rowNum++;
-      fullRow('Address Line 1',s.addr1||'');
-      fullRow('Address Line 2',s.addr2||'');
-      twoRow('City',s.city||'','Pincode',s.pin||'');
-      twoRow('GST No.',s.gst||'','Email',s.email||'');
-      twoRow('Mobile',s.mobile||'','','');
-    });
-    blankRow();
-  }
+
 
   // ── 10. Bank ───────────────────────────────────────────────
   if(banks.length){
@@ -2382,13 +2384,7 @@ async function generateExcel(app){
 
 
 
-  // ── 15. Additional ─────────────────────────────────────────
-  secRow('15. ADDITIONAL INFORMATION');
-  twoRow('Expected Business (Rs.)',app.expected_business||'','Payment Terms',app.payment_terms||'');
-  twoRow('Capacity to Invest (Lacs)',app.capacity_invest||'','Total Investment (Lacs)',app.total_invest||'');
-  twoRow('Convicted / Insolvent',app.convicted||'','','');
-  if(app.remarks) fullRow('Remarks',app.remarks||'');
-  blankRow();
+
 
   // ── 16. Cheques ────────────────────────────────────────────
   if(cheqs.length){
