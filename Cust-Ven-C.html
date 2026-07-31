@@ -601,23 +601,13 @@ tbody tr:hover td{background:var(--surface2);}
                 <label>Dealer Code <span style="color:var(--text3)">(Sub Dealer)</span></label>
                 <input id="f-dealer_code" placeholder="Dealer code for validation">
               </div>
-              <div class="fld">
-                <label>Terms of Payment <span class="req">*</span></label>
-                <select id="f-payment_terms_type" onchange="onPaymentTerms()">
-                  <option value="">— Select —</option>
-                  <option value="APD">APD</option>
-                </select>
-                <span class="emsg">Required</span>
-              </div>
+              <div class="fld"><label>Credit Limit</label><input id="f-credit_limit" type="number" value="0"></div>
+              <div class="fld"><label>Credit Days</label><input id="f-credit_days" type="number" value="0"></div>
               <div class="fld">
                 <label>Sales Person <span class="req">*</span></label>
                 <select id="f-sales_person"><option value="">— Select —</option></select>
                 <span class="emsg">Required</span>
               </div>
-            </div>
-            <div class="fg c4" id="w-credit-fields" style="display:none;margin-top:6px;">
-              <div class="fld"><label>Credit Limit (Rs.)</label><input id="f-credit_limit" type="number" value="0" min="0" oninput="updatePaymentTermsDisplay()"></div>
-              <div class="fld"><label>Credit Days</label><input id="f-credit_days" type="number" value="0" min="0" oninput="updatePaymentTermsDisplay()"></div>
             </div>
           </div>
         </div>
@@ -754,11 +744,7 @@ tbody tr:hover td{background:var(--surface2);}
           <div class="fc-body">
             <div class="fg c3">
               <div class="fld" id="w-exp-biz"><label>Expected Business in FY (₹)</label><input id="f-expected_business" type="number" placeholder="Amount"></div>
-              <div class="fld" id="w-b15-payment">
-                <label>Terms of Payment</label>
-                <div id="b15-payment-display" style="font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text2);min-height:34px;"></div>
-                <input type="hidden" id="f-payment_terms" maxlength="100">
-              </div>
+              <div class="fld"><label>Terms of Payment (100c)</label><input id="f-payment_terms" maxlength="100" placeholder="Payment terms"></div>
               <div class="fld" id="w-cap1"><label>Capacity to Invest in Products (Lacs)</label><input id="f-capacity_invest" type="number"></div>
               <div class="fld" id="w-cap2"><label>Total Capacity to Invest (Lacs)</label><input id="f-total_invest" type="number"></div>
               <div class="fld">
@@ -1225,39 +1211,6 @@ function editApp(id){
 }
 
 // ── Party type change ──────────────────────────────────
-function onPaymentTerms(){
-  var val=document.getElementById('f-payment_terms_type')?.value;
-  var w=document.getElementById('w-credit-fields');
-  // APD = no credit (fields hidden, values = 0)
-  // non-APD (Select) = credit fields visible
-  var isAPD=(val==='APD');
-  if(w) w.style.display=isAPD?'none':'block';
-  if(isAPD||val===''){
-    var cl=document.getElementById('f-credit_limit');if(cl)cl.value=0;
-    var cd=document.getElementById('f-credit_days');if(cd)cd.value=0;
-  }
-  // Sync Block 15 display
-  updatePaymentTermsDisplay();
-}
-
-function updatePaymentTermsDisplay(){
-  var val=document.getElementById('f-payment_terms_type')?.value;
-  var cl=document.getElementById('f-credit_limit')?.value||0;
-  var cd=document.getElementById('f-credit_days')?.value||0;
-  var disp=document.getElementById('b15-payment-display');
-  var hidden=document.getElementById('f-payment_terms');
-  var txt='';
-  if(val==='APD'){
-    txt='APD';
-  } else if(val&&val!==''){
-    txt=val;
-  } else if(parseFloat(cl)>0||parseInt(cd)>0){
-    txt='Credit Limit: Rs.'+cl+' | Credit Days: '+cd;
-  }
-  if(disp) disp.textContent=txt||'—';
-  if(hidden) hidden.value=txt;
-}
-
 function onPartyType(){
   const pt=document.getElementById('f-party_type').value;
   const isC=pt==='Customer',isV=pt==='Vendor';
@@ -1469,7 +1422,6 @@ function collect(){
     gst_no:g('f-gst_no'),
     gst_state:g('f-gst_state'),pan:g('f-pan'),
     dealer_code:g('f-dealer_code'),
-    payment_terms_type:g('f-payment_terms_type'),
     credit_limit:parseFloat(g('f-credit_limit'))||0,
     credit_days:parseInt(g('f-credit_days'))||0,
     sales_person_id:g('f-sales_person')||null,
@@ -1581,8 +1533,11 @@ function resetForm(){
   document.querySelectorAll('.fld').forEach(f=>f.classList.remove('has-err'));
   // Re-set fixed party type after reset clears all fields
   var _pt=document.getElementById('f-party_type');if(_pt)_pt.value='Customer';
-  var _ptt=document.getElementById('f-payment_terms_type');if(_ptt)_ptt.value='';
-  var _wcf=document.getElementById('w-credit-fields');if(_wcf)_wcf.style.display='none';
+  // Default sales person to logged-in user
+  if(currentUser&&currentUser.id){
+    var _spd=document.getElementById('f-sales_person');
+    if(_spd) _spd.value=String(currentUser.id);
+  }
   var _ptd=document.getElementById('f-party_type-display');if(_ptd)_ptd.value='Customer';
   onPartyType();
   const mn=document.querySelector('input[name=msme][value=No]');if(mn)mn.checked=true;
@@ -1612,13 +1567,8 @@ function fillForm(app){
   s('f-gst_type',app.gst_type);s('f-gst_status',app.gst_status);onGstStatus();
   s('f-gst_no',app.gst_no);
   s('f-gst_state',app.gst_state);s('f-pan',app.pan);
-  s('f-dealer_code',app.dealer_code);
-  s('f-payment_terms_type',app.payment_terms_type||'');
-  onPaymentTerms();
-  s('f-credit_limit',app.credit_limit);
-  s('f-credit_days',app.credit_days);
-  updatePaymentTermsDisplay();
-  s('f-sales_person',app.sales_person_id);
+  s('f-dealer_code',app.dealer_code);s('f-credit_limit',app.credit_limit);
+  s('f-credit_days',app.credit_days);s('f-sales_person',app.sales_person_id);
   s('f-biz_nature',app.biz_nature);
   s('f-biz_date',app.biz_date);s('f-biz_year',app.biz_year);
   s('f-godown_area',app.godown_area);s('f-expected_business',app.expected_business);
@@ -2429,10 +2379,17 @@ async function generateExcel(app){
 
   // ── 6. Customer / Vendor Details ───────────────────────────
   secRow('6.  CUSTOMER / VENDOR DETAILS');
-  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
+  // Credit Limit/Days: show 0 when APD, actual values otherwise
+  var _cl=(app.payment_terms_type==='APD')?'0':(app.credit_limit||'0');
+  var _cd=(app.payment_terms_type==='APD')?'0':(app.credit_days||'0');
+  twoRow('Credit Limit',_cl,'Credit Days',_cd);
+  // Sales Person: from OFU point 5 or f-sales_person dropdown (Name (Code))
   var _ofuData=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
-  var _ofuSP=_ofuData.sales_person||fname;
-  twoRow('Sales Person',_ofuSP,'Employee Code',currentUser?.userid||'');
+  var _spSel=document.getElementById('f-sales_person');
+  var _spOpt=_spSel?Array.from(_spSel.options).find(function(o){return String(o.value)===String(app.sales_person_id);}):null;
+  var _spText=_spOpt?_spOpt.textContent:fname;
+  var _ofuSP=_ofuData.sales_person||_spText;
+  twoRow('Sales Person',_ofuSP,'Created By',(currentUser?.userid||'')+' - '+([currentUser?.fname,currentUser?.lname].filter(Boolean).join(' ')||currentUser?.userid||''));
   blankRow();
 
   // ── 10. Bank ───────────────────────────────────────────────
