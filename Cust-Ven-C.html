@@ -475,15 +475,7 @@ tbody tr:hover td{background:var(--surface2);}
                 </select>
                 <span class="emsg">Required</span>
               </div>
-              <div class="fld">
-                <label>Type of City <span class="req" id="city-type-req">*</span></label>
-                <select id="f-type_of_city">
-                  <option value="">— Select —</option>
-                  <option>D-HQ</option><option>Metro</option>
-                  <option>Mini Metro</option><option>Others</option>
-                </select>
-                <span class="emsg">Required</span>
-              </div>
+
             </div>
           </div>
         </div>
@@ -1388,7 +1380,7 @@ function validate(){
   if(pt==='Customer'){
     req('f-billing_addr1');req('f-billing_city');req('f-billing_pin');req('f-billing_state');
     req('f-contact_person');req('f-mobile');req('f-sales_person');
-    req('f-zone');req('f-market_name');req('f-cluster_name');req('f-type_of_city');
+    req('f-zone');req('f-market_name');req('f-cluster_name');
     if(!document.getElementById('tb-prop').rows.length){toast('At least one Proprietor/Partner row required','error');ok=false;}
   }
   // PAN
@@ -2293,7 +2285,7 @@ async function generateExcel(app){
   twoRow('Party Type',app.party_type||'','Enterprise Type',app.enterprise_type||'');
   twoRow('Category',app.category||'','Constitution',(app.constitution||'')+(app.constitution_other?' - '+app.constitution_other:''));
   fullRow('Party / Firm Name',app.party_name||'');
-  twoRow('Selling Branch',app.selling_branch_id||'','Type of City',app.type_of_city||'');
+  twoRow('Selling Branch',app.selling_branch_id||'','','');
   blankRow();
 
   if(app.dealership_area||app.dealership_state){
@@ -2351,12 +2343,7 @@ async function generateExcel(app){
   blankRow();
 
   // ── 6. Customer/Vendor ─────────────────────────────────────
-  secRow('6.  CUSTOMER / VENDOR DETAILS');
-  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
-  var _ofuData=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
-  var _ofuSP=_ofuData.sales_person||fname;
-  twoRow('Sales Person',_ofuSP,'Employee Code',currentUser?.userid||'');
-  blankRow();
+
 
 
 
