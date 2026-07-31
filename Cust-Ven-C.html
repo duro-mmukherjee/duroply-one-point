@@ -616,8 +616,8 @@ tbody tr:hover td{background:var(--surface2);}
               </div>
             </div>
             <div class="fg c4" id="w-credit-fields" style="display:none;margin-top:6px;">
-              <div class="fld"><label>Credit Limit (Rs.)</label><input id="f-credit_limit" type="number" value="0" min="0"></div>
-              <div class="fld"><label>Credit Days</label><input id="f-credit_days" type="number" value="0" min="0"></div>
+              <div class="fld"><label>Credit Limit (Rs.)</label><input id="f-credit_limit" type="number" value="0" min="0" oninput="updatePaymentTermsDisplay()"></div>
+              <div class="fld"><label>Credit Days</label><input id="f-credit_days" type="number" value="0" min="0" oninput="updatePaymentTermsDisplay()"></div>
             </div>
           </div>
         </div>
@@ -754,7 +754,11 @@ tbody tr:hover td{background:var(--surface2);}
           <div class="fc-body">
             <div class="fg c3">
               <div class="fld" id="w-exp-biz"><label>Expected Business in FY (₹)</label><input id="f-expected_business" type="number" placeholder="Amount"></div>
-              <div class="fld"><label>Terms of Payment (100c)</label><input id="f-payment_terms" maxlength="100" placeholder="Payment terms"></div>
+              <div class="fld" id="w-b15-payment">
+                <label>Terms of Payment</label>
+                <div id="b15-payment-display" style="font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text2);min-height:34px;"></div>
+                <input type="hidden" id="f-payment_terms" maxlength="100">
+              </div>
               <div class="fld" id="w-cap1"><label>Capacity to Invest in Products (Lacs)</label><input id="f-capacity_invest" type="number"></div>
               <div class="fld" id="w-cap2"><label>Total Capacity to Invest (Lacs)</label><input id="f-total_invest" type="number"></div>
               <div class="fld">
@@ -1224,12 +1228,34 @@ function editApp(id){
 function onPaymentTerms(){
   var val=document.getElementById('f-payment_terms_type')?.value;
   var w=document.getElementById('w-credit-fields');
-  if(w) w.style.display=(val==='APD')?'block':'none';
-  // Reset credit fields if not APD
-  if(val!=='APD'){
+  // APD = no credit (fields hidden, values = 0)
+  // non-APD (Select) = credit fields visible
+  var isAPD=(val==='APD');
+  if(w) w.style.display=isAPD?'none':'block';
+  if(isAPD||val===''){
     var cl=document.getElementById('f-credit_limit');if(cl)cl.value=0;
     var cd=document.getElementById('f-credit_days');if(cd)cd.value=0;
   }
+  // Sync Block 15 display
+  updatePaymentTermsDisplay();
+}
+
+function updatePaymentTermsDisplay(){
+  var val=document.getElementById('f-payment_terms_type')?.value;
+  var cl=document.getElementById('f-credit_limit')?.value||0;
+  var cd=document.getElementById('f-credit_days')?.value||0;
+  var disp=document.getElementById('b15-payment-display');
+  var hidden=document.getElementById('f-payment_terms');
+  var txt='';
+  if(val==='APD'){
+    txt='APD';
+  } else if(val&&val!==''){
+    txt=val;
+  } else if(parseFloat(cl)>0||parseInt(cd)>0){
+    txt='Credit Limit: Rs.'+cl+' | Credit Days: '+cd;
+  }
+  if(disp) disp.textContent=txt||'—';
+  if(hidden) hidden.value=txt;
 }
 
 function onPartyType(){
@@ -1591,6 +1617,7 @@ function fillForm(app){
   onPaymentTerms();
   s('f-credit_limit',app.credit_limit);
   s('f-credit_days',app.credit_days);
+  updatePaymentTermsDisplay();
   s('f-sales_person',app.sales_person_id);
   s('f-biz_nature',app.biz_nature);
   s('f-biz_date',app.biz_date);s('f-biz_year',app.biz_year);
