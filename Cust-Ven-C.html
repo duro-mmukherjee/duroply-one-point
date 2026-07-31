@@ -1478,6 +1478,14 @@ async function saveApp(status){
     else toast('Save failed: '+error.message,'error');
     return;
   }
+  // Refresh apps array with latest saved data so print/excel show current version
+  const{data:_fresh}=await sb.from('cvr_applications').select('*').eq('id',editId||0).limit(1);
+  if(_fresh&&_fresh[0]){
+    const _i=apps.findIndex(a=>String(a.id)===String(_fresh[0].id));
+    if(_i>=0) apps[_i]=_fresh[0]; else apps.push(_fresh[0]);
+  } else {
+    await loadApps(); // fallback: reload full list
+  }
   toast(status==='Draft'?'Draft saved successfully':'Application submitted successfully','success');
   showList();
 }
@@ -1933,9 +1941,16 @@ function printApp(id){
   buildPrintContent(app);
   document.getElementById('print-modal').classList.add('open');
 }
-function printCurrentForm(){
+async function printCurrentForm(){
   if(!editId){toast('Save the record first','error');return;}
-  printApp(editId);
+  // Fetch fresh data from Supabase before printing
+  const{data,error}=await sb.from('cvr_applications').select('*').eq('id',editId).single();
+  if(error||!data){toast('Could not load record','error');return;}
+  // Update apps array with fresh data
+  const idx=apps.findIndex(a=>String(a.id)===String(editId));
+  if(idx>=0) apps[idx]=data; else apps.push(data);
+  buildPrintContent(data);
+  document.getElementById('print-modal').classList.add('open');
 }
 function closePrint(){document.getElementById('print-modal').classList.remove('open');}
 
@@ -2136,9 +2151,15 @@ function downloadExcel(id){
   if(!app){toast('Record not found','error');return;}
   generateExcel(app);
 }
-function downloadExcelCurrent(){
+async function downloadExcelCurrent(){
   if(!editId){toast('Save the record first','error');return;}
-  downloadExcel(editId);
+  // Fetch fresh data from Supabase before export
+  const{data,error}=await sb.from('cvr_applications').select('*').eq('id',editId).single();
+  if(error||!data){toast('Could not load record','error');return;}
+  // Update apps array with fresh data
+  const idx=apps.findIndex(a=>String(a.id)===String(editId));
+  if(idx>=0) apps[idx]=data; else apps.push(data);
+  generateExcel(data);
 }
 
 async function generateExcel(app){
