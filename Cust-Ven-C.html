@@ -2372,6 +2372,14 @@ async function generateExcel(app){
 
 
 
+  // ── 6. Customer / Vendor Details ───────────────────────────
+  secRow('6.  CUSTOMER / VENDOR DETAILS');
+  twoRow('Credit Limit',app.credit_limit||'','Credit Days',app.credit_days||'');
+  var _ofuData=app.office_use?(typeof app.office_use==='string'?JSON.parse(app.office_use):app.office_use):{};
+  var _ofuSP=_ofuData.sales_person||fname;
+  twoRow('Sales Person',_ofuSP,'Employee Code',currentUser?.userid||'');
+  blankRow();
+
   // ── 10. Bank ───────────────────────────────────────────────
   if(banks.length){
     secRow('10. BANK DETAILS');
