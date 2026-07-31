@@ -2441,14 +2441,9 @@ async function generateExcel(app){
 
   // ── Notes ──────────────────────────────────────────────────
   ['Note:',
-   '1) Selling Branch to be chosen from the List provided, if Party type is Customer.',
    '2) Scanned copies of GST, PAN and Service tax registration to be given along with requisition.',
    '3) Category code to be selected from the list provided with GL Code.',
-   '4) While creating party code for sub dealer, provide respective dealer code also.',
-   '5) Credit limit and Credit days is mandatory in case party type is Customer.',
-   '6) Name of Employee who introduced this customer needed to be filled up.',
    '7) Party Code will be allotted only after online verification of applicable registrations.',
-   '8) Sales Person name is with whom customer is to be mapped.',
   ].forEach(n=>{
     ws.mergeCells(rowNum,1,rowNum,8);
     const c=ws.getCell(rowNum,1);
