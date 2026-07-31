@@ -1231,7 +1231,7 @@ function onPartyType(){
   document.getElementById('zone-req').style.display=isC?'inline':'none';
   document.getElementById('mkt-req').style.display=isC?'inline':'none';
   document.getElementById('cls-req').style.display=isC?'inline':'none';
-  document.getElementById('city-type-req').style.display=isC?'inline':'none';
+  var _ctr=document.getElementById('city-type-req');if(_ctr)_ctr.style.display=isC?'inline':'none';
 }
 
 function onCategory(){
